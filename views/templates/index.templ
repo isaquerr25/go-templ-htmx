@@ -1,0 +1,25 @@
+package templates
+
+templ Base() {
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<link rel="stylesheet" href="/static/vendor/tailwind.css" />
+	<script src="/static/vendor/htmx.min.js"></script>
+	<link rel="icon" type="image/png" href="/static/img/favicon.png" />
+	<title>WPBot</title>
+</head>
+
+<body class="min-h-screen flex flex-col bg-gray-50">
+	{ children... }
+	<script src="/static/vendor/sweetalert.js"></script>
+	<script src="/static/vendor/Sortable.min.js"></script>
+	<script src="/static/index.js"></script>
+	<script src="/static/notification-button.js"></script>
+</body>
+
+</html>
+}

@@ -1,0 +1,9 @@
+package home
+
+import "github.com/isaquerr25/go-templ-htmx/views/templates"
+
+templ Hello(name string) {
+	@templates.Base() {
+		@about()
+	}
+}
