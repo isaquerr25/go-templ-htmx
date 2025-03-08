@@ -22,7 +22,7 @@ live/server:
 # run tailwindcss to generate the styles.css bundle in watch mode.
 live/tailwind:
 	air \
-	--build.cmd "npx @tailwindcss/cli -i ./views/input.css -o ./static/vendor/tailwind.css --minify && templ generate --notify-proxy" \
+	--build.cmd "./tailwindcss  -o ./static/vendor/tailwind.css --minify && templ generate --notify-proxy" \
 	--build.bin "true" \
 	--build.delay "100" \
 	--build.exclude_dir "" \
