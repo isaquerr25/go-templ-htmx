@@ -5,10 +5,12 @@ templ Base() {
 <html lang="en">
 
 <head>
+	<script src="https://unpkg.com/htmx.org@2.0.4"
+		integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+"
+		crossorigin="anonymous"></script>
 	<meta charset="UTF-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<link rel="stylesheet" href="/static/vendor/tailwind.css" />
-	<script src="/static/vendor/htmx.min.js"></script>
 	<link rel="icon" type="image/png" href="/static/img/favicon.png" />
 	<title>WPBot</title>
 </head>
@@ -29,7 +31,7 @@ templ Base() {
 				Contact
 			</a>
 		</div>
-		<button class="p-2 rounded-md hover:bg-gray-100">
+		<button class="p-2 rounded-md hover:bg-gray-100" onclick="window.location.href='/listProduct/new'">
 			<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
 				stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5">
 				<line x1="12" y1="5" x2="12" y2="19"></line>
@@ -38,7 +40,9 @@ templ Base() {
 			<span class="sr-only">Add</span>
 		</button>
 	</nav>
-	{ children... }
+	<main>
+		{ children... }
+	</main>
 	<script src="/static/vendor/sweetalert.js"></script>
 	<script src="/static/vendor/Sortable.min.js"></script>
 	<script src="/static/index.js"></script>
