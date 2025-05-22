@@ -1,0 +1,43 @@
+package produto
+
+import (
+	"fmt"
+	"github.com/isaquerr25/go-templ-htmx/views/templates"
+	"strconv"
+)
+
+templ List(pp []ProductProps) {
+	@templates.Base() {
+		<div class="container mx-auto">
+			<h1 class="text-3xl font-semibold text-center mb-6">Produtos</h1>
+			<table class="min-w-full table-auto bg-white shadow-md rounded-lg">
+				<thead>
+					<tr class="bg-gray-800 text-white">
+						<th class="px-4 py-2 text-left">Nome</th>
+						<th class="px-4 py-2 text-left">Quantidade</th>
+						<th class="px-4 py-2 text-left">Unidade</th>
+						<th class="px-4 py-2 text-left">Data</th>
+						<th class="px-4 py-2 text-left">Valor</th>
+						<th class="px-4 py-2 text-left">Usando</th>
+					</tr>
+				</thead>
+				<tbody>
+					for _,p := range pp {
+						<tr class="border-b hover:bg-gray-100">
+							<td class="px-4 py-2">
+								<a href={ templ.URL(fmt.Sprintf("/listProduct/%d", p.ID)) }>
+									{ p.Name }
+								</a>
+							</td>
+							<td class="px-4 py-2">{ strconv.FormatFloat(p.Quantity, 'f', -1, 64) }</td>
+							<td class="px-4 py-2">{ p.Unit }</td>
+							<td class="px-4 py-2">{ p.Date.Format("02/01/2006") }</td>
+							<td class="px-4 py-2">{ fmt.Sprintf("%.2f", p.TotalCost) }</td>
+							<td class="px-4 py-2">{ strconv.FormatFloat(p.Remaining, 'f', -1, 64) }</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	}
+}

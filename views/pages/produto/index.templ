@@ -1,0 +1,78 @@
+package produto
+
+import (
+"fmt"
+"github.com/isaquerr25/go-templ-htmx/views/templates"
+"time"
+)
+
+type ProductProps struct {
+ID uint `form:"id"`
+Name string `form:"name"`
+Quantity float64 `form:"quantity"`
+Remaining float64 `form:"remaining"`
+Unit string `form:"unit"`
+Date time.Time `form:"date"`
+TotalCost float64 `form:"totalCost"`
+Description string `form:"description"`
+Error map[string]string
+}
+
+templ Index(p ProductProps) {
+@templates.Base() {
+<div class="max-w-[50rem] mx-auto mt-[5rem]">
+	<h1 class="text-xl font-bold mb-4">Cadastro de Produto</h1>
+	<form if p.ID !=0 { hx-post={ fmt.Sprintf("/updateProduct/%d", p.ID) } } else { hx-post="/createProduct" }
+		hx-target="main" hx-select="main" hx-swap="outerHTML" class="space-y-4">
+		<input value={ p.Name } type="text" name="name" placeholder="Nome" required class="w-full p-2 border rounded" />
+		if e, ok := p.Error["Name"]; ok {
+		<p class="text-red-500">{ e }</p>
+		}
+		<input value={ fmt.Sprintf("%.3f", p.Quantity) } type="number" name="quantity" placeholder="Quantidade total"
+			required step="0.001" class="w-full p-2 border rounded" />
+		if e, ok := p.Error["Quantity"]; ok {
+		<p class="text-red-500">{ e }</p>
+		}
+		<input value={ fmt.Sprintf("%.3f", p.Remaining) } type="number" name="remaining"
+			placeholder="Quantidade restante" required step="0.001" class="w-full p-2 border rounded" />
+		if e, ok := p.Error["Remaining"]; ok {
+		<p class="text-red-500">{ e }</p>
+		}
+		<select name="unit" class="w-full p-2 border rounded">
+			<option selected?={ p.Unit=="Litros" } value="Litros">Litros</option>
+			<option selected?={ p.Unit=="Quilos" } value="Quilos">Quilos</option>
+		</select>
+		if e, ok := p.Error["Unit"]; ok {
+		<p class="text-red-500">{ e }</p>
+		}
+		<input value={ p.Date.Format("2006-01-02") } type="date" name="date" required
+			class="w-full p-2 border rounded" />
+		if e, ok := p.Error["Date"]; ok {
+		<p class="text-red-500">{ e }</p>
+		}
+		<input value={ fmt.Sprintf("%.2f", p.TotalCost) } type="number" name="totalCost" step="0.01"
+			placeholder="Custo total R$" required class="w-full p-2 border rounded" />
+		if e, ok := p.Error["TotalCost"]; ok {
+		<p class="text-red-500">{ e }</p>
+		}
+		<textarea value={ p.Description } name="description" placeholder="Descrição"
+			class="w-full p-2 border rounded"></textarea>
+		if e, ok := p.Error["Description"]; ok {
+		<p class="text-red-500">{ e }</p>
+		}
+		<button type="submit" class="w-full bg-blue-500 text-white p-2 rounded">
+			if p.ID == 0 {
+			Cadastrar
+			} else {
+			Atualizar
+			}
+		</button>
+		if p.ID != 0 {
+		<button type="button" class="w-full bg-red-500 text-white p-2 rounded">
+			Remover
+		</button>
+		}
+	</form>
+</div>
+}
+}

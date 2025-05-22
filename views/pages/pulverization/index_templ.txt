@@ -1,0 +1,16 @@
+<form
+ hx-post=\"./pulverization\"
+ hx-post=\"
+\"
+ hx-target=\"#pulverization-list\" hx-swap=\"outerHTML\" class=\"space-y-4\"><div><label for=\"plantingId\">Plantio</label> <input type=\"number\" name=\"plantingId\" value=\"
+\" required></div><div><label for=\"productId\">Produto</label> <input type=\"number\" name=\"productId\" value=\"
+\" required></div><div><label for=\"appliedAt\">Data de Aplicação</label> <input type=\"date\" name=\"appliedAt\" value=\"
+\" required> 
+<p class=\"text-red-500 text-sm\">
+</p>
+</div><div><label for=\"quantityUsed\">Quantidade Usada</label> <input type=\"number\" step=\"0.01\" name=\"quantityUsed\" value=\"
+\" required></div><div><label for=\"unit\">Unidade</label> <input type=\"text\" name=\"unit\" value=\"
+\" required></div><button type=\"submit\" class=\"bg-blue-600 text-white px-4 py-2 rounded\">
+Criar
+Atualizar
+</button></form>

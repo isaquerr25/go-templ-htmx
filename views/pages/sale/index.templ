@@ -1,0 +1,150 @@
+package sale
+
+import (
+"fmt"
+"github.com/isaquerr25/go-templ-htmx/views/templates"
+)
+
+type SaleProps struct {
+ID uint
+ClientID uint
+ProductSellID uint
+SoldAt string
+Quantity int
+Unit string
+TotalPrice float64
+Method string
+State string
+Notes string
+Error map[string]string
+}
+
+type SaleListProps struct {
+Sales []SaleProps
+}
+
+templ Index(p SaleProps) {
+@templates.Base() {
+<div class="max-w-3xl mx-auto mt-10">
+	<h1 class="text-2xl font-bold mb-6">
+		if p.ID == 0 {
+		Cadastrar Venda
+		} else {
+		Editar Venda
+		}
+	</h1>
+	<form if p.ID !=0 { hx-post={ fmt.Sprintf("/updateSale/%d", p.ID) } } else { hx-post="/createSale" }
+		hx-target="main" hx-select="main" hx-swap="outerHTML" class="space-y-4">
+		<input type="hidden" name="id" value={ fmt.Sprintf("%d", p.ID) } />
+		<label>Cliente ID</label>
+		<input type="number" name="clientId" value={ fmt.Sprintf("%d", p.ClientID) } required
+			class="w-full p-2 border rounded" />
+		if e, ok := p.Error["ClientID"]; ok {
+		<p class="text-red-500">{ e }</p>
+		}
+		<label>Produto ID</label>
+		<input type="number" name="productSellId" value={ fmt.Sprintf("%d", p.ProductSellID) } required
+			class="w-full p-2 border rounded" />
+		if e, ok := p.Error["ProductSellID"]; ok {
+		<p class="text-red-500">{ e }</p>
+		}
+		<label>Data da Venda (YYYY-MM-DD)</label>
+		<input type="date" name="soldAt" value={ p.SoldAt } required class="w-full p-2 border rounded" />
+		if e, ok := p.Error["SoldAt"]; ok {
+		<p class="text-red-500">{ e }</p>
+		}
+		<label>Quantidade</label>
+		<input type="number" step="0.01" name="quantity" value={ fmt.Sprintf("%.2f", p.Quantity) } required
+			class="w-full p-2 border rounded" />
+		if e, ok := p.Error["Quantity"]; ok {
+		<p class="text-red-500">{ e }</p>
+		}
+		<label>Unidade</label>
+		<input type="text" name="unit" value={ p.Unit } required class="w-full p-2 border rounded" />
+		if e, ok := p.Error["Unit"]; ok {
+		<p class="text-red-500">{ e }</p>
+		}
+		<label>Preço Total</label>
+		<input type="number" step="0.01" name="totalPrice" value={ fmt.Sprintf("%.2f", p.TotalPrice) } required
+			class="w-full p-2 border rounded" />
+		<label>Método</label>
+		<select name="method" required class="w-full p-2 border rounded">
+			<option value="">Selecione o método de pagamento</option>
+			<option value="cash" if p.Method=="cash" { selected }>Dinheiro</option>
+			<option value="card" if p.Method=="card" { selected }>Cartão</option>
+			<option value="pix" if p.Method=="pix" { selected }>Pix</option>
+		</select>
+		if e, ok := p.Error["Method"]; ok {
+		<p class="text-red-500">{ e }</p>
+		}
+		<label>Status</label>
+		<select name="state" required class="w-full p-2 border rounded">
+			<option value="">Selecione o estado da venda</option>
+			<option value="pending" if p.State=="pending" { selected }>Pendente</option>
+			<option value="paid" if p.State=="paid" { selected }>Pago</option>
+			<option value="cancelled" if p.State=="cancelled" { selected }>Cancelado</option>
+		</select>
+		if e, ok := p.Error["State"]; ok {
+		<p class="text-red-500">{ e }</p>
+		}
+		<label>Observações</label>
+		<textarea name="notes" class="w-full p-2 border rounded" rows="3">{ p.Notes }</textarea>
+		<button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Salvar</button>
+	</form>
+</div>
+}
+}
+
+templ List(p SaleListProps) {
+@templates.Base() {
+<div class="max-w-5xl mx-auto mt-10">
+	<h1 class="text-2xl font-bold mb-6">Lista de Vendas</h1>
+	<table class="w-full border-collapse border border-gray-300">
+		<thead>
+			<tr>
+				<th class="border border-gray-300 p-2">ID</th>
+				<th class="border border-gray-300 p-2">Cliente</th>
+				<th class="border border-gray-300 p-2">Produto</th>
+				<th class="border border-gray-300 p-2">Quantidade</th>
+				<th class="border border-gray-300 p-2">Preço Total</th>
+				<th class="border border-gray-300 p-2">Data</th>
+				<th class="border border-gray-300 p-2">Estado</th>
+			</tr>
+		</thead>
+		<tbody>
+			for _, sale := range p.Sales {
+			<tr>
+				<td class="border border-gray-300 p-2">{ fmt.Sprintf("%d", sale.ID) }</td>
+				<td class="border border-gray-300 p-2">{ fmt.Sprintf("%d", sale.ClientID) }</td>
+				<td class="border border-gray-300 p-2">{ fmt.Sprintf("%d", sale.ProductSellID) }</td>
+				<td class="border border-gray-300 p-2">{ fmt.Sprintf("%d", sale.Quantity) }</td>
+				<td class="border border-gray-300 p-2">{ fmt.Sprintf("R$ %.2f", sale.TotalPrice) }</td>
+				<td class="border border-gray-300 p-2">{ sale.SoldAt }</td>
+				<td class="border border-gray-300 p-2">{ sale.State }</td>
+			</tr>
+			}
+		</tbody>
+	</table>
+</div>
+}
+}
+
+templ Show(p SaleProps) {
+@templates.Base() {
+<div class="max-w-3xl mx-auto mt-10">
+	<h1 class="text-2xl font-bold mb-6">Detalhes da Venda #{ fmt.Sprintf("%d", p.ID) }</h1>
+	<ul class="list-disc list-inside space-y-1">
+		<li><strong>Cliente ID:</strong> { fmt.Sprintf("%d", p.ClientID) }</li>
+		<li><strong>Produto ID:</strong> { fmt.Sprintf("%d", p.ProductSellID) }</li>
+		<li><strong>Data:</strong> { p.SoldAt }</li>
+		<li><strong>Quantidade:</strong> { fmt.Sprintf("%d", p.Quantity) }</li>
+		<li><strong>Unidade:</strong> { p.Unit }</li>
+		<li><strong>Preço Total:</strong> { fmt.Sprintf("R$ %.2f", p.TotalPrice) }</li>
+		<li><strong>Método:</strong> { p.Method }</li>
+		<li><strong>Status:</strong> { p.State }</li>
+		<li><strong>Observações:</strong> { p.Notes }</li>
+	</ul>
+	<a href="/listSale" class="mt-4 inline-block px-4 py-2 bg-gray-300 rounded">Voltar</a>
+</div>
+}
+}

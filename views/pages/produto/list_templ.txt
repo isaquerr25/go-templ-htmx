@@ -1,0 +1,10 @@
+<div class=\"container mx-auto\"><h1 class=\"text-3xl font-semibold text-center mb-6\">Produtos</h1><table class=\"min-w-full table-auto bg-white shadow-md rounded-lg\"><thead><tr class=\"bg-gray-800 text-white\"><th class=\"px-4 py-2 text-left\">Nome</th><th class=\"px-4 py-2 text-left\">Quantidade</th><th class=\"px-4 py-2 text-left\">Unidade</th><th class=\"px-4 py-2 text-left\">Data</th><th class=\"px-4 py-2 text-left\">Valor</th><th class=\"px-4 py-2 text-left\">Usando</th></tr></thead> <tbody>
+<tr class=\"border-b hover:bg-gray-100\"><td class=\"px-4 py-2\"><a href=\"
+\">
+</a></td><td class=\"px-4 py-2\">
+</td><td class=\"px-4 py-2\">
+</td><td class=\"px-4 py-2\">
+</td><td class=\"px-4 py-2\">
+</td><td class=\"px-4 py-2\">
+</td></tr>
+</tbody></table></div>

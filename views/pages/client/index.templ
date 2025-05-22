@@ -1,0 +1,79 @@
+package client
+
+import (
+	"fmt"
+	"github.com/isaquerr25/go-templ-htmx/views/templates"
+)
+
+type ClientProps struct {
+	ID      uint   `form:"id"`
+	Name    string `form:"name"`
+	Email   string `form:"email"`
+	Phone   string `form:"phone"`
+	Company string `form:"company"`
+	Address string `form:"address"`
+	Notes   string `form:"notes"`
+	Error   map[string]string
+}
+
+templ Index(p ClientProps) {
+	@templates.Base() {
+		<div class="max-w-[50rem] mx-auto mt-[5rem]">
+			<h1 class="text-xl font-bold mb-4">Cadastro de Cliente</h1>
+			<form
+				if p.ID !=0 {
+					hx-post={ fmt.Sprintf("/updateClient/%d", p.ID) }
+				} else {
+					hx-post="/createClient"
+				}
+				hx-target="main"
+				hx-select="main"
+				hx-swap="outerHTML"
+				class="space-y-4"
+			>
+				<input value={ p.Name } type="text" name="name" placeholder="Nome" required class="w-full p-2 border rounded"/>
+				if e, ok := p.Error["Name"]; ok {
+					<p class="text-red-500">{ e }</p>
+				}
+				<input value={ p.Email } type="email" name="email" placeholder="Email" class="w-full p-2 border rounded"/>
+				if e, ok := p.Error["Email"]; ok {
+					<p class="text-red-500">{ e }</p>
+				}
+				<input value={ p.Phone } type="text" name="phone" placeholder="Telefone" class="w-full p-2 border rounded"/>
+				if e, ok := p.Error["Phone"]; ok {
+					<p class="text-red-500">{ e }</p>
+				}
+				<input value={ p.Company } type="text" name="company" placeholder="Empresa" class="w-full p-2 border rounded"/>
+				if e, ok := p.Error["Company"]; ok {
+					<p class="text-red-500">{ e }</p>
+				}
+				<input
+					value={ p.Address }
+					type="text"
+					name="address"
+					placeholder="Endereço"
+					class="w-full p-2 border rounded"
+				/>
+				if e, ok := p.Error["Address"]; ok {
+					<p class="text-red-500">{ e }</p>
+				}
+				<textarea value={ p.Notes } name="notes" placeholder="Notas" class="w-full p-2 border rounded"></textarea>
+				if e, ok := p.Error["Notes"]; ok {
+					<p class="text-red-500">{ e }</p>
+				}
+				<button type="submit" class="w-full bg-blue-500 text-white p-2 rounded">
+					if p.ID == 0 {
+						Cadastrar
+					} else {
+						Atualizar
+					}
+				</button>
+				if p.ID != 0 {
+					<button type="button" class="w-full bg-red-500 text-white p-2 rounded">
+						Remover
+					</button>
+				}
+			</form>
+		</div>
+	}
+}

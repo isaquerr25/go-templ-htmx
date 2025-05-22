@@ -1,0 +1,108 @@
+package planting
+
+import (
+	"fmt"
+	"github.com/isaquerr25/go-templ-htmx/views/templates"
+)
+
+type PlantingProps struct {
+	ID          uint
+	FieldID     uint    `form:"fieldId"`
+	CropName    string  `form:"cropName"`
+	StartedAt   string  `form:"startedAt"` // no formato yyyy-mm-dd
+	EndedAt     string  `form:"endedAt"`   // no formato yyyy-mm-dd ou vazio
+	IsCompleted bool    `form:"isCompleted"`
+	AreaUsed    float64 `form:"areaUsed"`
+	Error       map[string]string
+}
+
+templ Index(p PlantingProps) {
+	@templates.Base() {
+		<div class="max-w-[50rem] mx-auto mt-[5rem]">
+			<h1 class="text-xl font-bold mb-4">
+				if p.ID == 0 {
+					Novo Plantio
+				} else {
+					Editar Plantio
+				}
+			</h1>
+			<form
+				if p.ID !=0 {
+					hx-post={ fmt.Sprintf("/plantings/update/%d", p.ID) }
+				} else {
+					hx-post="/plantings/create"
+				}
+				hx-target="main"
+				hx-select="main"
+				hx-swap="outerHTML"
+				class="space-y-4"
+			>
+				<input
+					type="number"
+					name="fieldId"
+					value={ fmt.Sprintf("%d", p.FieldID) }
+					placeholder="ID do Campo"
+					required
+					class="w-full p-2 border rounded"
+				/>
+				if e, ok := p.Error["FieldID"]; ok {
+					<p class="text-red-500">{ e }</p>
+				}
+				<input
+					type="text"
+					name="cropName"
+					value={ p.CropName }
+					placeholder="Nome da Cultura"
+					required
+					class="w-full p-2 border rounded"
+				/>
+				if e, ok := p.Error["CropName"]; ok {
+					<p class="text-red-500">{ e }</p>
+				}
+				<input type="date" name="startedAt" value={ p.StartedAt } required class="w-full p-2 border rounded"/>
+				if e, ok := p.Error["StartedAt"]; ok {
+					<p class="text-red-500">{ e }</p>
+				}
+				<input type="date" name="endedAt" value={ p.EndedAt } class="w-full p-2 border rounded"/>
+				if e, ok := p.Error["EndedAt"]; ok {
+					<p class="text-red-500">{ e }</p>
+				}
+				<div class="flex items-center space-x-2">
+					<input type="checkbox" name="isCompleted" checked={ p.IsCompleted }/>
+					<label for="isCompleted">Plantio Finalizado</label>
+				</div>
+				<input
+					type="number"
+					step="0.01"
+					name="areaUsed"
+					value={ fmt.Sprintf("%.2f", p.AreaUsed) }
+					placeholder="Área utilizada (ha)"
+					required
+					class="w-full p-2 border rounded"
+				/>
+				if e, ok := p.Error["AreaUsed"]; ok {
+					<p class="text-red-500">{ e }</p>
+				}
+				<button type="submit" class="w-full bg-blue-500 text-white p-2 rounded">
+					if p.ID == 0 {
+						Cadastrar
+					} else {
+						Atualizar
+					}
+				</button>
+				if p.ID != 0 {
+					<button
+						type="button"
+						hx-delete={ fmt.Sprintf("/plantings/delete/%d", p.ID) }
+						hx-confirm="Deseja excluir este plantio?"
+						hx-target="main"
+						hx-swap="outerHTML"
+						class="w-full bg-red-500 text-white p-2 rounded"
+					>
+						Remover
+					</button>
+				}
+			</form>
+		</div>
+	}
+}

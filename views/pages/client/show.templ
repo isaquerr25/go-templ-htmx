@@ -1,0 +1,26 @@
+package client
+
+import (
+	"fmt"
+	"github.com/isaquerr25/go-templ-htmx/views/templates"
+)
+
+templ Show(c ClientProps) {
+	@templates.Base() {
+		<div class="max-w-[40rem] mx-auto mt-10">
+			<h1 class="text-2xl font-bold mb-4">Detalhes do Cliente</h1>
+			<ul class="space-y-2">
+				<li><strong>Nome:</strong> { c.Name }</li>
+				<li><strong>Email:</strong> { c.Email }</li>
+				<li><strong>Telefone:</strong> { c.Phone }</li>
+				<li><strong>Empresa:</strong> { c.Company }</li>
+				<li><strong>Endereço:</strong> { c.Address }</li>
+				<li><strong>Notas:</strong> { c.Notes }</li>
+			</ul>
+			<a
+				href={ templ.SafeURL(fmt.Sprintf("/editClient/%d", c.ID)) }
+				class="block mt-4 text-blue-600 hover:underline"
+			>Editar</a>
+		</div>
+	}
+}

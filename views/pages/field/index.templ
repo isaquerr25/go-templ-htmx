@@ -1,0 +1,79 @@
+package field
+
+import (
+	"fmt"
+
+	"github.com/isaquerr25/go-templ-htmx/views/templates"
+)
+
+type FieldProps struct {
+	ID          uint    `form:"id"`
+	Name        string  `form:"name"`
+	Hectares    float64 `form:"hectares"`
+	Description string  `form:"description"`
+	Error       map[string]string
+}
+
+templ Index(p FieldProps) {
+	@templates.Base() {
+		<div class="max-w-[50rem] mx-auto mt-[5rem]">
+			<h1 class="text-xl font-bold mb-4">Cadastro de Campo</h1>
+			<form
+				if p.ID !=0 {
+					hx-post={ fmt.Sprintf("/fields/update/%d", p.ID) }
+				} else {
+					hx-post="/fields/create"
+				}
+				hx-target="main"
+				hx-select="main"
+				hx-swap="outerHTML"
+				class="space-y-4"
+			>
+				<input
+					value={ p.Name }
+					type="text"
+					name="name"
+					placeholder="Nome do campo"
+					required
+					class="w-full p-2 border rounded"
+				/>
+				if e, ok := p.Error["Name"]; ok {
+					<p class="text-red-500">{ e }</p>
+				}
+				<input
+					value={ fmt.Sprintf("%.2f", p.Hectares) }
+					type="number"
+					step="0.01"
+					name="hectares"
+					placeholder="Hectares"
+					class="w-full p-2 border rounded"
+				/>
+				if e, ok := p.Error["Hectares"]; ok {
+					<p class="text-red-500">{ e }</p>
+				}
+				<textarea name="description" placeholder="Descrição" class="w-full p-2 border rounded">
+					{ p.Description }
+				</textarea>
+				if e, ok := p.Error["Description"]; ok {
+					<p class="text-red-500">{ e }</p>
+				}
+				<button type="submit" class="w-full bg-blue-500 text-white p-2 rounded">
+					if p.ID == 0 {
+						Cadastrar
+					} else {
+						Atualizar
+					}
+				</button>
+				if p.ID != 0 {
+					<button
+						hx-delete={ fmt.Sprintf("/fields/delete/%d", p.ID) }
+						hx-confirm="Tem certeza?"
+						class="w-full bg-red-500 text-white p-2 rounded"
+					>
+						Remover
+					</button>
+				}
+			</form>
+		</div>
+	}
+}

@@ -1,0 +1,86 @@
+package planting
+
+import (
+	"fmt"
+	"github.com/isaquerr25/go-templ-htmx/views/templates"
+	"time"
+)
+
+type PlantingItem struct {
+	ID          uint
+	FieldID     uint
+	CropName    string
+	StartedAt   time.Time
+	EndedAt     *time.Time
+	IsCompleted bool
+	AreaUsed    float64
+}
+
+templ List(plantings []PlantingItem) {
+	@templates.Base() {
+		<div class="max-w-[60rem] mx-auto mt-[5rem]">
+			<h1 class="text-2xl font-bold mb-6">Lista de Plantios</h1>
+			<a
+				href="/plantings"
+				hx-get="/plantings"
+				hx-target="main"
+				hx-swap="outerHTML"
+				class="mb-4 inline-block bg-blue-500 text-white px-4 py-2 rounded"
+			>+ Novo Plantio</a>
+			<table class="w-full border border-gray-300 rounded">
+				<thead class="bg-gray-100">
+					<tr>
+						<th class="p-2 text-left">Cultura</th>
+						<th class="p-2 text-left">Área Usada (ha)</th>
+						<th class="p-2 text-left">Início</th>
+						<th class="p-2 text-left">Fim</th>
+						<th class="p-2 text-left">Finalizado?</th>
+						<th class="p-2 text-left">Ações</th>
+					</tr>
+				</thead>
+				<tbody>
+					for _, p := range plantings {
+						<tr class="border-t border-gray-200">
+							<td class="p-2">{ p.CropName }</td>
+							<td class="p-2">{ fmt.Sprintf("%.2f", p.AreaUsed) }</td>
+							<td class="p-2 text-sm">{ p.StartedAt.Format("02/01/2006") }</td>
+							<td class="p-2 text-sm">
+								if p.EndedAt != nil {
+									{ p.EndedAt.Format("02/01/2006") }
+								} else {
+									<span class="text-gray-400 italic">Em andamento</span>
+								}
+							</td>
+							<td class="p-2">
+								if p.IsCompleted {
+									<span class="text-green-600 font-semibold">Sim</span>
+								} else {
+									<span class="text-yellow-600 font-semibold">Não</span>
+								}
+							</td>
+							<td class="p-2 space-x-2">
+								<button
+									hx-get={ fmt.Sprintf("/plantings/edit/%d", p.ID) }
+									hx-target="main"
+									hx-swap="outerHTML"
+									class="bg-yellow-500 text-white px-2 py-1 rounded"
+								>
+									Editar
+								</button>
+								<button
+									hx-delete={ fmt.Sprintf("/plantings/delete/%d", p.ID) }
+									hx-confirm="Deseja excluir este plantio?"
+									hx-target="main"
+									hx-swap="outerHTML"
+									class="bg-red-600 text-white px-2 py-1 rounded"
+								>
+									Remover
+								</button>
+							</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	}
+}

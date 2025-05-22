@@ -1,0 +1,72 @@
+package pulverization
+
+import (
+	"fmt"
+	"github.com/isaquerr25/go-templ-htmx/views/templates"
+)
+
+type PulverizationProps struct {
+	ID           uint
+	PlantingID   uint
+	ProductID    uint
+	AppliedAt    string
+	QuantityUsed float64
+	Unit         string
+
+	Error map[string]string
+}
+
+type PulverizationItem struct {
+	ID           uint
+	PlantingID   uint
+	ProductID    uint
+	AppliedAt    string
+	QuantityUsed float64
+	Unit         string
+}
+
+templ Index(p PulverizationProps) {
+	@templates.Base() {
+		<form
+			if p.ID==0 {
+				hx-post="./pulverization"
+			} else {
+				hx-post={ fmt.Sprintf("./pulverization/%d", p.ID) }
+			}
+			hx-target="#pulverization-list"
+			hx-swap="outerHTML"
+			class="space-y-4"
+		>
+			<div>
+				<label for="plantingId">Plantio</label>
+				<input type="number" name="plantingId" value={ p.PlantingID } required/>
+			</div>
+			<div>
+				<label for="productId">Produto</label>
+				<input type="number" name="productId" value={ p.ProductID } required/>
+			</div>
+			<div>
+				<label for="appliedAt">Data de Aplicação</label>
+				<input type="date" name="appliedAt" value={ p.AppliedAt } required/>
+				if err := p.Error["AppliedAt"]; err != "" {
+					<p class="text-red-500 text-sm">{ err }</p>
+				}
+			</div>
+			<div>
+				<label for="quantityUsed">Quantidade Usada</label>
+				<input type="number" step="0.01" name="quantityUsed" value={ p.QuantityUsed } required/>
+			</div>
+			<div>
+				<label for="unit">Unidade</label>
+				<input type="text" name="unit" value={ p.Unit } required/>
+			</div>
+			<button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">
+				if p.ID == 0 {
+					Criar
+				} else {
+					Atualizar
+				}
+			</button>
+		</form>
+	}
+}

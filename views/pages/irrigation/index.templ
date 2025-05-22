@@ -1,0 +1,104 @@
+package irrigation
+
+import (
+	"fmt"
+	"github.com/isaquerr25/go-templ-htmx/views/templates"
+)
+
+type IrrigationSectorProps struct {
+	ID          uint    `form:"id"`
+	Name        string  `form:"name"`
+	FlowRate    float64 `form:"flowRate"`
+	Area        float64 `form:"area"`
+	Description string  `form:"description"`
+	Error       map[string]string
+}
+
+type IrrigationSectorListProps struct {
+	Items []IrrigationSectorProps
+}
+
+templ Index(p IrrigationSectorProps) {
+	@templates.Base() {
+		<div class="max-w-[50rem] mx-auto mt-[5rem]">
+			<h1 class="text-xl font-bold mb-4">Cadastro de Setor de Irrigação</h1>
+			<form
+				if p.ID !=0 {
+					hx-post={ fmt.Sprintf("/irrigation/update/%d", p.ID) }
+				} else {
+					hx-post="/irrigation/create"
+				}
+				hx-target="main"
+				hx-select="main"
+				hx-swap="outerHTML"
+				class="space-y-4"
+			>
+				<input value={ p.Name } type="text" name="name" placeholder="Nome" required class="w-full p-2 border rounded"/>
+				if e, ok := p.Error["Name"]; ok {
+					<p class="text-red-500">{ e }</p>
+				}
+				<input
+					value={ fmt.Sprintf("%.2f", p.FlowRate) }
+					type="number"
+					step="0.01"
+					name="flowRate"
+					placeholder="Vazão (L/min)"
+					class="w-full p-2 border rounded"
+				/>
+				<input
+					value={ fmt.Sprintf("%.2f", p.Area) }
+					type="number"
+					step="0.01"
+					name="area"
+					placeholder="Área (m²)"
+					class="w-full p-2 border rounded"
+				/>
+				<textarea name="description" placeholder="Descrição" class="w-full p-2 border rounded">
+					{ p.Description }
+				</textarea>
+				<button type="submit" class="w-full bg-blue-500 text-white p-2 rounded">
+					if p.ID == 0 {
+						Cadastrar
+					} else {
+						Atualizar
+					}
+				</button>
+			</form>
+		</div>
+	}
+}
+
+templ List(p IrrigationSectorListProps) {
+	@templates.Base() {
+		<div class="max-w-[50rem] mx-auto mt-[5rem]">
+			<h1 class="text-xl font-bold mb-4">Setores de Irrigação</h1>
+			<a
+				href="/irrigation/create"
+				hx-get="/irrigation/create"
+				hx-target="main"
+				hx-swap="outerHTML"
+				class="block w-full bg-green-500 text-white text-center p-2 rounded mb-4"
+			>Novo Setor</a>
+			<ul class="space-y-4">
+				for _, item := range p.Items {
+					<li class="border p-4 rounded flex justify-between items-center">
+						<div>
+							<h2 class="font-semibold">{ item.Name }</h2>
+							<p class="text-sm text-gray-500">{ item.Description }</p>
+							<p class="text-sm">
+								Área: { fmt.Sprintf("%.2f", item.Area) } m² – Vazão: { fmt.Sprintf("%.2f",
+                    item.FlowRate) } L/min
+							</p>
+						</div>
+						<button
+							hx-get={ fmt.Sprintf("/irrigation/%d", item.ID) }
+							hx-target="main"
+							hx-swap="outerHTML"
+							class="text-blue-500"
+						>Editar</button>
+					</li>
+				}
+			</ul>
+		</div>
+	}
+}
