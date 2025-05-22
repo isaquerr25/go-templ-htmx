@@ -96,10 +96,10 @@ templ Index(p ProductSellProps) {
 templ List(p ProductSellListProps) {
 	@templates.Base() {
 		<div class="max-w-[50rem] mx-auto mt-[5rem]">
-			<h1 class="text-xl font-bold mb-4">Lista de Produtos</h1>
+			<h1 class="text-xl font-bold mb-4">Produtos à Venda</h1>
 			<a
-				href="/createProductSell"
-				hx-get="/createProductSell"
+				href="/productsell/create"
+				hx-get="/productsell/create"
 				hx-target="main"
 				hx-swap="outerHTML"
 				class="block w-full bg-green-500 text-white text-center p-2 rounded mb-4"
@@ -110,13 +110,14 @@ templ List(p ProductSellListProps) {
 						<div>
 							<h2 class="font-semibold">{ item.Name }</h2>
 							<p class="text-sm text-gray-500">{ item.Description }</p>
+							<p class="text-sm">Unidade: { item.Unit }</p>
 							<p class="text-sm">
-								{ item.Unit } - R$ { fmt.Sprintf("%.2f", item.Price) } - Estoque: { 
-                    fmt.Sprintf("%.2f", item.Stock) }
+								Preço: R$ { fmt.Sprintf("%.2f", item.Price) } – Estoque: { fmt.Sprintf("%.2f",
+                    item.Stock) }
 							</p>
 						</div>
 						<button
-							hx-get={ fmt.Sprintf("/showProductSell/%d", item.ID) }
+							hx-get={ fmt.Sprintf("/productsell/%d", item.ID) }
 							hx-target="main"
 							hx-swap="outerHTML"
 							class="text-blue-500"

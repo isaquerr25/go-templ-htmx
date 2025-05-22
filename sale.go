@@ -173,7 +173,7 @@ func (s Server) DeleteSale(c echo.Context) error {
 }
 
 func (s Server) ListSale(c echo.Context) error {
-	var sales []sale.SaleProps
+	var sales []Sale
 	if r := db.Find(&sales); r.Error != nil {
 		return r.Error
 	}
@@ -184,13 +184,14 @@ func (s Server) ListSale(c echo.Context) error {
 			ID:            v.ID,
 			ClientID:      v.ClientID,
 			ProductSellID: v.ProductSellID,
-			SoldAt:        v.SoldAt,
-			Quantity:      v.Quantity,
+			SoldAt:        v.SoldAt.Format("2006-01-02"), // ou outro formato se necessário
+			Quantity:      int(v.Quantity),               // cuidado com truncamento
 			Unit:          v.Unit,
 			TotalPrice:    v.TotalPrice,
 			Method:        string(v.Method),
 			State:         string(v.State),
 			Notes:         v.Notes,
+			Error:         make(map[string]string), // inicializa vazio
 		}
 	}
 

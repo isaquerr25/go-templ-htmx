@@ -28,12 +28,12 @@ Atualizar
 </button> 
 <button type=\"button\" class=\"w-full bg-red-500 text-white p-2 rounded\">Remover</button>
 </form></div>
-<div class=\"max-w-[50rem] mx-auto mt-[5rem]\"><h1 class=\"text-xl font-bold mb-4\">Lista de Produtos</h1><a href=\"/createProductSell\" hx-get=\"/createProductSell\" hx-target=\"main\" hx-swap=\"outerHTML\" class=\"block w-full bg-green-500 text-white text-center p-2 rounded mb-4\">Novo Produto</a><ul class=\"space-y-4\">
+<div class=\"max-w-[50rem] mx-auto mt-[5rem]\"><h1 class=\"text-xl font-bold mb-4\">Produtos à Venda</h1><a href=\"/productsell/create\" hx-get=\"/productsell/create\" hx-target=\"main\" hx-swap=\"outerHTML\" class=\"block w-full bg-green-500 text-white text-center p-2 rounded mb-4\">Novo Produto</a><ul class=\"space-y-4\">
 <li class=\"border p-4 rounded flex justify-between items-center\"><div><h2 class=\"font-semibold\">
 </h2><p class=\"text-sm text-gray-500\">
-</p><p class=\"text-sm\">
- - R$ 
- - Estoque: 
+</p><p class=\"text-sm\">Unidade: 
+</p><p class=\"text-sm\">Preço: R$ 
+ – Estoque: 
 </p></div><button hx-get=\"
 \" hx-target=\"main\" hx-swap=\"outerHTML\" class=\"text-blue-500\">Editar</button></li>
 </ul></div>

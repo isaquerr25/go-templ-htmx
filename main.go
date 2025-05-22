@@ -10,6 +10,7 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/isaquerr25/go-templ-htmx/views/pages/client"
+	"github.com/isaquerr25/go-templ-htmx/views/pages/fertilization"
 	"github.com/isaquerr25/go-templ-htmx/views/pages/field"
 	"github.com/isaquerr25/go-templ-htmx/views/pages/harvest"
 	"github.com/isaquerr25/go-templ-htmx/views/pages/home"
@@ -332,7 +333,30 @@ func main() {
 	e.POST("/harvest/create", CreateHarvest)
 	e.POST("/harvest/update/:id", UpdateHarvest)
 
+	// Fertilization routes
+	e.GET("/fertilization", ListFertilization)
+	e.GET("/fertilization/create", func(c echo.Context) error {
+		return fertilization.Index(fertilization.FertilizationProps{}).
+			Render(c.Request().Context(), c.Response())
+	})
+	e.GET("/fertilization/:id", ShowFertilization)
+	e.POST("/fertilization/create", CreateFertilization)
+	e.POST("/fertilization/update/:id", UpdateFertilization)
+
+	// Rotas de vendas (sale)
+	e.GET("/sales", s.ListSale)          // Lista todas as vendas
+	e.GET("/sales/:id", s.ShowSale)      // Mostra detalhes de uma venda
+	e.POST("/sales", s.CreateSale)       // Cria uma nova venda
+	e.POST("/sales/:id", s.UpdateSale)   // Atualiza uma venda existente
+	e.DELETE("/sales/:id", s.DeleteSale) // Deleta uma venda
+
+	e.GET("/productsell", ListProductSell)
+	e.GET("/productsell/create", CreateViewProductSell)
+	e.POST("/productsell/create", CreateProductSell)
+	e.GET("/productsell/:id", EditViewProductSell)
+	e.POST("/productsell/update/:id", UpdateProductSell)
 	e.GET("/",
+
 		func(c echo.Context) error {
 			return Render(c, 200, home.Hello("asds"))
 		},
