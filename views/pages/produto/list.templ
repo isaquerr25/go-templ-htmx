@@ -19,10 +19,11 @@ templ List(pp []ProductProps) {
 						<th class="px-4 py-2 text-left">Data</th>
 						<th class="px-4 py-2 text-left">Valor</th>
 						<th class="px-4 py-2 text-left">Usando</th>
+						<th class="px-4 py-2 text-left">Ações</th>
 					</tr>
 				</thead>
 				<tbody>
-					for _,p := range pp {
+					for _, p := range pp {
 						<tr class="border-b hover:bg-gray-100">
 							<td class="px-4 py-2">
 								<a href={ templ.URL(fmt.Sprintf("/listProduct/%d", p.ID)) }>
@@ -34,6 +35,24 @@ templ List(pp []ProductProps) {
 							<td class="px-4 py-2">{ p.Date.Format("02/01/2006") }</td>
 							<td class="px-4 py-2">{ fmt.Sprintf("%.2f", p.TotalCost) }</td>
 							<td class="px-4 py-2">{ strconv.FormatFloat(p.Remaining, 'f', -1, 64) }</td>
+							<td class="px-4 py-2 space-x-2">
+								<td class="px-4 py-2 space-x-2">
+									<a
+										href={ templ.URL(fmt.Sprintf("/editProduct/%d", p.ID)) }
+										class="text-blue-600 hover:underline"
+									>Editar</a>
+									<button
+										hx-delete={ templ.URL(fmt.Sprintf("/deleteProduct/%d", p.ID)) }
+										hx-target="closest tr"
+										hx-swap="outerHTML swap:1s"
+										hx-confirm="Tem certeza que deseja excluir este produto?"
+										class="text-red-600 hover:underline"
+										hx-on:htmx:afterRequest="location.reload()"
+									>
+										Excluir
+									</button>
+								</td>
+							</td>
 						</tr>
 					}
 				</tbody>

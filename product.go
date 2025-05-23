@@ -36,3 +36,37 @@ func (s Server) UpdateProduct(c echo.Context) error {
 
 	return Render(c, 200, produto.Index(k))
 }
+
+func (s Server) EditProduct(c echo.Context) error {
+	id := c.Param("ID")
+	var p Product
+	if err := db.First(&p, id).Error; err != nil {
+		return c.String(404, "Produto não encontrado")
+	}
+
+	props := &produto.ProductProps{
+		ID:          p.ID,
+		Name:        p.Name,
+		Quantity:    p.Quantity,
+		Remaining:   p.Remaining,
+		Unit:        p.Unit,
+		Date:        p.Date,
+		TotalCost:   p.TotalCost,
+		Description: p.Description,
+		Error:       make(map[string]string), // inicializa vazio
+	}
+
+	return Render(c, 200, produto.Index(*props))
+}
+
+func (s Server) DeleteProduct(c echo.Context) error {
+	id := c.Param("ID")
+	if err := db.Delete(&Product{}, id).Error; err != nil {
+		fmt.Println(err)
+		return c.String(500, "Erro ao deletar o produto")
+	}
+
+	// Força refresh via HTMX
+	c.Response().Header().Set("HX-Refresh", "true")
+	return c.NoContent(204)
+}

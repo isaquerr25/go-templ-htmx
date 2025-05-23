@@ -131,6 +131,10 @@ func main() {
 
 	e.POST("/updateProduct/:ID", s.UpdateProduct)
 
+	e.GET("/editProduct/:ID", s.EditProduct)
+
+	e.DELETE("/deleteProduct/:ID", s.DeleteProduct)
+
 	e.POST("/createProduct", func(c echo.Context) error {
 		p := &Product{}
 		k, hasError, err := validateProduct(c, p)
