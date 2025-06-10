@@ -6,7 +6,30 @@ import (
 
 	"github.com/isaquerr25/go-templ-htmx/views/pages/productsell"
 	"github.com/labstack/echo/v4"
+	"gorm.io/gorm"
 )
+
+func GetAllProductSellsProps(db *gorm.DB) ([]productsell.ProductSellProps, error) {
+	var products []ProductSell
+	if err := db.Find(&products).Error; err != nil {
+		return nil, err
+	}
+
+	var productPropsList []productsell.ProductSellProps
+	for _, p := range products {
+		productPropsList = append(productPropsList, productsell.ProductSellProps{
+			ID:          p.ID,
+			Name:        p.Name,
+			Description: p.Description,
+			Unit:        p.Unit,
+			Price:       p.Price,
+			Stock:       p.Stock,
+			Error:       map[string]string{},
+		})
+	}
+
+	return productPropsList, nil
+}
 
 // GET /productsell
 func ListProductSell(c echo.Context) error {

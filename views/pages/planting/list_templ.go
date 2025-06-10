@@ -22,6 +22,7 @@ type PlantingItem struct {
 	EndedAt     *time.Time
 	IsCompleted bool
 	AreaUsed    float64
+	Field       Field `form:"fieldId"`
 }
 
 func List(plantings []PlantingItem) templ.Component {
@@ -57,7 +58,7 @@ func List(plantings []PlantingItem) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"max-w-[60rem] mx-auto mt-[5rem]\"><h1 class=\"text-2xl font-bold mb-6\">Lista de Plantios</h1><a href=\"/plantings\" hx-get=\"/plantings\" hx-target=\"main\" hx-swap=\"outerHTML\" class=\"mb-4 inline-block bg-blue-500 text-white px-4 py-2 rounded\">+ Novo Plantio</a><table class=\"w-full border border-gray-300 rounded\"><thead class=\"bg-gray-100\"><tr><th class=\"p-2 text-left\">Cultura</th><th class=\"p-2 text-left\">Área Usada (ha)</th><th class=\"p-2 text-left\">Início</th><th class=\"p-2 text-left\">Fim</th><th class=\"p-2 text-left\">Finalizado?</th><th class=\"p-2 text-left\">Ações</th></tr></thead> <tbody>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"max-w-[60rem] mx-auto mt-[5rem]\"><h1 class=\"text-2xl font-bold mb-6\">Lista de Plantios</h1><a href=\"/plantings/new\" hx-target=\"main\" hx-swap=\"outerHTML\" class=\"mb-4 inline-block bg-blue-500 text-white px-4 py-2 rounded\">+ Novo Plantio</a><table class=\"w-full border border-gray-300 rounded\"><thead class=\"bg-gray-100\"><tr><th class=\"p-2 text-left\">Cultura</th><th class=\"p-2 text-left\">Área Usada (ha)</th><th class=\"p-2 text-left\">Início</th><th class=\"p-2 text-left\">Fim</th><th class=\"p-2 text-left\">Finalizado?</th><th class=\"p-2 text-left\">Ações</th></tr></thead> <tbody>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -136,20 +137,16 @@ func List(plantings []PlantingItem) templ.Component {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</td><td class=\"p-2 space-x-2\"><button hx-get=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</td><td class=\"p-2 space-x-2\"><a href=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var7 string
-				templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("/plantings/edit/%d", p.ID))
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/planting/list.templ`, Line: 63, Col: 57}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
+				var templ_7745c5c3_Var7 templ.SafeURL = templ.SafeURL(fmt.Sprintf("/plantings/edit/%d", p.ID))
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var7)))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\" hx-target=\"main\" hx-swap=\"outerHTML\" class=\"bg-yellow-500 text-white px-2 py-1 rounded\">Editar</button> <button hx-delete=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\" hx-target=\"main\" hx-swap=\"outerHTML\" class=\"bg-yellow-500 text-white px-2 py-1 rounded\">Editar</a> <button hx-delete=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

@@ -34,23 +34,36 @@ type Planting struct {
 	IsCompleted bool       `form:"isCompleted"`
 	AreaUsed    float64    `form:"areaUsed"`
 }
+
 type Fertilization struct {
 	gorm.Model
-	PlantingID      uint      `form:"plantingId"`
-	ProductID       uint      `form:"productId"`
-	ApplicationType string    `form:"applicationType"` // drip or foliar
-	AppliedAt       time.Time `form:"appliedAt"`
-	QuantityUsed    float64   `form:"quantityUsed"`
-	Unit            string    `form:"unit"`
+	PlantingID      uint                 `form:"plantingId"`
+	ApplicationType string               `form:"applicationType"` // drip or foliar
+	AppliedAt       time.Time            `form:"appliedAt"`
+	Products        []ApplyFertilization `form:"foreignKey:FertilizationID"`
+}
+
+type ApplyFertilization struct {
+	gorm.Model
+	FertilizationID uint    `form:"fertilizationId"`
+	ProductID       uint    `form:"productId"`
+	QuantityUsed    float64 `form:"quantityUsed"`
+	Unit            string  `form:"unit"`
 }
 
 type Pulverization struct {
 	gorm.Model
-	PlantingID   uint      `form:"plantingId"`
-	ProductID    uint      `form:"productId"`
-	AppliedAt    time.Time `form:"appliedAt"`
-	QuantityUsed float64   `form:"quantityUsed"`
-	Unit         string    `form:"unit"`
+	PlantingID uint             `form:"plantingId"`
+	AppliedAt  time.Time        `form:"appliedAt"`
+	Unit       string           `form:"unit"`
+	Products   []AppliedProduct `form:"foreignKey:PulverizationID"`
+}
+
+type AppliedProduct struct {
+	gorm.Model
+	PulverizationID uint    `form:"pulverizationId"`
+	ProductID       uint    `form:"productId"`
+	QuantityUsed    float64 `form:"quantityUsed"`
 }
 
 type Irrigation struct {
@@ -106,6 +119,16 @@ type Sale struct {
 	State  SaleState  `form:"state"`  // ex: pendente, pago, cancelado
 
 	Notes string `form:"notes"`
+}
+
+type Service struct {
+	gorm.Model
+	Name        string    `form:"name"`        // Nome do serviço (ex: Transporte, Consultoria)
+	Description string    `form:"description"` // Descrição adicional
+	Cost        float64   `form:"cost"`        // Custo total do serviço
+	PlantingID  *uint     `form:"plantingId"`  // Opcional, caso o serviço tenha sido aplicado a um plantio
+	Notes       string    `form:"notes"`       // Observações específicas
+	CreateAt    time.Time `form:"performedAt"`
 }
 
 type (

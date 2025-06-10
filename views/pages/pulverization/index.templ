@@ -2,49 +2,100 @@ package pulverization
 
 import (
 	"fmt"
+	"github.com/isaquerr25/go-templ-htmx/views/pages/planting"
+	"github.com/isaquerr25/go-templ-htmx/views/pages/produto"
 	"github.com/isaquerr25/go-templ-htmx/views/templates"
 )
 
-type PulverizationProps struct {
-	ID           uint
-	PlantingID   uint
-	ProductID    uint
-	AppliedAt    string
-	QuantityUsed float64
-	Unit         string
-
-	Error map[string]string
-}
-
 type PulverizationItem struct {
-	ID           uint
-	PlantingID   uint
-	ProductID    uint
-	AppliedAt    string
-	QuantityUsed float64
-	Unit         string
+	ID           uint    `form:"ID"`
+	PlantingID   uint    `form:"PlantingID"`
+	ProductID    uint    `form:"ProductID"`
+	AppliedAt    string  `form:"AppliedAt"`
+	QuantityUsed float64 `form:"QuantityUsed"`
+	Unit         string  `form:"Unit"`
 }
 
-templ Index(p PulverizationProps) {
+type ProductInput struct {
+	ProductID    uint    `form:"ProductID"`
+	QuantityUsed float64 `form:"QuantityUsed"`
+}
+
+type PulverizationProps struct {
+	ID         uint           `form:"ID"`
+	PlantingID uint           `form:"PlantingID"`
+	AppliedAt  string         `form:"AppliedAt"`
+	Unit       string         `form:"Unit"`
+	Products   []ProductInput `form:"Products"` // múltiplos produtos com quantidades
+	Error      map[string]string
+}
+
+type UseProps struct {
+	Prod []produto.ProductProps   `form:"Prod"`
+	Plan []planting.PlantingProps `form:"Plan"`
+}
+
+templ ItemsProdut(i int, pr ProductInput, prod UseProps) {
+	<div class="flex items-center gap-4 mb-2" id="itemProduct">
+		<select name={ fmt.Sprintf("products[%d].productId", i) } name="fieldId" required class="w-full p-2 border rounded">
+			<option value="">Selecione um campo</option>
+			for _, f := range prod.Prod {
+				<option value={ fmt.Sprintf("%d", f.ID) } selected={ f.ID == pr.ProductID }>
+					{ f.Name }
+				</option>
+			}
+		</select>
+		<input
+			type="number"
+			step="0.01"
+			name={ fmt.Sprintf("products[%d].quantityUsed", i) }
+			value={ pr.QuantityUsed }
+			placeholder="Quantidade"
+			required
+		/>
+	</div>
+}
+
+templ Index(p PulverizationProps, use UseProps) {
 	@templates.Base() {
 		<form
 			if p.ID==0 {
-				hx-post="./pulverization"
+				hx-post={ "./pulverization" }
 			} else {
 				hx-post={ fmt.Sprintf("./pulverization/%d", p.ID) }
 			}
-			hx-target="#pulverization-list"
 			hx-swap="outerHTML"
 			class="space-y-4"
 		>
 			<div>
 				<label for="plantingId">Plantio</label>
-				<input type="number" name="plantingId" value={ p.PlantingID } required/>
+				<select name="plantingId" required class="w-full p-2 border rounded">
+					<option value="">Selecione um campo</option>
+					for _, f := range use.Plan {
+						<option value={ fmt.Sprintf("%d", f.ID) } selected={ f.ID == p.PlantingID }>
+							{ f.CropName }
+						</option>
+					}
+				</select>
 			</div>
-			<div>
-				<label for="productId">Produto</label>
-				<input type="number" name="productId" value={ p.ProductID } required/>
+			<h3 class="font-semibold mb-2">Produtos</h3>
+			<p class="text-sm text-gray-500">Total de produtos: { len(p.Products) }</p>
+			<div id="patomanco">
+				for i, pr := range p.Products {
+					@ItemsProdut(i, pr, use)
+				}
+				<!-- Botão para adicionar mais produtos (pode ser melhorado com HTMX ou JS) -->
 			</div>
+			<button
+				hx-vals="js:{index: document.getElementById('patomanco').children.length}"
+				hx-swap="beforeend"
+				hx-target="#patomanco"
+				hx-get="/product/showNewInstace"
+				type="button"
+				class="bg-gray-300 text-sm px-2 py-1 rounded"
+			>
+				+ Adicionar Produto
+			</button>
 			<div>
 				<label for="appliedAt">Data de Aplicação</label>
 				<input type="date" name="appliedAt" value={ p.AppliedAt } required/>
@@ -53,11 +104,7 @@ templ Index(p PulverizationProps) {
 				}
 			</div>
 			<div>
-				<label for="quantityUsed">Quantidade Usada</label>
-				<input type="number" step="0.01" name="quantityUsed" value={ p.QuantityUsed } required/>
-			</div>
-			<div>
-				<label for="unit">Unidade</label>
+				<label for="unit">Clada</label>
 				<input type="text" name="unit" value={ p.Unit } required/>
 			</div>
 			<button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">

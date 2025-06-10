@@ -16,6 +16,7 @@ import (
 	"github.com/isaquerr25/go-templ-htmx/views/pages/home"
 	"github.com/isaquerr25/go-templ-htmx/views/pages/planting"
 	"github.com/isaquerr25/go-templ-htmx/views/pages/produto"
+	"github.com/isaquerr25/go-templ-htmx/views/pages/pulverization"
 	"github.com/isaquerr25/go-templ-htmx/views/pages/sale"
 	"github.com/labstack/echo/v4"
 	"gorm.io/driver/sqlite"
@@ -132,6 +133,18 @@ func main() {
 	e.POST("/updateProduct/:ID", s.UpdateProduct)
 
 	e.GET("/editProduct/:ID", s.EditProduct)
+	e.GET("/product/showNewInstace", func(c echo.Context) error {
+		jj, _ := strconv.Atoi(c.QueryParam("index"))
+
+		a, _ := GetAllProductsProps()
+		return Render(
+			c,
+			200,
+			pulverization.ItemsProdut(jj, pulverization.ProductInput{}, pulverization.UseProps{
+				Prod: a,
+			}),
+		)
+	})
 
 	e.DELETE("/deleteProduct/:ID", s.DeleteProduct)
 
@@ -157,7 +170,7 @@ func main() {
 		return Render(c, 200, produto.Index(k))
 	})
 
-	e.GET("/listProduct/new",
+	e.GET("/newProduct",
 		func(c echo.Context) error {
 			return Render(c, 200, produto.Index(produto.ProductProps{
 				Quantity:    1,
@@ -228,6 +241,8 @@ func main() {
 		},
 	)
 
+	e.DELETE("/fertilization/:id", DeleteFertilization)
+
 	e.GET("/plantings", ListPlantings(db))
 	e.GET("/plantings/new", ShowPlantingForm(db))
 	e.GET("/plantings/edit/:id", ShowPlantingForm(db))
@@ -245,13 +260,13 @@ func main() {
 		}
 		return planting.Index(planting.PlantingProps{
 			ID:          p.ID,
-			FieldID:     p.FieldID,
 			CropName:    p.CropName,
 			StartedAt:   p.StartedAt.Format("2006-01-02"),
 			EndedAt:     nullableDate(p.EndedAt),
 			IsCompleted: p.IsCompleted,
 			AreaUsed:    p.AreaUsed,
-		}).Render(c.Request().Context(), c.Response().Writer)
+			Error:       map[string]string{},
+		}, []planting.Field{}).Render(c.Request().Context(), c.Response().Writer)
 	})
 
 	// Rotas existentes
@@ -316,7 +331,7 @@ func main() {
 		}).Render(c.Request().Context(), c.Response().Writer)
 	})
 
-	e.GET("/pulverizations", ListPulverizations(db))
+	e.GET("/pulverizations", ListPulverizations())
 
 	e.GET("/pulverization", ShowPulverizationForm(db))
 	e.GET("/pulverization/:id", ShowPulverizationForm(db))
@@ -329,18 +344,17 @@ func main() {
 	e.GET("/irrigation/list", IrrigationList)
 	e.GET("/irrigation/edit/:id", IrrigationEdit)
 
-	e.GET("/harvest", ListHarvest)
+	// e.GET("/harvest", ListHarvest)
 	e.GET("/harvest/:id", ShowHarvest)
 	e.GET("/harvest/create", func(c echo.Context) error {
 		return harvest.Index(harvest.HarvestProps{}).Render(c.Request().Context(), c.Response())
 	})
 	e.POST("/harvest/create", CreateHarvest)
 	e.POST("/harvest/update/:id", UpdateHarvest)
-
 	// Fertilization routes
 	e.GET("/fertilization", ListFertilization)
 	e.GET("/fertilization/create", func(c echo.Context) error {
-		return fertilization.Index(fertilization.FertilizationProps{}).
+		return fertilization.Index(fertilization.FertilizationProps{}, pulverization.UseProps{}).
 			Render(c.Request().Context(), c.Response())
 	})
 	e.GET("/fertilization/:id", ShowFertilization)
@@ -353,6 +367,8 @@ func main() {
 	e.POST("/sales", s.CreateSale)       // Cria uma nova venda
 	e.POST("/sales/:id", s.UpdateSale)   // Atualiza uma venda existente
 	e.DELETE("/sales/:id", s.DeleteSale) // Deleta uma venda
+
+	e.GET("/newSale", s.NewSale)
 
 	e.GET("/productsell", ListProductSell)
 	e.GET("/productsell/create", CreateViewProductSell)

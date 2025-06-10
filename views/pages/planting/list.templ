@@ -14,6 +14,7 @@ type PlantingItem struct {
 	EndedAt     *time.Time
 	IsCompleted bool
 	AreaUsed    float64
+	Field       Field `form:"fieldId"`
 }
 
 templ List(plantings []PlantingItem) {
@@ -21,8 +22,7 @@ templ List(plantings []PlantingItem) {
 		<div class="max-w-[60rem] mx-auto mt-[5rem]">
 			<h1 class="text-2xl font-bold mb-6">Lista de Plantios</h1>
 			<a
-				href="/plantings"
-				hx-get="/plantings"
+				href="/plantings/new"
 				hx-target="main"
 				hx-swap="outerHTML"
 				class="mb-4 inline-block bg-blue-500 text-white px-4 py-2 rounded"
@@ -59,14 +59,14 @@ templ List(plantings []PlantingItem) {
 								}
 							</td>
 							<td class="p-2 space-x-2">
-								<button
-									hx-get={ fmt.Sprintf("/plantings/edit/%d", p.ID) }
+								<a
+									href={ templ.SafeURL(fmt.Sprintf("/plantings/edit/%d", p.ID)) }
 									hx-target="main"
 									hx-swap="outerHTML"
 									class="bg-yellow-500 text-white px-2 py-1 rounded"
 								>
 									Editar
-								</button>
+								</a>
 								<button
 									hx-delete={ fmt.Sprintf("/plantings/delete/%d", p.ID) }
 									hx-confirm="Deseja excluir este plantio?"

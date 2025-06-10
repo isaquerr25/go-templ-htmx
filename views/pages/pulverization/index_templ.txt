@@ -1,15 +1,29 @@
+<div class=\"flex items-center gap-4 mb-2\" id=\"itemProduct\"><select name=\"
+\" name=\"fieldId\" required class=\"w-full p-2 border rounded\"><option value=\"\">Selecione um campo</option> 
+<option value=\"
+\" selected=\"
+\">
+</option>
+</select> <input type=\"number\" step=\"0.01\" name=\"
+\" value=\"
+\" placeholder=\"Quantidade\" required></div>
 <form
- hx-post=\"./pulverization\"
  hx-post=\"
 \"
- hx-target=\"#pulverization-list\" hx-swap=\"outerHTML\" class=\"space-y-4\"><div><label for=\"plantingId\">Plantio</label> <input type=\"number\" name=\"plantingId\" value=\"
-\" required></div><div><label for=\"productId\">Produto</label> <input type=\"number\" name=\"productId\" value=\"
-\" required></div><div><label for=\"appliedAt\">Data de Aplicação</label> <input type=\"date\" name=\"appliedAt\" value=\"
+ hx-post=\"
+\"
+ hx-swap=\"outerHTML\" class=\"space-y-4\"><div><label for=\"plantingId\">Plantio</label> <select name=\"plantingId\" required class=\"w-full p-2 border rounded\"><option value=\"\">Selecione um campo</option> 
+<option value=\"
+\" selected=\"
+\">
+</option>
+</select></div><h3 class=\"font-semibold mb-2\">Produtos</h3><p class=\"text-sm text-gray-500\">Total de produtos: 
+</p><div id=\"patomanco\">
+<!-- Botão para adicionar mais produtos (pode ser melhorado com HTMX ou JS) --></div><button hx-vals=\"js:{index: document.getElementById(&#39;patomanco&#39;).children.length}\" hx-swap=\"beforeend\" hx-target=\"#patomanco\" hx-get=\"/product/showNewInstace\" type=\"button\" class=\"bg-gray-300 text-sm px-2 py-1 rounded\">+ Adicionar Produto</button><div><label for=\"appliedAt\">Data de Aplicação</label> <input type=\"date\" name=\"appliedAt\" value=\"
 \" required> 
 <p class=\"text-red-500 text-sm\">
 </p>
-</div><div><label for=\"quantityUsed\">Quantidade Usada</label> <input type=\"number\" step=\"0.01\" name=\"quantityUsed\" value=\"
-\" required></div><div><label for=\"unit\">Unidade</label> <input type=\"text\" name=\"unit\" value=\"
+</div><div><label for=\"unit\">Clada</label> <input type=\"text\" name=\"unit\" value=\"
 \" required></div><button type=\"submit\" class=\"bg-blue-600 text-white px-4 py-2 rounded\">
 Criar
 Atualizar

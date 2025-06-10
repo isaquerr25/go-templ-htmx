@@ -5,16 +5,11 @@ import (
 	"github.com/isaquerr25/go-templ-htmx/views/templates"
 )
 
-templ List(pulverizations []PulverizationItem) {
+templ List(pulverizations []PulverizationProps) {
 	@templates.Base() {
 		<div class="flex justify-between items-center mb-4">
 			<h1 class="text-2xl font-bold">Pulverizações</h1>
-			<a
-				href="/pulverization"
-				hx-get="/pulverization"
-				hx-target="#main"
-				class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-			>
+			<a href="/pulverization" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
 				Nova Pulverização
 			</a>
 		</div>
@@ -34,9 +29,7 @@ templ List(pulverizations []PulverizationItem) {
 					for _, p := range pulverizations {
 						<tr class="border-t text-sm">
 							<td class="px-4 py-2">{ p.PlantingID }</td>
-							<td class="px-4 py-2">{ p.ProductID }</td>
 							<td class="px-4 py-2">{ p.AppliedAt }</td>
-							<td class="px-4 py-2">{ p.QuantityUsed }</td>
 							<td class="px-4 py-2">{ p.Unit }</td>
 							<td class="px-4 py-2 flex space-x-2">
 								<a

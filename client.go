@@ -21,6 +21,30 @@ type ClientProps struct {
 	Error   map[string]string
 }
 
+func GetAllClientsProps(db *gorm.DB) ([]ClientProps, error) {
+	var clients []Client
+	if err := db.Find(&clients).Error; err != nil {
+		return nil, err
+	}
+
+	// Mapear para ClientProps
+	var clientPropsList []ClientProps
+	for _, c := range clients {
+		clientPropsList = append(clientPropsList, ClientProps{
+			ID:      c.ID,
+			Name:    c.Name,
+			Email:   c.Email,
+			Phone:   c.Phone,
+			Company: c.Company,
+			Address: c.Address,
+			Notes:   c.Notes,
+			Error:   map[string]string{}, // vazio por padrão
+		})
+	}
+
+	return clientPropsList, nil
+}
+
 func validateClient(
 	c echo.Context,
 	p *client.ClientProps,
@@ -112,18 +136,26 @@ func (s Server) ShowClient(c echo.Context) error {
 }
 
 func (s Server) CreateClient(c echo.Context) error {
-	cl := &client.ClientProps{}
-	props, hasError, err := validateClient(c, cl)
+	clProps := &client.ClientProps{}
+	props, hasError, err := validateClient(c, clProps)
 	if err != nil {
 		return err
 	}
 
 	if !hasError {
-		if err := db.Create(cl).Error; err != nil {
+		cl := Client{
+			Name:    clProps.Name,
+			Email:   clProps.Email,
+			Phone:   clProps.Phone,
+			Company: clProps.Company,
+			Address: clProps.Address,
+			Notes:   clProps.Notes,
+		}
+		if err := db.Create(&cl).Error; err != nil {
 			fmt.Println(err)
 			return err
 		}
-		c.Response().Header().Set("HX-Redirect", "/listClient")
+		c.Response().Header().Set("HX-Redirect", "/listCustomer")
 		return c.NoContent(http.StatusOK)
 	}
 
@@ -132,21 +164,39 @@ func (s Server) CreateClient(c echo.Context) error {
 
 func (s Server) UpdateClient(c echo.Context) error {
 	id := c.Param("id")
-	var cl client.ClientProps
+	var cl Client
 	if err := db.First(&cl, id).Error; err != nil {
 		return err
 	}
 
-	props, hasError, err := validateClient(c, &cl)
+	// Cria props com os dados atuais do client
+	clProps := &client.ClientProps{
+		ID:      cl.ID,
+		Name:    cl.Name,
+		Email:   cl.Email,
+		Phone:   cl.Phone,
+		Company: cl.Company,
+		Address: cl.Address,
+		Notes:   cl.Notes,
+	}
+
+	props, hasError, err := validateClient(c, clProps)
 	if err != nil {
 		return err
 	}
 
 	if !hasError {
+		cl.Name = clProps.Name
+		cl.Email = clProps.Email
+		cl.Phone = clProps.Phone
+		cl.Company = clProps.Company
+		cl.Address = clProps.Address
+		cl.Notes = clProps.Notes
+
 		if err := db.Save(&cl).Error; err != nil {
 			return err
 		}
-		c.Response().Header().Set("HX-Redirect", "/listClient")
+		c.Response().Header().Set("HX-Redirect", "/listCustomer")
 		return c.NoContent(http.StatusOK)
 	}
 
@@ -158,6 +208,6 @@ func (s Server) DeleteClient(c echo.Context) error {
 	if err := db.Delete(&Client{}, id).Error; err != nil {
 		return err
 	}
-	c.Response().Header().Set("HX-Redirect", "/listClient")
+	c.Response().Header().Set("HX-Redirect", "/listCustomer")
 	return c.NoContent(http.StatusOK)
 }

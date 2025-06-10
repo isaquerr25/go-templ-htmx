@@ -1,110 +1,79 @@
 package harvest
 
 import (
-	"fmt"
-	"github.com/isaquerr25/go-templ-htmx/views/templates"
+"fmt"
+"github.com/isaquerr25/go-templ-htmx/views/templates"
 )
 
 type HarvestProps struct {
-	ID          uint
-	PlantingID  uint
-	HarvestedAt string // formatado como YYYY-MM-DD para o input date
-	Quantity    float64
-	Unit        string
-	SaleValue   float64
-	Error       map[string]string
+ID uint
+PlantingID uint
+HarvestedAt string // formatado como YYYY-MM-DD para o input date
+Quantity float64
+Unit string
+SaleValue float64
+Error map[string]string
 }
 
 type HarvestListProps struct {
-	Items []HarvestProps
+Items []HarvestProps
 }
 
 templ Index(p HarvestProps) {
-	@templates.Base() {
-		<div class="max-w-[50rem] mx-auto mt-[5rem]">
-			<h1 class="text-xl font-bold mb-4">Cadastro de Colheita</h1>
-			<form
-				if p.ID !=0 {
-					hx-post={ fmt.Sprintf("/harvest/update/%d", p.ID) }
-				} else {
-					hx-post="/harvest/create"
-				}
-				hx-target="main"
-				hx-select="main"
-				hx-swap="outerHTML"
-				class="space-y-4"
-			>
-				<input
-					value={ fmt.Sprintf("%d", p.PlantingID) }
-					type="number"
-					name="plantingId"
-					placeholder="ID do Plantio"
-					class="w-full p-2 border rounded"
-				/>
-				<input value={ p.HarvestedAt } type="date" name="harvestedAt" class="w-full p-2 border rounded"/>
-				<input
-					value={ fmt.Sprintf("%.2f", p.Quantity) }
-					type="number"
-					step="0.01"
-					name="quantity"
-					placeholder="Quantidade"
-					class="w-full p-2 border rounded"
-				/>
-				<input
-					value={ p.Unit }
-					type="text"
-					name="unit"
-					placeholder="Unidade (ex: kg)"
-					class="w-full p-2 border rounded"
-				/>
-				<input
-					value={ fmt.Sprintf("%.2f", p.SaleValue) }
-					type="number"
-					step="0.01"
-					name="saleValue"
-					placeholder="Valor de Venda"
-					class="w-full p-2 border rounded"
-				/>
-				<button type="submit" class="w-full bg-blue-500 text-white p-2 rounded">
-					if p.ID == 0 {
-						Cadastrar
-					} else {
-						Atualizar
-					}
-				</button>
-			</form>
-		</div>
-	}
+@templates.Base() {
+<div class="max-w-[50rem] mx-auto mt-[5rem]">
+	<h1 class="text-xl font-bold mb-4">Cadastro de Colheita</h1>
+	<form if p.ID !=0 { hx-post={ fmt.Sprintf("/harvest/update/%d", p.ID) } } else { hx-post="/harvest/create" }
+		hx-target="main" hx-select="main" hx-swap="outerHTML" class="space-y-4">
+		<input value={ fmt.Sprintf("%d", p.PlantingID) } type="number" name="plantingId" placeholder="ID do Plantio"
+			class="w-full p-2 border rounded" />
+		<input value={ p.HarvestedAt } type="date" name="harvestedAt" class="w-full p-2 border rounded" />
+		<input value={ fmt.Sprintf("%.2f", p.Quantity) } type="number" step="0.01" name="quantity"
+			placeholder="Quantidade" class="w-full p-2 border rounded" />
+		<input value={ p.Unit } type="text" name="unit" placeholder="Unidade (ex: kg)"
+			class="w-full p-2 border rounded" />
+		<input value={ fmt.Sprintf("%.2f", p.SaleValue) } type="number" step="0.01" name="saleValue"
+			placeholder="Valor de Venda" class="w-full p-2 border rounded" />
+		<button type="submit" class="w-full bg-blue-500 text-white p-2 rounded">
+			if p.ID == 0 {
+			Cadastrar
+			} else {
+			Atualizar
+			}
+		</button>
+	</form>
+</div>
+}
 }
 
-templ List(p HarvestListProps) {
-	@templates.Base() {
-		<div class="max-w-[50rem] mx-auto mt-[5rem]">
-			<h1 class="text-xl font-bold mb-4">Colheitas</h1>
-			<a
-				href="/harvest/create"
-				hx-get="/harvest/create"
-				hx-target="main"
-				hx-swap="outerHTML"
-				class="block w-full bg-green-500 text-white text-center p-2 rounded mb-4"
-			>Nova Colheita</a>
-			<ul class="space-y-4">
-				for _, item := range p.Items {
-					<li class="border p-4 rounded flex justify-between items-center">
-						<div>
-							<p class="font-semibold">Plantio: { item.PlantingID }</p>
-							<p>Data: { item.HarvestedAt }</p>
-							<p>{ item.Quantity } { item.Unit } - Valor: R$ { fmt.Sprintf("%.2f", item.SaleValue) }</p>
-						</div>
-						<button
-							hx-get={ fmt.Sprintf("/harvest/%d", item.ID) }
-							hx-target="main"
-							hx-swap="outerHTML"
-							class="text-blue-500"
-						>Editar</button>
-					</li>
-				}
-			</ul>
-		</div>
-	}
+templ List(props HarvestListProps) {
+@templates.Base() {
+<div class="container mx-auto p-4">
+	<h1 class="text-2xl font-bold mb-4">Lista de Colheitas</h1>
+	<table class="w-full table-auto border-collapse border border-gray-300">
+		<thead>
+			<tr class="bg-gray-100">
+				<th class="border border-gray-300 p-2">ID</th>
+				<th class="border border-gray-300 p-2">Plantio</th>
+				<th class="border border-gray-300 p-2">Data da Colheita</th>
+				<th class="border border-gray-300 p-2">Quantidade</th>
+				<th class="border border-gray-300 p-2">Unidade</th>
+				<th class="border border-gray-300 p-2">Valor da Venda</th>
+			</tr>
+		</thead>
+		<tbody>
+			for _,item := range props.Items {
+			<tr class="border-t border-gray-300">
+				<td class="border border-gray-300 p-2">{ item.ID }</td>
+				<td class="border border-gray-300 p-2">{ item.PlantingID }</td>
+				<td class="border border-gray-300 p-2">{ item.HarvestedAt }</td>
+				<td class="border border-gray-300 p-2">{ item.Quantity }</td>
+				<td class="border border-gray-300 p-2">{ item.Unit }</td>
+				<td class="border border-gray-300 p-2">R$ { item.SaleValue }</td>
+			</tr>
+			}
+		</tbody>
+	</table>
+</div>
+}
 }

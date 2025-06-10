@@ -84,6 +84,13 @@ func validateSale(
 	return
 }
 
+func (s Server) NewSale(c echo.Context) error {
+	props := sale.SaleProps{
+		Error: make(map[string]string),
+	}
+	return Render(c, http.StatusOK, sale.Index(props))
+}
+
 func (s Server) CreateSale(c echo.Context) error {
 	p := &sale.SaleProps{}
 	props, hasError, err := validateSale(c, p)
@@ -184,14 +191,14 @@ func (s Server) ListSale(c echo.Context) error {
 			ID:            v.ID,
 			ClientID:      v.ClientID,
 			ProductSellID: v.ProductSellID,
-			SoldAt:        v.SoldAt.Format("2006-01-02"), // ou outro formato se necessário
-			Quantity:      int(v.Quantity),               // cuidado com truncamento
+			SoldAt:        v.SoldAt.Format("2006-01-02"),
+			Quantity:      int(v.Quantity),
 			Unit:          v.Unit,
 			TotalPrice:    v.TotalPrice,
 			Method:        string(v.Method),
 			State:         string(v.State),
 			Notes:         v.Notes,
-			Error:         make(map[string]string), // inicializa vazio
+			Error:         make(map[string]string),
 		}
 	}
 

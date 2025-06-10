@@ -4,9 +4,28 @@ import (
 	"strconv"
 
 	"github.com/isaquerr25/go-templ-htmx/views/pages/field"
+	"github.com/isaquerr25/go-templ-htmx/views/pages/planting"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 )
+
+func GetAllFields() ([]planting.Field, error) {
+	var dbFields []Field
+	if err := db.Find(&dbFields).Error; err != nil {
+		return nil, err
+	}
+
+	// Conversão manual para []planting.Field
+	var fields []planting.Field
+	for _, f := range dbFields {
+		fields = append(fields, planting.Field{
+			ID:   f.ID,
+			Name: f.Name,
+		})
+	}
+
+	return fields, nil
+}
 
 func ShowFieldForm(c echo.Context) error {
 	return field.Index(field.FieldProps{}).Render(c.Request().Context(), c.Response().Writer)

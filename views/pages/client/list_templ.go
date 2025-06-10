@@ -50,7 +50,7 @@ func List(p ClientListProps) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"max-w-[60rem] mx-auto mt-10\"><h1 class=\"text-2xl font-bold mb-4\">Lista de Clientes</h1><a href=\"/newClient\" class=\"mb-4 inline-block bg-blue-500 text-white px-4 py-2 rounded\">Novo Cliente</a><table class=\"w-full table-auto border-collapse\"><thead><tr class=\"bg-gray-200\"><th class=\"p-2 border\">Nome</th><th class=\"p-2 border\">Email</th><th class=\"p-2 border\">Telefone</th><th class=\"p-2 border\">Ações</th></tr></thead> <tbody>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"max-w-[60rem] mx-auto mt-10\"><h1 class=\"text-2xl font-bold mb-4\">Lista de Clientes</h1><a href=\"/listCustomer/new\" class=\"mb-4 inline-block bg-blue-500 text-white px-4 py-2 rounded\">Novo Cliente</a><table class=\"w-full table-auto border-collapse\"><thead><tr class=\"bg-gray-200\"><th class=\"p-2 border\">Nome</th><th class=\"p-2 border\">Email</th><th class=\"p-2 border\">Telefone</th><th class=\"p-2 border\">Ações</th></tr></thead> <tbody>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

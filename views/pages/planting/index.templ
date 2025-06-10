@@ -5,6 +5,11 @@ import (
 	"github.com/isaquerr25/go-templ-htmx/views/templates"
 )
 
+type Field struct {
+	ID   uint
+	Name string
+}
+
 type PlantingProps struct {
 	ID          uint
 	FieldID     uint    `form:"fieldId"`
@@ -16,14 +21,14 @@ type PlantingProps struct {
 	Error       map[string]string
 }
 
-templ Index(p PlantingProps) {
+templ Index(p PlantingProps, fields []Field) {
 	@templates.Base() {
 		<div class="max-w-[50rem] mx-auto mt-[5rem]">
 			<h1 class="text-xl font-bold mb-4">
 				if p.ID == 0 {
 					Novo Plantio
 				} else {
-					Editar Plantio
+					"Editar Plantio"
 				}
 			</h1>
 			<form
@@ -37,14 +42,14 @@ templ Index(p PlantingProps) {
 				hx-swap="outerHTML"
 				class="space-y-4"
 			>
-				<input
-					type="number"
-					name="fieldId"
-					value={ fmt.Sprintf("%d", p.FieldID) }
-					placeholder="ID do Campo"
-					required
-					class="w-full p-2 border rounded"
-				/>
+				<select name="fieldId" required class="w-full p-2 border rounded">
+					<option value="">Selecione um campo</option>
+					for _, f := range fields {
+						<option value={ fmt.Sprintf("%d", f.ID) } selected={ f.ID == p.FieldID }>
+							{ f.Name }
+						</option>
+					}
+				</select>
 				if e, ok := p.Error["FieldID"]; ok {
 					<p class="text-red-500">{ e }</p>
 				}

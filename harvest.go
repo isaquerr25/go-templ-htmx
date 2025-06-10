@@ -14,7 +14,6 @@ func ListHarvest(c echo.Context) error {
 	if err := db.Find(&harvests).Error; err != nil {
 		return c.String(http.StatusInternalServerError, "Erro ao buscar colheitas")
 	}
-
 	var items []harvest.HarvestProps
 	for _, h := range harvests {
 		items = append(items, harvest.HarvestProps{
@@ -52,11 +51,29 @@ func ShowHarvest(c echo.Context) error {
 
 func CreateHarvest(c echo.Context) error {
 	var input harvest.HarvestProps
+
+	// Aqui você pode definir valores padrão no input para pré-preenchimento
+	input = harvest.HarvestProps{
+		PlantingID: 123,  // Exemplo de ID padrão
+		Quantity:   10.0, // Quantidade padrão
+		Unit:       "kg", // Unidade padrão
+		SaleValue:  50.0, // Valor padrão
+		HarvestedAt: time.Now().
+			Format("2006-01-02"),
+		// Data padrão no formato string, se existir este campo
+	}
+
+	// Tente fazer o bind dos dados enviados pelo formulário para sobrescrever os padrões
 	if err := c.Bind(&input); err != nil {
 		return c.String(http.StatusBadRequest, "Erro ao processar dados")
 	}
 
-	date, _ := time.Parse("2006-01-02", c.FormValue("harvestedAt"))
+	// Parse da data, se vier do formulário (sobrescreve o padrão)
+	date, err := time.Parse("2006-01-02", c.FormValue("harvestedAt"))
+	if err != nil {
+		// Se não conseguir parsear, tenta usar a data padrão do input
+		date, _ = time.Parse("2006-01-02", input.HarvestedAt)
+	}
 
 	h := Harvest{
 		PlantingID:  input.PlantingID,

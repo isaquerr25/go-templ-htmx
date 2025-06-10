@@ -1,12 +1,16 @@
 <div class=\"max-w-[50rem] mx-auto mt-[5rem]\"><h1 class=\"text-xl font-bold mb-4\">
 Novo Plantio
-Editar Plantio
+\"Editar Plantio\"
 </h1><form
  hx-post=\"
 \"
  hx-post=\"/plantings/create\"
- hx-target=\"main\" hx-select=\"main\" hx-swap=\"outerHTML\" class=\"space-y-4\"><input type=\"number\" name=\"fieldId\" value=\"
-\" placeholder=\"ID do Campo\" required class=\"w-full p-2 border rounded\"> 
+ hx-target=\"main\" hx-select=\"main\" hx-swap=\"outerHTML\" class=\"space-y-4\"><select name=\"fieldId\" required class=\"w-full p-2 border rounded\"><option value=\"\">Selecione um campo</option> 
+<option value=\"
+\" selected=\"
+\">
+</option>
+</select> 
 <p class=\"text-red-500\">
 </p>
 <input type=\"text\" name=\"cropName\" value=\"

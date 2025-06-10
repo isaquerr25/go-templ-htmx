@@ -1,7 +1,5 @@
-<div class=\"flex justify-between items-center mb-4\"><h1 class=\"text-2xl font-bold\">Pulverizações</h1><a href=\"/pulverization\" hx-get=\"/pulverization\" hx-target=\"#main\" class=\"bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600\">Nova Pulverização</a></div><div class=\"overflow-x-auto\"><table class=\"min-w-full bg-white rounded shadow\"><thead><tr class=\"bg-gray-100 text-left text-sm font-medium text-gray-700\"><th class=\"px-4 py-2\">Plantio</th><th class=\"px-4 py-2\">Produto</th><th class=\"px-4 py-2\">Data Aplicação</th><th class=\"px-4 py-2\">Quantidade</th><th class=\"px-4 py-2\">Unidade</th><th class=\"px-4 py-2\">Ações</th></tr></thead> <tbody>
+<div class=\"flex justify-between items-center mb-4\"><h1 class=\"text-2xl font-bold\">Pulverizações</h1><a href=\"/pulverization\" class=\"bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600\">Nova Pulverização</a></div><div class=\"overflow-x-auto\"><table class=\"min-w-full bg-white rounded shadow\"><thead><tr class=\"bg-gray-100 text-left text-sm font-medium text-gray-700\"><th class=\"px-4 py-2\">Plantio</th><th class=\"px-4 py-2\">Produto</th><th class=\"px-4 py-2\">Data Aplicação</th><th class=\"px-4 py-2\">Quantidade</th><th class=\"px-4 py-2\">Unidade</th><th class=\"px-4 py-2\">Ações</th></tr></thead> <tbody>
 <tr class=\"border-t text-sm\"><td class=\"px-4 py-2\">
-</td><td class=\"px-4 py-2\">
-</td><td class=\"px-4 py-2\">
 </td><td class=\"px-4 py-2\">
 </td><td class=\"px-4 py-2\">
 </td><td class=\"px-4 py-2 flex space-x-2\"><a href=\"

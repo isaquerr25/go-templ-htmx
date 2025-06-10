@@ -10,6 +10,15 @@ templ List(pp []ProductProps) {
 	@templates.Base() {
 		<div class="container mx-auto">
 			<h1 class="text-3xl font-semibold text-center mb-6">Produtos</h1>
+			<!-- Botão para criar novo produto -->
+			<div class="flex justify-end mb-4">
+				<a
+					href={ templ.URL("/newProduct") }
+					class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+				>
+					Novo Produto
+				</a>
+			</div>
 			<table class="min-w-full table-auto bg-white shadow-md rounded-lg">
 				<thead>
 					<tr class="bg-gray-800 text-white">
@@ -36,22 +45,20 @@ templ List(pp []ProductProps) {
 							<td class="px-4 py-2">{ fmt.Sprintf("%.2f", p.TotalCost) }</td>
 							<td class="px-4 py-2">{ strconv.FormatFloat(p.Remaining, 'f', -1, 64) }</td>
 							<td class="px-4 py-2 space-x-2">
-								<td class="px-4 py-2 space-x-2">
-									<a
-										href={ templ.URL(fmt.Sprintf("/editProduct/%d", p.ID)) }
-										class="text-blue-600 hover:underline"
-									>Editar</a>
-									<button
-										hx-delete={ templ.URL(fmt.Sprintf("/deleteProduct/%d", p.ID)) }
-										hx-target="closest tr"
-										hx-swap="outerHTML swap:1s"
-										hx-confirm="Tem certeza que deseja excluir este produto?"
-										class="text-red-600 hover:underline"
-										hx-on:htmx:afterRequest="location.reload()"
-									>
-										Excluir
-									</button>
-								</td>
+								<a
+									href={ templ.URL(fmt.Sprintf("/editProduct/%d", p.ID)) }
+									class="text-blue-600 hover:underline"
+								>Editar</a>
+								<button
+									hx-delete={ templ.URL(fmt.Sprintf("/deleteProduct/%d", p.ID)) }
+									hx-target="closest tr"
+									hx-swap="outerHTML swap:1s"
+									hx-confirm="Tem certeza que deseja excluir este produto?"
+									class="text-red-600 hover:underline"
+									hx-on:htmx:afterRequest="location.reload()"
+								>
+									Excluir
+								</button>
 							</td>
 						</tr>
 					}

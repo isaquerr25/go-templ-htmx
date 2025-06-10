@@ -9,6 +9,30 @@ import (
 
 type Server struct{}
 
+func GetAllProductsProps() ([]produto.ProductProps, error) {
+	var products []Product
+	if err := db.Find(&products).Error; err != nil {
+		return nil, err
+	}
+
+	var productPropsList []produto.ProductProps
+	for _, p := range products {
+		productPropsList = append(productPropsList, produto.ProductProps{
+			ID:          p.ID,
+			Name:        p.Name,
+			Quantity:    p.Quantity,
+			Remaining:   p.Remaining,
+			Unit:        p.Unit,
+			Date:        p.Date,
+			TotalCost:   p.TotalCost,
+			Description: p.Description,
+			Error:       map[string]string{},
+		})
+	}
+
+	return productPropsList, nil
+}
+
 func (s Server) UpdateProduct(c echo.Context) error {
 	p := &Product{}
 	r := db.First(p, c.Param("ID"))

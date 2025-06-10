@@ -13,7 +13,7 @@
 Cadastrar
 Atualizar
 </button></form></div>
-<div class=\"max-w-[50rem] mx-auto mt-[5rem]\"><h1 class=\"text-xl font-bold mb-4\">Setores de Irrigação</h1><a href=\"/irrigation/create\" hx-get=\"/irrigation/create\" hx-target=\"main\" hx-swap=\"outerHTML\" class=\"block w-full bg-green-500 text-white text-center p-2 rounded mb-4\">Novo Setor</a><ul class=\"space-y-4\">
+<div class=\"max-w-[50rem] mx-auto mt-[5rem]\"><h1 class=\"text-xl font-bold mb-4\">Setores de Irrigação</h1><a href=\"/irrigation\" class=\"block w-full bg-green-500 text-white text-center p-2 rounded mb-4\">Novo Setor</a><ul class=\"space-y-4\">
 <li class=\"border p-4 rounded flex justify-between items-center\"><div><h2 class=\"font-semibold\">
 </h2><p class=\"text-sm text-gray-500\">
 </p><p class=\"text-sm\">Área: 

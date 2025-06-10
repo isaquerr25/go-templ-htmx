@@ -1,4 +1,5 @@
-<div class=\"container mx-auto\"><h1 class=\"text-3xl font-semibold text-center mb-6\">Produtos</h1><table class=\"min-w-full table-auto bg-white shadow-md rounded-lg\"><thead><tr class=\"bg-gray-800 text-white\"><th class=\"px-4 py-2 text-left\">Nome</th><th class=\"px-4 py-2 text-left\">Quantidade</th><th class=\"px-4 py-2 text-left\">Unidade</th><th class=\"px-4 py-2 text-left\">Data</th><th class=\"px-4 py-2 text-left\">Valor</th><th class=\"px-4 py-2 text-left\">Usando</th><th class=\"px-4 py-2 text-left\">Ações</th></tr></thead> <tbody>
+<div class=\"container mx-auto\"><h1 class=\"text-3xl font-semibold text-center mb-6\">Produtos</h1><!-- Botão para criar novo produto --><div class=\"flex justify-end mb-4\"><a href=\"
+\" class=\"bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition\">Novo Produto</a></div><table class=\"min-w-full table-auto bg-white shadow-md rounded-lg\"><thead><tr class=\"bg-gray-800 text-white\"><th class=\"px-4 py-2 text-left\">Nome</th><th class=\"px-4 py-2 text-left\">Quantidade</th><th class=\"px-4 py-2 text-left\">Unidade</th><th class=\"px-4 py-2 text-left\">Data</th><th class=\"px-4 py-2 text-left\">Valor</th><th class=\"px-4 py-2 text-left\">Usando</th><th class=\"px-4 py-2 text-left\">Ações</th></tr></thead> <tbody>
 <tr class=\"border-b hover:bg-gray-100\"><td class=\"px-4 py-2\"><a href=\"
 \">
 </a></td><td class=\"px-4 py-2\">
@@ -6,7 +7,7 @@
 </td><td class=\"px-4 py-2\">
 </td><td class=\"px-4 py-2\">
 </td><td class=\"px-4 py-2\">
-</td><td class=\"px-4 py-2 space-x-2\"><td class=\"px-4 py-2 space-x-2\"><a href=\"
+</td><td class=\"px-4 py-2 space-x-2\"><a href=\"
 \" class=\"text-blue-600 hover:underline\">Editar</a> <button hx-delete=\"
-\" hx-target=\"closest tr\" hx-swap=\"outerHTML swap:1s\" hx-confirm=\"Tem certeza que deseja excluir este produto?\" class=\"text-red-600 hover:underline\" hx-on:htmx:afterRequest=\"location.reload()\">Excluir</button></td></td></tr>
+\" hx-target=\"closest tr\" hx-swap=\"outerHTML swap:1s\" hx-confirm=\"Tem certeza que deseja excluir este produto?\" class=\"text-red-600 hover:underline\" hx-on:htmx:afterRequest=\"location.reload()\">Excluir</button></td></tr>
 </tbody></table></div>
