@@ -1,0 +1,31 @@
+<div class=\"max-w-5xl mx-auto mt-12 px-8 font-sans text-gray-800\"><a href=\"
+\" class=\"text-sm text-blue-600 hover:underline\">Nova Adubação</a> - <a href=\"
+\" class=\"text-sm text-blue-600 hover:underline\">Nova Aplicação</a><header class=\"mb-10 border-b border-green-300 pb-4\"><h1 class=\"text-4xl font-extrabold text-green-700 tracking-tight\">Detalhes do Plantio</h1></header><section class=\"grid grid-cols-1 md:grid-cols-2 gap-8 mb-12\"><div class=\"space-y-3\"><div><h3 class=\"text-lg font-semibold text-gray-700\">Cultura</h3><p class=\"text-xl font-medium text-green-800\">
+</p></div><div><h3 class=\"text-lg font-semibold text-gray-700\">Área utilizada</h3><p class=\"text-xl font-medium\">
+ ha</p></div></div><div class=\"space-y-3\"><div><h3 class=\"text-lg font-semibold text-gray-700\">Início</h3><p class=\"text-xl\">
+</p></div><div><h3 class=\"text-lg font-semibold text-gray-700\">Fim</h3>
+<p class=\"text-xl\">
+</p>
+<p class=\"italic text-yellow-600 font-semibold\">Em andamento</p>
+</div></div></section><section class=\"mb-10\"><h2 class=\"text-2xl font-bold text-red-600 mb-4 border-b border-red-300 pb-2\">Custos</h2>
+<ul class=\"bg-red-50 rounded-lg p-6 shadow-md space-y-3\">
+<li class=\"flex justify-between text-red-800 font-semibold border-b border-red-100 last:border-none pb-2\"><span>
+</span> <span>R$ 
+</span></li>
+</ul>
+<p class=\"italic text-red-300 text-lg\">Nenhum custo registrado.</p>
+</section><section class=\"mb-10\"><h2 class=\"text-2xl font-bold text-green-600 mb-4 border-b border-green-300 pb-2\">Receitas / Lucros</h2>
+<ul class=\"bg-green-50 rounded-lg p-6 shadow-md space-y-3\">
+<li class=\"flex justify-between text-green-800 font-semibold border-b border-green-100 last:border-none pb-2\"><span>
+</span> <span>R$ 
+</span></li>
+</ul>
+<p class=\"italic text-green-300 text-lg\">Nenhuma receita registrada.</p>
+</section><section><h2 class=\"text-2xl font-bold text-yellow-700 mb-4 border-b border-yellow-300 pb-2\">Adubos Utilizados</h2>
+<ul class=\"bg-yellow-50 rounded-lg p-6 shadow-md space-y-3\">
+<li class=\"flex justify-between text-yellow-900 font-semibold border-b border-yellow-100 last:border-none pb-2\"><span>
+</span> <span>
+ kg</span></li>
+</ul>
+<p class=\"italic text-yellow-400 text-lg\">Nenhum adubo registrado.</p>
+</section></div>

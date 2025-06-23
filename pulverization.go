@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/isaquerr25/go-templ-htmx/views/pages/planting"
 	"github.com/isaquerr25/go-templ-htmx/views/pages/pulverization"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
@@ -49,9 +48,11 @@ func ListPulverizations() echo.HandlerFunc {
 			items = append(items, pulverization.PulverizationProps{
 				ID:         p.ID,
 				PlantingID: p.PlantingID,
-				AppliedAt:  p.AppliedAt.Format("2006-01-02"),
-				Unit:       p.Unit,
-				Products:   prods,
+				AppliedAt: pulverization.Date{
+					Time: p.AppliedAt,
+				},
+				Unit:     p.Unit,
+				Products: prods,
 			})
 		}
 
@@ -66,49 +67,61 @@ func ListPulverizations() echo.HandlerFunc {
 
 func CreatePulverization(db *gorm.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		var p pulverization.PulverizationProps
-		if err := c.Bind(&p); err != nil {
-			return c.String(http.StatusBadRequest, "Erro ao ler dados do formulário")
-		}
-
-		appliedAt, err := time.Parse("2006-01-02", p.AppliedAt)
+		planId := c.Param("planId")
+		planIdInt, err := strconv.Atoi(planId)
 		if err != nil {
-			a, _ := GetAllProductsProps()
-
-			p.Error = map[string]string{"AppliedAt": "Data inválida"}
-			return pulverization.Index(p, pulverization.UseProps{
-				Prod: a,
-				Plan: []planting.PlantingProps{},
-			}).
-				Render(c.Request().Context(), c.Response().Writer)
+			return c.String(http.StatusBadRequest, "planId inválido")
 		}
 
-		// Cria a pulverização principal
+		// Extrair campos individuais
+		appliedAtStr := c.FormValue("appliedAt")
+		unit := c.FormValue("unit")
+
+		appliedAt, err := time.Parse("2006-01-02", appliedAtStr)
+		if err != nil {
+			return c.String(http.StatusBadRequest, "Data (AppliedAt) inválida")
+		}
+
+		// Criar a pulverização principal
 		newPulverization := Pulverization{
-			PlantingID: p.PlantingID,
+			PlantingID: uint(planIdInt),
 			AppliedAt:  appliedAt,
-			Unit:       p.Unit,
+			Unit:       unit,
 		}
 
 		if err := db.Create(&newPulverization).Error; err != nil {
 			return c.String(http.StatusInternalServerError, "Erro ao criar pulverização")
 		}
 
-		// Associa os produtos aplicados
-		for _, prod := range p.Products {
+		// Processar os produtos aplicados
+		form := c.Request().PostForm
+		productIDs := form["Products[].ProductID"]
+		quantities := form["Products[].QuantityUsed"]
+
+		for i := range productIDs {
+			productID, err := strconv.Atoi(productIDs[i])
+			if err != nil {
+				continue // Ignora produto inválido
+			}
+
+			quantity, err := strconv.ParseFloat(quantities[i], 64)
+			if err != nil {
+				continue // Ignora quantidade inválida
+			}
+
 			applied := AppliedProduct{
 				PulverizationID: newPulverization.ID,
-				ProductID:       prod.ProductID,
-				QuantityUsed:    prod.QuantityUsed,
+				ProductID:       uint(productID),
+				QuantityUsed:    quantity,
 			}
+
 			if err := db.Create(&applied).Error; err != nil {
-				return c.String(http.StatusInternalServerError, "Erro ao salvar produtos aplicados")
+				return c.String(http.StatusInternalServerError, "Erro ao salvar produto aplicado")
 			}
 		}
 
-		c.Response().Header().Set("HX-Redirect", "/pulverizations")
-		c.Response().WriteHeader(200)
-		return c.String(200, "")
+		c.Response().Header().Set("HX-Redirect", "../")
+		return c.String(http.StatusOK, "")
 	}
 }
 
@@ -121,13 +134,6 @@ func UpdatePulverization(db *gorm.DB) echo.HandlerFunc {
 			return c.String(http.StatusBadRequest, "Erro ao ler dados do formulário")
 		}
 
-		appliedAt, err := time.Parse("2006-01-02", p.AppliedAt)
-		if err != nil {
-			p.Error = map[string]string{"AppliedAt": "Data inválida"}
-			return pulverization.Index(p, pulverization.UseProps{}).
-				Render(c.Request().Context(), c.Response().Writer)
-		}
-
 		var pul Pulverization
 		if err := db.Preload("Products").First(&pul, id).Error; err != nil {
 			return c.String(http.StatusNotFound, "Pulverização não encontrada")
@@ -135,7 +141,7 @@ func UpdatePulverization(db *gorm.DB) echo.HandlerFunc {
 
 		// Atualiza os campos principais
 		pul.PlantingID = p.PlantingID
-		pul.AppliedAt = appliedAt
+		pul.AppliedAt = p.AppliedAt.Time
 		pul.Unit = p.Unit
 
 		// Atualiza no banco
@@ -187,10 +193,12 @@ func ShowPulverizationForm(db *gorm.DB) echo.HandlerFunc {
 			return pulverization.Index(pulverization.PulverizationProps{
 				ID:         0,
 				PlantingID: 0,
-				AppliedAt:  "",
 				Unit:       "",
 				Products:   []pulverization.ProductInput{},
 				Error:      map[string]string{},
+				AppliedAt: pulverization.Date{
+					Time: time.Now(),
+				},
 			}, pulverization.UseProps{
 				Prod: a,
 				Plan: b,
@@ -216,9 +224,11 @@ func ShowPulverizationForm(db *gorm.DB) echo.HandlerFunc {
 		p := pulverization.PulverizationProps{
 			ID:         pul.ID,
 			PlantingID: pul.PlantingID,
-			AppliedAt:  pul.AppliedAt.Format("2006-01-02"),
-			Unit:       pul.Unit,
-			Products:   products,
+			AppliedAt: pulverization.Date{
+				Time: pul.AppliedAt,
+			},
+			Unit:     pul.Unit,
+			Products: products,
 		}
 
 		return pulverization.Index(p, pulverization.UseProps{

@@ -13,7 +13,6 @@ import (
 	"github.com/isaquerr25/go-templ-htmx/views/pages/fertilization"
 	"github.com/isaquerr25/go-templ-htmx/views/pages/field"
 	"github.com/isaquerr25/go-templ-htmx/views/pages/harvest"
-	"github.com/isaquerr25/go-templ-htmx/views/pages/home"
 	"github.com/isaquerr25/go-templ-htmx/views/pages/planting"
 	"github.com/isaquerr25/go-templ-htmx/views/pages/produto"
 	"github.com/isaquerr25/go-templ-htmx/views/pages/pulverization"
@@ -333,16 +332,31 @@ func main() {
 
 	e.GET("/pulverizations", ListPulverizations())
 
+	e.GET("/dashboard/plantings/:planId/pulverization/create", ShowPulverizationForm(db))
+	e.POST("/dashboard/plantings/:planId/pulverization/create", CreatePulverization(db))
+
 	e.GET("/pulverization", ShowPulverizationForm(db))
 	e.GET("/pulverization/:id", ShowPulverizationForm(db))
 	e.POST("/pulverization", CreatePulverization(db))
 	e.POST("/pulverization/:id", UpdatePulverization(db))
 	e.DELETE("/pulverization/:id", DeletePulverization(db))
 
-	e.GET("/irrigation", IrrigationIndex)
-	e.POST("/irrigation/create", IrrigationCreate)
+	// Irrigations
 	e.GET("/irrigation/list", IrrigationList)
-	e.GET("/irrigation/edit/:id", IrrigationEdit)
+	e.GET("/irrigation/create", IrrigationCreatePage)
+	e.GET("/irrigation/:id", IrrigationShow)
+	e.POST("/irrigation/create", IrrigationCreate)
+	e.POST("/irrigation/update/:id", IrrigationUpdate)
+	e.DELETE("/irrigation/:id", IrrigationDelete)
+
+	// Irrigation Actions
+	e.GET("/irrigation-actions", ListIrrigationActions(db))
+	e.POST("/irrigation-actions", CreateIrrigationAction(db))
+	e.PUT("/irrigation-actions/:id", UpdateIrrigationAction(db))
+	e.DELETE("/irrigation-actions/:id", DeleteIrrigationAction(db))
+
+	// Rota HTMX para carregar os detalhes do modal
+	e.GET("/irrigation/:id/details", IrrigationDetails)
 
 	// e.GET("/harvest", ListHarvest)
 	e.GET("/harvest/:id", ShowHarvest)
@@ -354,10 +368,37 @@ func main() {
 	// Fertilization routes
 	e.GET("/fertilization", ListFertilization)
 	e.GET("/fertilization/create", func(c echo.Context) error {
+		return fertilization.Index(fertilization.FertilizationProps{
+			ID:              0,
+			PlantingID:      0,
+			ApplicationType: "",
+			AppliedAt: fertilization.Date{
+				Time: time.Now(),
+			},
+			Products: []pulverization.ProductInput{},
+			Error:    map[string]string{},
+		}, pulverization.UseProps{}).
+			Render(c.Request().Context(), c.Response())
+	})
+	e.GET("/dashboard/plantings/:planId/fertilization/create", func(c echo.Context) error {
+		return fertilization.Index(fertilization.FertilizationProps{
+			ID:              0,
+			PlantingID:      0,
+			ApplicationType: "",
+			AppliedAt: fertilization.Date{
+				Time: time.Now(),
+			},
+			Products: []pulverization.ProductInput{},
+			Error:    map[string]string{},
+		}, pulverization.UseProps{}).
+			Render(c.Request().Context(), c.Response())
+	})
+	e.GET("/fertilization/create", func(c echo.Context) error {
 		return fertilization.Index(fertilization.FertilizationProps{}, pulverization.UseProps{}).
 			Render(c.Request().Context(), c.Response())
 	})
 	e.GET("/fertilization/:id", ShowFertilization)
+	e.POST("/dashboard/plantings/:planId/fertilization/create", CreateFertilization)
 	e.POST("/fertilization/create", CreateFertilization)
 	e.POST("/fertilization/update/:id", UpdateFertilization)
 
@@ -375,12 +416,9 @@ func main() {
 	e.POST("/productsell/create", CreateProductSell)
 	e.GET("/productsell/:id", EditViewProductSell)
 	e.POST("/productsell/update/:id", UpdateProductSell)
-	e.GET("/",
+	e.GET("/", ListDasboard())
+	e.GET("/dashboard/plantings/:id/", DashboardShowPlanting())
 
-		func(c echo.Context) error {
-			return Render(c, 200, home.Hello("asds"))
-		},
-	)
 	e.Logger.Fatal(e.Start(":1323"))
 }
 

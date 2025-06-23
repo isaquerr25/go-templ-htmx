@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -30,8 +31,10 @@ func ListFertilization(c echo.Context) error {
 			ID:              f.ID,
 			PlantingID:      f.PlantingID,
 			ApplicationType: f.ApplicationType,
-			AppliedAt:       f.AppliedAt,
-			Products:        []pulverization.ProductInput{},
+			AppliedAt: fertilization.Date{
+				Time: f.AppliedAt,
+			},
+			Products: []pulverization.ProductInput{},
 		})
 	}
 
@@ -60,8 +63,10 @@ func ShowFertilization(c echo.Context) error {
 		ID:              f.ID,
 		PlantingID:      f.PlantingID,
 		ApplicationType: f.ApplicationType,
-		AppliedAt:       f.AppliedAt,
-		Products:        []pulverization.ProductInput{},
+		AppliedAt: fertilization.Date{
+			Time: f.AppliedAt,
+		},
+		Products: []pulverization.ProductInput{},
 	}
 
 	return fertilization.Index(p, pulverization.UseProps{}).
@@ -71,17 +76,16 @@ func ShowFertilization(c echo.Context) error {
 func CreateFertilization(c echo.Context) error {
 	// Supondo que você receba os dados dos produtos via JSON ou formulário com repetição (ex: products[0].productId, products[0].quantityUsed...)
 
+	planId := c.Param("planId")
+
 	var input fertilization.FertilizationProps
 	if err := c.Bind(&input); err != nil {
+		fmt.Println(err)
 		return c.String(http.StatusBadRequest, "Erro ao fazer bind dos dados do formulário")
 	}
 
 	input.Error = make(map[string]string)
 
-	// Validação simplificada, adaptar conforme necessário
-	if input.PlantingID == 0 {
-		input.Error["PlantingID"] = "ID de plantio inválido"
-	}
 	if input.ApplicationType == "" {
 		input.Error["ApplicationType"] = "Tipo de aplicação obrigatório"
 	}
@@ -90,30 +94,34 @@ func CreateFertilization(c echo.Context) error {
 	}
 
 	// Validar os produtos
-	if len(input.Products) == 0 {
-		input.Error["Products"] = "É necessário pelo menos um produto aplicado"
-	} else {
-		for i, p := range input.Products {
-			if p.ProductID == 0 {
-				input.Error["Products"] = "Produto inválido no item " + strconv.Itoa(i+1)
-			}
-			if p.QuantityUsed <= 0 {
-				input.Error["Products"] = "Quantidade usada inválida no item " + strconv.Itoa(i+1)
-			}
 
+	for i, p := range input.Products {
+		if p.ProductID == 0 {
+			input.Error["Products"] = "Produto inválido no item " + strconv.Itoa(i+1)
 		}
+		if p.QuantityUsed <= 0 {
+			input.Error["Products"] = "Quantidade usada inválida no item " + strconv.Itoa(i+1)
+		}
+
 	}
 
 	if len(input.Error) > 0 {
+		fmt.Println("errrrrrrrrrrrrrrrrrr")
+
 		return fertilization.Index(input, pulverization.UseProps{}).
 			Render(c.Request().Context(), c.Response())
 	}
 
+	planIdInt, err := strconv.Atoi(planId)
+	if err != nil {
+		return err
+	}
+
 	// Criar registro principal
 	f := Fertilization{
-		PlantingID:      input.PlantingID,
+		PlantingID:      uint(planIdInt),
 		ApplicationType: input.ApplicationType,
-		AppliedAt:       input.AppliedAt,
+		AppliedAt:       input.AppliedAt.Time,
 	}
 
 	if err := db.Create(&f).Error; err != nil {
@@ -135,8 +143,10 @@ func CreateFertilization(c echo.Context) error {
 				Render(c.Request().Context(), c.Response())
 		}
 	}
-
-	return ListFertilization(c)
+	fmt.Println("sssssssssssss")
+	// Força refresh via HTMX
+	c.Response().Header().Set("HX-Redirect", "../")
+	return c.String(http.StatusOK, "")
 }
 
 func UpdateFertilization(c echo.Context) error {
@@ -155,7 +165,7 @@ func UpdateFertilization(c echo.Context) error {
 	// Atualizar os campos do fertilization
 	f.PlantingID = input.PlantingID
 	f.ApplicationType = input.ApplicationType
-	f.AppliedAt = input.AppliedAt
+	f.AppliedAt = input.AppliedAt.Time
 
 	if err := db.Save(&f).Error; err != nil {
 		input.Error = map[string]string{"global": "Erro ao atualizar fertilização"}

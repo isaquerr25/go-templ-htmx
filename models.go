@@ -27,7 +27,6 @@ type Field struct {
 
 type Planting struct {
 	gorm.Model
-	FieldID     uint       `form:"fieldId"`
 	CropName    string     `form:"cropName"`
 	StartedAt   time.Time  `form:"startedAt"`
 	EndedAt     *time.Time `form:"endedAt"`
@@ -72,6 +71,12 @@ type Irrigation struct {
 	AppliedAt  time.Time `form:"appliedAt"`
 	Method     string    `form:"method"` // drip, sprinkler, etc.
 	Notes      string    `form:"notes"`
+}
+
+type IrrigationAction struct {
+	gorm.Model
+	IrrigationID uint      `form:"plantingId"`
+	AppliedAt    time.Time `form:"appliedAt"`
 }
 
 type Harvest struct {

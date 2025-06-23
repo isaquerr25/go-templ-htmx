@@ -46,7 +46,7 @@ func List(pulverizations []PulverizationProps) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"flex justify-between items-center mb-4\"><h1 class=\"text-2xl font-bold\">Pulverizações</h1><a href=\"/pulverization\" class=\"bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600\">Nova Pulverização</a></div><div class=\"overflow-x-auto\"><table class=\"min-w-full bg-white rounded shadow\"><thead><tr class=\"bg-gray-100 text-left text-sm font-medium text-gray-700\"><th class=\"px-4 py-2\">Plantio</th><th class=\"px-4 py-2\">Produto</th><th class=\"px-4 py-2\">Data Aplicação</th><th class=\"px-4 py-2\">Quantidade</th><th class=\"px-4 py-2\">Unidade</th><th class=\"px-4 py-2\">Ações</th></tr></thead> <tbody>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"flex justify-between items-center mb-4 \"><h1 class=\"text-2xl font-bold\">Pulverizações</h1><a href=\"/pulverization\" class=\"bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600\">Nova Pulverização</a></div><div class=\"overflow-x-auto \"><table class=\"min-w-full bg-white rounded shadow  \"><thead><tr class=\"bg-gray-100 text-left text-sm font-medium text-gray-700\"><th class=\"px-4 py-2\">Plantio</th><th class=\"px-4 py-2\">Produto</th><th class=\"px-4 py-2\">Data Aplicação</th><th class=\"px-4 py-2\">Quantidade</th><th class=\"px-4 py-2\">Unidade</th><th class=\"px-4 py-2\">Ações</th></tr></thead> <tbody>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -69,9 +69,9 @@ func List(pulverizations []PulverizationProps) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var4 string
-				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(p.AppliedAt)
+				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(p.AppliedAt.Format("02/01/2006"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/pulverization/list.templ`, Line: 32, Col: 42}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/pulverization/list.templ`, Line: 32, Col: 63}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 				if templ_7745c5c3_Err != nil {
@@ -94,7 +94,7 @@ func List(pulverizations []PulverizationProps) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var6 templ.SafeURL = templ.SafeURL("/pulverization/" + fmt.Sprintf("%d", p.ID))
+				var templ_7745c5c3_Var6 templ.SafeURL = templ.SafeURL(fmt.Sprintf("/pulverization/%d", p.ID))
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var6)))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
@@ -113,14 +113,14 @@ func List(pulverizations []PulverizationProps) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" hx-target=\"#main\" class=\"text-blue-600 hover:underline\">Editar</a><form hx-delete=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" hx-target=\"#main\" class=\"text-blue-600 hover:underline\">Editar</a><form hx-get=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var8 string
-				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs("/pulverization/" + fmt.Sprintf("%d", p.ID))
+				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("/pulverization/%d", p.ID))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/pulverization/list.templ`, Line: 45, Col: 64}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/pulverization/list.templ`, Line: 45, Col: 56}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 				if templ_7745c5c3_Err != nil {

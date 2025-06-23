@@ -19,7 +19,7 @@ type FertilizationProps struct {
 	ID              uint                         `form:"id"`
 	PlantingID      uint                         `form:"plantingId"`
 	ApplicationType string                       `form:"applicationType"` // drip or foliar
-	AppliedAt       time.Time                    `form:"appliedAt"`
+	AppliedAt       Date                         `form:"appliedAt"`
 	Products        []pulverization.ProductInput `form:"products"`
 	Error           map[string]string
 }
@@ -33,26 +33,33 @@ type FertilizationListProps struct {
 	Items []FertilizationProps
 }
 
+type Date struct {
+	time.Time
+}
+
+func (d *Date) UnmarshalParam(param string) error {
+	t, err := time.Parse("2006-01-02", param)
+	if err != nil {
+		return err
+	}
+	d.Time = t
+	return nil
+}
+
 templ Index(p FertilizationProps, use pulverization.UseProps) {
 	@templates.Base() {
 		<div class="max-w-[50rem] mx-auto mt-[5rem]">
 			<h1 class="text-xl font-bold mb-4">Cadastro de Fertilização</h1>
 			<form
 				if p.ID !=0 {
-					hx-post={ fmt.Sprintf("/fertilization/update/%d", p.ID) }
+					hx-post={ fmt.Sprintf("./update", p.ID) }
 				} else {
-					hx-post="/fertilization/create"
+					hx-post=""
 				}
 				hx-swap="outerHTML"
+				hx-target="body"
 				class="space-y-4"
 			>
-				<input
-					value={ p.PlantingID }
-					type="number"
-					name="plantingId"
-					placeholder="ID do Plantio"
-					class="w-full p-2 border rounded"
-				/>
 				<div id="jiromba" class=" bg-red">
 					for i, pr := range p.Products {
 						@pulverization.ItemsProdut(i, pr, use)

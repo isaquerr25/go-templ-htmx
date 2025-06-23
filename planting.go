@@ -27,7 +27,6 @@ func GetAllPlantings() ([]planting.PlantingProps, error) {
 
 		plantings = append(plantings, planting.PlantingProps{
 			ID:          p.ID,
-			FieldID:     p.FieldID,
 			CropName:    p.CropName,
 			StartedAt:   p.StartedAt.Format("2006-01-02"),
 			EndedAt:     endedAtStr,
@@ -129,7 +128,6 @@ func ListPlantings(db *gorm.DB) echo.HandlerFunc {
 		for _, p := range plantings {
 			items = append(items, planting.PlantingItem{
 				ID:          p.ID,
-				FieldID:     p.FieldID,
 				CropName:    p.CropName,
 				StartedAt:   p.StartedAt,
 				EndedAt:     p.EndedAt,
@@ -177,7 +175,6 @@ func CreatePlanting(db *gorm.DB) echo.HandlerFunc {
 		}
 
 		newPlanting := Planting{
-			FieldID:     0,
 			CropName:    props.CropName,
 			StartedAt:   startedAt,
 			EndedAt:     endedAt,
@@ -232,7 +229,6 @@ func UpdatePlanting(db *gorm.DB) echo.HandlerFunc {
 			return c.String(http.StatusNotFound, "Plantio não encontrado")
 		}
 
-		plant.FieldID = 0
 		plant.CropName = p.CropName
 		plant.StartedAt = startedAt
 		plant.EndedAt = endedAt

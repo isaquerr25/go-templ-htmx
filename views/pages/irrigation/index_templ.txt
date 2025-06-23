@@ -1,23 +1,43 @@
-<div class=\"max-w-[50rem] mx-auto mt-[5rem]\"><h1 class=\"text-xl font-bold mb-4\">Cadastro de Setor de Irrigação</h1><form
+<div class=\"max-w-[50rem] mx-auto mt-[5rem]\"><h1 class=\"text-xl font-bold mb-4\">
+Cadastro 
+Atualização 
+de Irrigação</h1><form
  hx-post=\"
 \"
  hx-post=\"/irrigation/create\"
- hx-target=\"main\" hx-select=\"main\" hx-swap=\"outerHTML\" class=\"space-y-4\"><input value=\"
-\" type=\"text\" name=\"name\" placeholder=\"Nome\" required class=\"w-full p-2 border rounded\"> 
-<p class=\"text-red-500\">
+ hx-target=\"body\" hx-swap=\"outerHTML\" class=\"space-y-4\"><!-- Planting ID --><div class=\"space-y-1\"><label for=\"plantingId\" class=\"block font-medium\">ID do Plantio</label> <select name=\"plantingId\" required class=\"w-full p-2 border rounded\"><option value=\"\">Selecione um campo</option> 
+<option value=\"
+\" selected=\"
+\">
+ ID:
+</option>
+</select> 
+<p class=\"text-sm text-red-500\">
 </p>
-<input value=\"
-\" type=\"number\" step=\"0.01\" name=\"flowRate\" placeholder=\"Vazão (L/min)\" class=\"w-full p-2 border rounded\"> <input value=\"
-\" type=\"number\" step=\"0.01\" name=\"area\" placeholder=\"Área (m²)\" class=\"w-full p-2 border rounded\"> <textarea name=\"description\" placeholder=\"Descrição\" class=\"w-full p-2 border rounded\">
-</textarea> <button type=\"submit\" class=\"w-full bg-blue-500 text-white p-2 rounded\">
+</div><!-- Tipo --><div>
+</div><div class=\"space-y-1\"><label for=\"type\" class=\"block font-medium\">Tipo de Irrigação</label> <select id=\"type\" name=\"type\" class=\"w-full p-2 border rounded\"><option
+ selected
+ value=\"drip\">Gotejamento</option> <option
+ selected
+ value=\"sprinkler\">Aspersão</option> <option
+ selected
+ value=\"manual\">Manual</option></select><!-- Se desejar validar o campo \"type\", adicione aqui também --></div><!-- StartedAt --><div class=\"space-y-1\"><label for=\"startedAt\" class=\"block font-medium\">Início da Irrigação</label> <input id=\"startedAt\" value=\"
+\" type=\"datetime-local\" name=\"startedAt\" class=\"w-full p-2 border rounded\"> 
+<p class=\"text-sm text-red-500\">
+</p>
+</div><!-- Botão --><button type=\"submit\" class=\"w-full bg-blue-500 text-white p-2 rounded\">
 Cadastrar
 Atualizar
 </button></form></div>
-<div class=\"max-w-[50rem] mx-auto mt-[5rem]\"><h1 class=\"text-xl font-bold mb-4\">Setores de Irrigação</h1><a href=\"/irrigation\" class=\"block w-full bg-green-500 text-white text-center p-2 rounded mb-4\">Novo Setor</a><ul class=\"space-y-4\">
-<li class=\"border p-4 rounded flex justify-between items-center\"><div><h2 class=\"font-semibold\">
-</h2><p class=\"text-sm text-gray-500\">
-</p><p class=\"text-sm\">Área: 
- m² – Vazão: 
- L/min</p></div><button hx-get=\"
-\" hx-target=\"main\" hx-swap=\"outerHTML\" class=\"text-blue-500\">Editar</button></li>
+<div class=\"max-w-[50rem] mx-auto mt-[5rem]\"><h1 class=\"text-xl font-bold mb-4\">Irrigações</h1><a href=\"/irrigation/create\" class=\"block w-full bg-green-500 text-white text-center p-2 rounded mb-4\">Nova Irrigação</a><ul class=\"space-y-4\">
+<li class=\"border p-4 rounded flex justify-between items-center\"><div><p class=\"text-sm text-gray-500\">Tipo: 
+ – Início: 
+ – Duração: 
+ min</p></div><div class=\"flex items-center gap-2\"><a href=\"
+\" class=\"text-blue-600 hover:underline\">Editar</a> <button hx-delete=\"
+\" hx-target=\"closest li\" hx-swap=\"outerHTML swap:1s\" hx-confirm=\"Tem certeza que deseja excluir esta irrigação?\" class=\"text-red-600 hover:underline\" hx-on:htmx:afterRequest=\"location.reload()\">Excluir</button><!-- Botão para abrir o modal --><button attr:onclick=\"
+\" class=\"text-gray-700 underline\">Ver Detalhes</button></div></li><!-- Modal (escondido por padrão) --> <dialog id=\"
+\" class=\"rounded-lg p-4 backdrop:bg-black/40\"><h2 class=\"text-lg font-bold mb-2\">Detalhes da Irrigação #
+</h2><!-- Conteúdo a ser carregado dinamicamente --><div hx-get=\"
+\" hx-trigger=\"revealed\" hx-target=\"this\" class=\"text-sm text-gray-600\">Carregando...</div><!-- Botão para fechar --><form method=\"dialog\" class=\"mt-4 text-right\"><button class=\"bg-gray-200 px-4 py-1 rounded hover:bg-gray-300\">Fechar</button></form></dialog>
 </ul></div>

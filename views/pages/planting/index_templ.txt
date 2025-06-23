@@ -5,12 +5,7 @@ Novo Plantio
  hx-post=\"
 \"
  hx-post=\"/plantings/create\"
- hx-target=\"main\" hx-select=\"main\" hx-swap=\"outerHTML\" class=\"space-y-4\"><select name=\"fieldId\" required class=\"w-full p-2 border rounded\"><option value=\"\">Selecione um campo</option> 
-<option value=\"
-\" selected=\"
-\">
-</option>
-</select> 
+ hx-target=\"main\" hx-select=\"main\" hx-swap=\"outerHTML\" class=\"space-y-4\">
 <p class=\"text-red-500\">
 </p>
 <input type=\"text\" name=\"cropName\" value=\"
