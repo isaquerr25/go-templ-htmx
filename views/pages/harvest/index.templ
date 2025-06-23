@@ -3,12 +3,13 @@ package harvest
 import (
 "fmt"
 "github.com/isaquerr25/go-templ-htmx/views/templates"
+"time"
 )
 
 type HarvestProps struct {
 ID uint
 PlantingID uint
-HarvestedAt string // formatado como YYYY-MM-DD para o input date
+HarvestedAt Date // formatado como YYYY-MM-DD para o input date
 Quantity float64
 Unit string
 SaleValue float64
@@ -19,21 +20,38 @@ type HarvestListProps struct {
 Items []HarvestProps
 }
 
+type Date struct {
+time.Time
+}
+
 templ Index(p HarvestProps) {
 @templates.Base() {
 <div class="max-w-[50rem] mx-auto mt-[5rem]">
 	<h1 class="text-xl font-bold mb-4">Cadastro de Colheita</h1>
-	<form if p.ID !=0 { hx-post={ fmt.Sprintf("/harvest/update/%d", p.ID) } } else { hx-post="/harvest/create" }
-		hx-target="main" hx-select="main" hx-swap="outerHTML" class="space-y-4">
-		<input value={ fmt.Sprintf("%d", p.PlantingID) } type="number" name="plantingId" placeholder="ID do Plantio"
-			class="w-full p-2 border rounded" />
-		<input value={ p.HarvestedAt } type="date" name="harvestedAt" class="w-full p-2 border rounded" />
-		<input value={ fmt.Sprintf("%.2f", p.Quantity) } type="number" step="0.01" name="quantity"
-			placeholder="Quantidade" class="w-full p-2 border rounded" />
-		<input value={ p.Unit } type="text" name="unit" placeholder="Unidade (ex: kg)"
-			class="w-full p-2 border rounded" />
-		<input value={ fmt.Sprintf("%.2f", p.SaleValue) } type="number" step="0.01" name="saleValue"
-			placeholder="Valor de Venda" class="w-full p-2 border rounded" />
+	<form if p.ID !=0 { hx-post={ fmt.Sprintf("/harvest/update/%d", p.ID) } } else { hx-post="" } hx-target="main"
+		hx-select="main" hx-swap="outerHTML" class="space-y-4">
+		<div>
+			<label for="appliedAt" class="block mb-1 font-medium">Data da Colheita</label>
+			<input id="appliedAt" type="date" name="appliedAt" value={ p.HarvestedAt.Format("2006-01-02") } required
+				class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+		</div>
+		<div>
+			<label for="quantity" class="block mb-1 font-medium">Quantidade</label>
+			<input id="quantity" value={ fmt.Sprintf("%.2f", p.Quantity) } type="number" step="0.01" name="quantity"
+				placeholder="Quantidade"
+				class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+		</div>
+		<div>
+			<label for="unit" class="block mb-1 font-medium">Unidade (ex: kg)</label>
+			<input id="unit" value={ p.Unit } type="text" name="unit" placeholder="Unidade (ex: kg)"
+				class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+		</div>
+		<div>
+			<label for="saleValue" class="block mb-1 font-medium">Valor de Venda</label>
+			<input id="saleValue" value={ fmt.Sprintf("%.2f", p.SaleValue) } type="number" step="0.01" name="saleValue"
+				placeholder="Valor de Venda"
+				class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+		</div>
 		<button type="submit" class="w-full bg-blue-500 text-white p-2 rounded">
 			if p.ID == 0 {
 			Cadastrar
@@ -66,7 +84,7 @@ templ List(props HarvestListProps) {
 			<tr class="border-t border-gray-300">
 				<td class="border border-gray-300 p-2">{ item.ID }</td>
 				<td class="border border-gray-300 p-2">{ item.PlantingID }</td>
-				<td class="border border-gray-300 p-2">{ item.HarvestedAt }</td>
+				<td class="border border-gray-300 p-2">{ item.HarvestedAt.Format("02/01/2006") }</td>
 				<td class="border border-gray-300 p-2">{ item.Quantity }</td>
 				<td class="border border-gray-300 p-2">{ item.Unit }</td>
 				<td class="border border-gray-300 p-2">R$ { item.SaleValue }</td>

@@ -83,9 +83,8 @@ type Harvest struct {
 	gorm.Model
 	PlantingID  uint      `form:"plantingId"`
 	HarvestedAt time.Time `form:"harvestedAt"`
-	Quantity    float64   `form:"quantity"`  // Amount harvested
-	Unit        string    `form:"unit"`      // e.g., kg, liter
-	SaleValue   float64   `form:"saleValue"` // Total revenue from harvest
+	Quantity    float64   `form:"quantity"` // Amount harvested
+	Unit        string    `form:"unit"`     // e.g., kg, liter
 }
 
 // Client representa um cliente (comprador ou parceiro)

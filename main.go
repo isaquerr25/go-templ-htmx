@@ -358,12 +358,27 @@ func main() {
 	// Rota HTMX para carregar os detalhes do modal
 	e.GET("/irrigation/:id/details", IrrigationDetails)
 
+	e.GET("/dashboard/plantings/:planId/harvest/create", func(c echo.Context) error {
+		return harvest.Index(harvest.HarvestProps{
+			ID:         0,
+			PlantingID: 0,
+			HarvestedAt: harvest.Date{
+				Time: time.Now(),
+			},
+			Quantity:  0,
+			Unit:      "",
+			SaleValue: 0,
+			Error:     map[string]string{},
+		}).Render(c.Request().Context(), c.Response())
+	})
+	e.POST("/dashboard/plantings/:planId/harvest/create", CreateHarvest())
+
 	// e.GET("/harvest", ListHarvest)
 	e.GET("/harvest/:id", ShowHarvest)
 	e.GET("/harvest/create", func(c echo.Context) error {
 		return harvest.Index(harvest.HarvestProps{}).Render(c.Request().Context(), c.Response())
 	})
-	e.POST("/harvest/create", CreateHarvest)
+	e.POST("/harvest/create", CreateHarvest())
 	e.POST("/harvest/update/:id", UpdateHarvest)
 	// Fertilization routes
 	e.GET("/fertilization", ListFertilization)

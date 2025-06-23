@@ -17,12 +17,14 @@ func ListHarvest(c echo.Context) error {
 	var items []harvest.HarvestProps
 	for _, h := range harvests {
 		items = append(items, harvest.HarvestProps{
-			ID:          h.ID,
-			PlantingID:  h.PlantingID,
-			HarvestedAt: h.HarvestedAt.Format("2006-01-02"),
-			Quantity:    h.Quantity,
-			Unit:        h.Unit,
-			SaleValue:   h.SaleValue,
+			ID:         h.ID,
+			PlantingID: h.PlantingID,
+			HarvestedAt: harvest.Date{
+				Time: h.HarvestedAt,
+			},
+			Quantity: h.Quantity,
+			Unit:     h.Unit,
+			Error:    map[string]string{},
 		})
 	}
 
@@ -38,57 +40,58 @@ func ShowHarvest(c echo.Context) error {
 	}
 
 	p := harvest.HarvestProps{
-		ID:          h.ID,
-		PlantingID:  h.PlantingID,
-		HarvestedAt: h.HarvestedAt.Format("2006-01-02"),
-		Quantity:    h.Quantity,
-		Unit:        h.Unit,
-		SaleValue:   h.SaleValue,
+		ID:         h.ID,
+		PlantingID: h.PlantingID,
+		HarvestedAt: harvest.Date{
+			Time: h.HarvestedAt,
+		},
+		Quantity: h.Quantity,
+		Unit:     h.Unit,
 	}
 
 	return harvest.Index(p).Render(c.Request().Context(), c.Response())
 }
 
-func CreateHarvest(c echo.Context) error {
-	var input harvest.HarvestProps
+func CreateHarvest() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		planId := c.Param("planId")
 
-	// Aqui você pode definir valores padrão no input para pré-preenchimento
-	input = harvest.HarvestProps{
-		PlantingID: 123,  // Exemplo de ID padrão
-		Quantity:   10.0, // Quantidade padrão
-		Unit:       "kg", // Unidade padrão
-		SaleValue:  50.0, // Valor padrão
-		HarvestedAt: time.Now().
-			Format("2006-01-02"),
-		// Data padrão no formato string, se existir este campo
+		// Extrair os campos
+		quantityStr := c.FormValue("quantity")
+		unit := c.FormValue("unit")
+		harvestedAtStr := c.FormValue("appliedAt")
+
+		// Parse de tipos
+		plantingId, err := strconv.Atoi(planId)
+		if err != nil {
+			return c.String(http.StatusBadRequest, "PlantingID inválido")
+		}
+
+		quantity, err := strconv.ParseFloat(quantityStr, 64)
+		if err != nil {
+			return c.String(http.StatusBadRequest, "Quantidade inválida")
+		}
+
+		harvestedAt, err := time.Parse("2006-01-02", harvestedAtStr)
+		if err != nil {
+			return c.String(http.StatusBadRequest, "Data (HarvestedAt) inválida")
+		}
+
+		// Criar o registro de colheita
+		h := Harvest{
+			PlantingID:  uint(plantingId),
+			HarvestedAt: harvestedAt,
+			Quantity:    quantity,
+			Unit:        unit,
+		}
+
+		if err := db.Create(&h).Error; err != nil {
+			return c.String(http.StatusInternalServerError, "Erro ao salvar colheita")
+		}
+
+		c.Response().Header().Set("HX-Redirect", "../")
+		return c.String(http.StatusOK, "")
 	}
-
-	// Tente fazer o bind dos dados enviados pelo formulário para sobrescrever os padrões
-	if err := c.Bind(&input); err != nil {
-		return c.String(http.StatusBadRequest, "Erro ao processar dados")
-	}
-
-	// Parse da data, se vier do formulário (sobrescreve o padrão)
-	date, err := time.Parse("2006-01-02", c.FormValue("harvestedAt"))
-	if err != nil {
-		// Se não conseguir parsear, tenta usar a data padrão do input
-		date, _ = time.Parse("2006-01-02", input.HarvestedAt)
-	}
-
-	h := Harvest{
-		PlantingID:  input.PlantingID,
-		HarvestedAt: date,
-		Quantity:    input.Quantity,
-		Unit:        input.Unit,
-		SaleValue:   input.SaleValue,
-	}
-
-	if err := db.Create(&h).Error; err != nil {
-		input.Error = map[string]string{"global": "Erro ao salvar"}
-		return harvest.Index(input).Render(c.Request().Context(), c.Response())
-	}
-
-	return ListHarvest(c)
 }
 
 func UpdateHarvest(c echo.Context) error {
@@ -109,7 +112,6 @@ func UpdateHarvest(c echo.Context) error {
 	h.HarvestedAt = date
 	h.Quantity = input.Quantity
 	h.Unit = input.Unit
-	h.SaleValue = input.SaleValue
 
 	if err := db.Save(&h).Error; err != nil {
 		input.Error = map[string]string{"global": "Erro ao atualizar"}
