@@ -99,7 +99,7 @@ func Index(p FertilizationProps, use pulverization.UseProps) templ.Component {
 				var templ_7745c5c3_Var3 string
 				templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("./update", p.ID))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/fertilization/index.templ`, Line: 55, Col: 44}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/fertilization/index.templ`, Line: 53, Col: 60}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 				if templ_7745c5c3_Err != nil {
@@ -132,7 +132,7 @@ func Index(p FertilizationProps, use pulverization.UseProps) templ.Component {
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(p.ApplicationType == "drip")
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/fertilization/index.templ`, Line: 80, Col: 51}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/fertilization/index.templ`, Line: 67, Col: 47}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -145,7 +145,7 @@ func Index(p FertilizationProps, use pulverization.UseProps) templ.Component {
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(p.ApplicationType == "foliar")
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/fertilization/index.templ`, Line: 81, Col: 53}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/fertilization/index.templ`, Line: 68, Col: 49}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
@@ -158,7 +158,7 @@ func Index(p FertilizationProps, use pulverization.UseProps) templ.Component {
 			var templ_7745c5c3_Var6 string
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(p.AppliedAt.Format("2006-01-02"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/fertilization/index.templ`, Line: 84, Col: 45}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/fertilization/index.templ`, Line: 70, Col: 49}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
@@ -238,7 +238,7 @@ func List(p FertilizationListProps) templ.Component {
 				var templ_7745c5c3_Var9 string
 				templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(item.ApplicationType)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/fertilization/index.templ`, Line: 114, Col: 43}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/fertilization/index.templ`, Line: 97, Col: 40}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 				if templ_7745c5c3_Err != nil {
@@ -251,7 +251,7 @@ func List(p FertilizationListProps) templ.Component {
 				var templ_7745c5c3_Var10 string
 				templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(item.AppliedAt.Format("02/01/2006"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/fertilization/index.templ`, Line: 114, Col: 87}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/fertilization/index.templ`, Line: 97, Col: 84}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 				if templ_7745c5c3_Err != nil {
@@ -264,20 +264,20 @@ func List(p FertilizationListProps) templ.Component {
 				var templ_7745c5c3_Var11 string
 				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("/fertilization/%d", item.ID))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/fertilization/index.templ`, Line: 118, Col: 57}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/fertilization/index.templ`, Line: 100, Col: 61}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "\" hx-target=\"main\" hx-swap=\"outerHTML\" class=\"text-blue-500\">Editar</button> <button hx-delete=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "\" hx-target=\"body\" hx-swap=\"outerHTML\" class=\"text-blue-500\">Editar</button> <button hx-delete=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var12 string
 				templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(templ.URL(fmt.Sprintf("/fertilization/%d", item.ID)))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/fertilization/index.templ`, Line: 124, Col: 71}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/fertilization/index.templ`, Line: 102, Col: 75}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 				if templ_7745c5c3_Err != nil {

@@ -189,7 +189,7 @@ func (s Server) ListSale(c echo.Context) error {
 	for i, v := range sales {
 		propsList[i] = sale.SaleProps{
 			ID:            v.ID,
-			ClientID:      v.ClientID,
+			ClientID:      *v.ClientID,
 			ProductSellID: v.ProductSellID,
 			SoldAt:        v.SoldAt.Format("2006-01-02"),
 			Quantity:      int(v.Quantity),

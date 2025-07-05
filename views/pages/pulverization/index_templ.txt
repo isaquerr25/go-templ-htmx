@@ -1,0 +1,27 @@
+<div class=\"flex items-center gap-4 mb-2\" id=\"itemProduct\"><select name=\"
+\" name=\"fieldId\" required class=\"w-full p-2 border rounded\"><option value=\"\">Selecione um campo</option> 
+<option value=\"
+\" selected=\"
+\">
+</option>
+</select> <input type=\"number\" step=\"0.01\" name=\"
+\" value=\"
+\" placeholder=\"Quantidade\" required></div>
+<form
+ hx-post=\"\"
+ hx-post=\"
+\"
+ hx-swap=\"outerHTML\" class=\"space-y-6 bg-white p-6 rounded-lg shadow-md max-w-2xl mx-auto\"><h2 class=\"text-xl font-bold text-gray-800 mb-4\">
+Nova Pulverização
+Editar Pulverização
+</h2><div><h3 class=\"text-lg font-semibold text-gray-800 mb-1\">Produtos</h3><p class=\"text-sm text-gray-500 mb-2\">Total de produtos: 
+</p><div id=\"patomanco\" class=\"space-y-4\">
+</div><button hx-vals=\"js:{index: document.getElementById(&#39;patomanco&#39;).children.length}\" hx-swap=\"beforeend\" hx-target=\"#patomanco\" hx-get=\"/product/showNewInstace\" type=\"button\" class=\"text-blue-600 text-sm font-medium hover:underline mt-2\">+ Adicionar Produto</button></div><!-- Data de Aplicação --><div class=\"space-y-1\"><label for=\"appliedAt\" class=\"block text-sm font-medium text-gray-700\">Data de Aplicação</label> <input type=\"date\" name=\"appliedAt\" value=\"
+\" required class=\"w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500\"> 
+<p class=\"text-red-500 text-sm\">
+</p>
+</div><!-- Unidade --><div class=\"space-y-1\"><label for=\"unit\" class=\"block text-sm font-medium text-gray-700\">Calda</label> <input type=\"text\" name=\"unit\" value=\"
+\" required class=\"w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500\"></div><!-- Botão de Envio --><div class=\"pt-4\"><button type=\"submit\" class=\"bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md font-medium\">
+Criar
+Atualizar
+</button></div></form>

@@ -37,16 +37,22 @@ type CostRevenue struct {
 	Label   string
 }
 
+type TypeProductProps struct {
+	ID   uint
+	Name string
+}
+
 type PlantingDetailProps struct {
-	ID          uint
-	CropName    string
-	AreaUsed    float64
-	StartedAt   time.Time
-	EndedAt     *time.Time
-	IsCompleted bool
-	Costs       []Cost
-	Revenues    []Revenue
-	Fertilizers []Fertilizer
+	ID               uint
+	TypeProductProps TypeProductProps
+	CropName         string
+	AreaUsed         float64
+	StartedAt        time.Time
+	EndedAt          *time.Time
+	IsCompleted      bool
+	Costs            []Cost
+	Revenues         []Revenue
+	Fertilizers      []Fertilizer
 }
 
 type Cost struct {
@@ -99,67 +105,75 @@ func Show(props PlantingDetailProps) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"max-w-5xl mx-auto mt-12 px-8 font-sans text-gray-800\"><a href=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"max-w-5xl mx-auto mt-12 px-8 font-sans text-gray-800\"><a href=\"./harvest/create\" class=\"text-sm text-blue-600 hover:underline\"><i class=\"fas fa-seedling\"></i> Nova Colheita</a> - <a href=\"./fertilization/create\" class=\"text-sm text-blue-600 hover:underline\"><i class=\"fas fa-flask\"></i> Nova Adubação</a> - <a href=\"./pulverization/create\" class=\"text-sm text-blue-600 hover:underline\"><i class=\"fas fa-spray-can\"></i> Nova Aplicação</a> - <a href=\"./service\" class=\"text-sm text-blue-600 hover:underline\"><i class=\"fas fa-concierge-bell\"></i> Serviço</a><header class=\"mb-10 border-b border-green-300 pb-4 flex justify-between items-center\"><h1 class=\"text-4xl font-extrabold text-green-700 tracking-tight\">Detalhes do Plantio</h1><div class=\"space-x-3\"><a href=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var3 templ.SafeURL = "./harvest/create"
+			var templ_7745c5c3_Var3 templ.SafeURL = templ.SafeURL(fmt.Sprintf("/plantings/edit/%d", props.ID))
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var3)))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\" class=\"text-sm text-blue-600 hover:underline\">Nova Colheita</a> - <a href=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\" class=\"inline-block bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm font-medium transition\">Editar</a><form hx-delete=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var4 templ.SafeURL = "./fertilization/create"
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var4)))
+			var templ_7745c5c3_Var4 string
+			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(templ.SafeURL(fmt.Sprintf("/plantings/delete/%d", props.ID)))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/dashboard/list.templ`, Line: 92, Col: 81}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\" class=\"text-sm text-blue-600 hover:underline\">Nova Adubação</a> - <a href=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\" hx-confirm=\"Tem certeza que deseja excluir este plantio?\" hx-target=\"body\" hx-swap=\"none\" method=\"POST\" class=\"inline\"><button type=\"submit\" class=\"bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 text-sm font-medium transition\">Excluir</button></form></div></header><section class=\"grid grid-cols-1 md:grid-cols-2 gap-8 mb-12\"><div class=\"space-y-3\"><div><h3 class=\"text-lg font-semibold text-gray-700\">Cultura</h3><p class=\"text-xl font-medium text-green-800\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var5 templ.SafeURL = "./pulverization/create"
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var5)))
+			var templ_7745c5c3_Var5 string
+			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(props.CropName)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/dashboard/list.templ`, Line: 106, Col: 66}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" class=\"text-sm text-blue-600 hover:underline\">Nova Aplicação</a><header class=\"mb-10 border-b border-green-300 pb-4\"><h1 class=\"text-4xl font-extrabold text-green-700 tracking-tight\">Detalhes do Plantio</h1></header><section class=\"grid grid-cols-1 md:grid-cols-2 gap-8 mb-12\"><div class=\"space-y-3\"><div><h3 class=\"text-lg font-semibold text-gray-700\">Cultura</h3><p class=\"text-xl font-medium text-green-800\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</p></div><div><h3 class=\"text-lg font-semibold text-gray-700\">Área utilizada</h3><p class=\"text-xl font-medium\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var6 string
-			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(props.CropName)
+			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.2f", props.AreaUsed))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/dashboard/list.templ`, Line: 82, Col: 68}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/dashboard/list.templ`, Line: 110, Col: 72}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</p></div><div><h3 class=\"text-lg font-semibold text-gray-700\">Área utilizada</h3><p class=\"text-xl font-medium\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</p></div><div><h3 class=\"text-lg font-semibold text-gray-700\">Produto produzido</h3><p class=\"text-xl font-medium\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var7 string
-			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.2f", props.AreaUsed))
+			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(props.TypeProductProps.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/dashboard/list.templ`, Line: 86, Col: 74}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/dashboard/list.templ`, Line: 114, Col: 64}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, " ha</p></div></div><div class=\"space-y-3\"><div><h3 class=\"text-lg font-semibold text-gray-700\">Início</h3><p class=\"text-xl\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</p></div></div><div class=\"space-y-3\"><div><h3 class=\"text-lg font-semibold text-gray-700\">Início</h3><p class=\"text-xl\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var8 string
 			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(props.StartedAt.Format("02/01/2006"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/dashboard/list.templ`, Line: 92, Col: 63}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/dashboard/list.templ`, Line: 120, Col: 61}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 			if templ_7745c5c3_Err != nil {
@@ -177,7 +191,7 @@ func Show(props PlantingDetailProps) templ.Component {
 				var templ_7745c5c3_Var9 string
 				templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(props.EndedAt.Format("02/01/2006"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/dashboard/list.templ`, Line: 97, Col: 62}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/dashboard/list.templ`, Line: 125, Col: 59}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 				if templ_7745c5c3_Err != nil {
@@ -210,7 +224,7 @@ func Show(props PlantingDetailProps) templ.Component {
 					var templ_7745c5c3_Var10 string
 					templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(c.Description)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/dashboard/list.templ`, Line: 110, Col: 29}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/dashboard/list.templ`, Line: 138, Col: 25}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 					if templ_7745c5c3_Err != nil {
@@ -223,7 +237,7 @@ func Show(props PlantingDetailProps) templ.Component {
 					var templ_7745c5c3_Var11 string
 					templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.2f", c.Amount))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/dashboard/list.templ`, Line: 111, Col: 48}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/dashboard/list.templ`, Line: 139, Col: 44}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 					if templ_7745c5c3_Err != nil {
@@ -261,7 +275,7 @@ func Show(props PlantingDetailProps) templ.Component {
 					var templ_7745c5c3_Var12 string
 					templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(r.Description)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/dashboard/list.templ`, Line: 127, Col: 29}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/dashboard/list.templ`, Line: 154, Col: 25}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 					if templ_7745c5c3_Err != nil {
@@ -274,7 +288,7 @@ func Show(props PlantingDetailProps) templ.Component {
 					var templ_7745c5c3_Var13 string
 					templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.2f", r.Amount))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/dashboard/list.templ`, Line: 128, Col: 48}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/dashboard/list.templ`, Line: 155, Col: 44}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 					if templ_7745c5c3_Err != nil {
@@ -312,7 +326,7 @@ func Show(props PlantingDetailProps) templ.Component {
 					var templ_7745c5c3_Var14 string
 					templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(f.Name)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/dashboard/list.templ`, Line: 144, Col: 22}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/dashboard/list.templ`, Line: 170, Col: 18}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 					if templ_7745c5c3_Err != nil {
@@ -325,7 +339,7 @@ func Show(props PlantingDetailProps) templ.Component {
 					var templ_7745c5c3_Var15 string
 					templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(f.Amount)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/dashboard/list.templ`, Line: 145, Col: 24}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/dashboard/list.templ`, Line: 171, Col: 20}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 					if templ_7745c5c3_Err != nil {

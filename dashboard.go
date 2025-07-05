@@ -112,7 +112,11 @@ func DashboardShowPlanting() echo.HandlerFunc {
 			})
 		}
 
+		var typeProduc TypeProduct
+		db.First(&typeProduc, planting.TypeProductID)
+
 		// Monta o objeto completo
+
 		a := dashboard.PlantingDetailProps{
 			ID:          planting.ID,
 			CropName:    planting.CropName,
@@ -123,6 +127,10 @@ func DashboardShowPlanting() echo.HandlerFunc {
 			Costs:       costs,
 			Revenues:    revenues,
 			Fertilizers: fertilizers,
+			TypeProductProps: dashboard.TypeProductProps{
+				ID:   typeProduc.ID,
+				Name: typeProduc.Name,
+			},
 		}
 
 		return dashboard.Show(a).Render(c.Request().Context(), c.Response().Writer)

@@ -13,10 +13,10 @@ import (
 	"github.com/isaquerr25/go-templ-htmx/views/pages/fertilization"
 	"github.com/isaquerr25/go-templ-htmx/views/pages/field"
 	"github.com/isaquerr25/go-templ-htmx/views/pages/harvest"
-	"github.com/isaquerr25/go-templ-htmx/views/pages/planting"
 	"github.com/isaquerr25/go-templ-htmx/views/pages/produto"
 	"github.com/isaquerr25/go-templ-htmx/views/pages/pulverization"
 	"github.com/isaquerr25/go-templ-htmx/views/pages/sale"
+	"github.com/isaquerr25/go-templ-htmx/views/pages/typeproduct"
 	"github.com/labstack/echo/v4"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -126,6 +126,7 @@ func main() {
 	db.AutoMigrate(&ProductSell{})
 	db.AutoMigrate(&Sale{})
 	db.AutoMigrate(&Harvest{})
+	db.AutoMigrate(&TypeProduct{})
 
 	e.Static("/static", "static")
 
@@ -250,23 +251,6 @@ func main() {
 	e.DELETE("/plantings/delete/:id", DeletePlanting(db))
 
 	e.GET("/plantings/list", ListPlantings(db))
-
-	e.GET("/plantings/edit/:id", func(c echo.Context) error {
-		id, _ := strconv.Atoi(c.Param("id"))
-		var p Planting
-		if err := db.First(&p, id).Error; err != nil {
-			return err
-		}
-		return planting.Index(planting.PlantingProps{
-			ID:          p.ID,
-			CropName:    p.CropName,
-			StartedAt:   p.StartedAt.Format("2006-01-02"),
-			EndedAt:     nullableDate(p.EndedAt),
-			IsCompleted: p.IsCompleted,
-			AreaUsed:    p.AreaUsed,
-			Error:       map[string]string{},
-		}, []planting.Field{}).Render(c.Request().Context(), c.Response().Writer)
-	})
 
 	// Rotas existentes
 	e.GET("/listCustomer", s.ListClient)
@@ -426,6 +410,9 @@ func main() {
 
 	e.GET("/newSale", s.NewSale)
 
+	e.GET("/dashboard/plantings/:planId/productsell", ListProductSell)
+	e.POST("/dashboard/plantings/:planId/productsell/create", CreateProductSell)
+
 	e.GET("/productsell", ListProductSell)
 	e.GET("/productsell/create", CreateViewProductSell)
 	e.POST("/productsell/create", CreateProductSell)
@@ -433,6 +420,27 @@ func main() {
 	e.POST("/productsell/update/:id", UpdateProductSell)
 	e.GET("/", ListDasboard())
 	e.GET("/dashboard/plantings/:id/", DashboardShowPlanting())
+
+	e.POST("/dashboard/plantings/:planId/service/create", CreateService(db))
+	e.POST("/service/update/:id", UpdateService(db))
+	e.POST("/service/delete/:id", DeleteService(db))
+	e.GET("/dashboard/plantings/:planId/service", NewService(db))
+
+	// Rotas
+	e.GET("/typeProduct", s.ListTypeProduct)
+	e.GET("/listTypeProduct", s.ListTypeProduct)
+	e.GET("/typeProduct/create", func(c echo.Context) error {
+		// Nova instância vazia
+		props := typeproduct.TypeProductProps{
+			Error: map[string]string{},
+		}
+		return Render(c, 200, typeproduct.Index(props))
+	})
+
+	e.GET("/typeProduct/:ID", s.EditTypeProduct)
+	e.POST("/typeProduct/create", s.CreateTypeProduct)
+	e.POST("/typeProduct/update/:ID", s.UpdateTypeProduct)
+	e.POST("/typeProduct/delete/:ID", s.DeleteTypeProduct)
 
 	e.Logger.Fatal(e.Start(":1323"))
 }

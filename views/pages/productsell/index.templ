@@ -1,130 +1,95 @@
 package productsell
 
 import (
-	"fmt"
-	"github.com/isaquerr25/go-templ-htmx/views/templates"
+"fmt"
+"github.com/isaquerr25/go-templ-htmx/views/templates"
 )
 
 type ProductSellProps struct {
-	ID          uint    `form:"id"`
-	Name        string  `form:"name"`
-	Description string  `form:"description"`
-	Unit        string  `form:"unit"`
-	Price       float64 `form:"price"`
-	Stock       float64 `form:"stock"`
-	Error       map[string]string
+ID uint `form:"id"`
+Name string `form:"name"`
+Description string `form:"description"`
+Unit string `form:"unit"`
+Price float64 `form:"price"`
+Stock float64 `form:"stock"`
+Error map[string]string
 }
 
 type ProductSellListProps struct {
-	Items []ProductSellProps
+Items []ProductSellProps
 }
 
 templ Index(p ProductSellProps) {
-	@templates.Base() {
-		<div class="max-w-[50rem] mx-auto mt-[5rem]">
-			<h1 class="text-xl font-bold mb-4">Cadastro de Produto</h1>
-			<form
-				if p.ID !=0 {
-					hx-post={ fmt.Sprintf("/updateProductSell/%d", p.ID) }
-				} else {
-					hx-post="/createProductSell"
-				}
-				hx-target="main"
-				hx-select="main"
-				hx-swap="outerHTML"
-				class="space-y-4"
-			>
-				<input value={ p.Name } type="text" name="name" placeholder="Nome" required class="w-full p-2 border rounded"/>
-				if e, ok := p.Error["Name"]; ok {
-					<p class="text-red-500">{ e }</p>
-				}
-				<textarea name="description" placeholder="Descrição" class="w-full p-2 border rounded">
-					{ p.Description }
-				</textarea>
-				if e, ok := p.Error["Description"]; ok {
-					<p class="text-red-500">{ e }</p>
-				}
-				<input
-					value={ p.Unit }
-					type="text"
-					name="unit"
-					placeholder="Unidade (ex: kg, L)"
-					class="w-full p-2 border rounded"
-				/>
-				if e, ok := p.Error["Unit"]; ok {
-					<p class="text-red-500">{ e }</p>
-				}
-				<input
-					value={ fmt.Sprintf("%.2f", p.Price) }
-					type="number"
-					step="0.01"
-					name="price"
-					placeholder="Preço"
-					class="w-full p-2 border rounded"
-				/>
-				if e, ok := p.Error["Price"]; ok {
-					<p class="text-red-500">{ e }</p>
-				}
-				<input
-					value={ fmt.Sprintf("%.2f", p.Stock) }
-					type="number"
-					step="0.01"
-					name="stock"
-					placeholder="Estoque"
-					class="w-full p-2 border rounded"
-				/>
-				if e, ok := p.Error["Stock"]; ok {
-					<p class="text-red-500">{ e }</p>
-				}
-				<button type="submit" class="w-full bg-blue-500 text-white p-2 rounded">
-					if p.ID == 0 {
-						Cadastrar
-					} else {
-						Atualizar
-					}
-				</button>
-				if p.ID != 0 {
-					<button type="button" class="w-full bg-red-500 text-white p-2 rounded">
-						Remover
-					</button>
-				}
-			</form>
-		</div>
-	}
+@templates.Base() {
+<div class="max-w-[50rem] mx-auto mt-[5rem]">
+	<h1 class="text-xl font-bold mb-4">Cadastro de Produto</h1>
+	<form if p.ID !=0 { hx-post={ fmt.Sprintf("/updateProductSell/%d", p.ID) } } else { hx-post="/createProductSell" }
+		hx-target="main" hx-select="main" hx-swap="outerHTML" class="space-y-4">
+		<input value={ p.Name } type="text" name="name" placeholder="Nome" required class="w-full p-2 border rounded" />
+		if e, ok := p.Error["Name"]; ok {
+		<p class="text-red-500">{ e }</p>
+		}
+		<textarea name="description" placeholder="Descrição" class="w-full p-2 border rounded">
+			{ p.Description }
+		</textarea>
+		if e, ok := p.Error["Description"]; ok {
+		<p class="text-red-500">{ e }</p>
+		}
+		<input value={ p.Unit } type="text" name="unit" placeholder="Unidade (ex: kg, L)"
+			class="w-full p-2 border rounded" />
+		if e, ok := p.Error["Unit"]; ok {
+		<p class="text-red-500">{ e }</p>
+		}
+		<input value={ fmt.Sprintf("%.2f", p.Price) } type="number" step="0.01" name="price" placeholder="Preço"
+			class="w-full p-2 border rounded" />
+		if e, ok := p.Error["Price"]; ok {
+		<p class="text-red-500">{ e }</p>
+		}
+		<input value={ fmt.Sprintf("%.2f", p.Stock) } type="number" step="0.01" name="stock" placeholder="Estoque"
+			class="w-full p-2 border rounded" />
+		if e, ok := p.Error["Stock"]; ok {
+		<p class="text-red-500">{ e }</p>
+		}
+		<button type="submit" class="w-full bg-blue-500 text-white p-2 rounded">
+			if p.ID == 0 {
+			Cadastrar
+			} else {
+			Atualizar
+			}
+		</button>
+		if p.ID != 0 {
+		<button type="button" class="w-full bg-red-500 text-white p-2 rounded">
+			Remover
+		</button>
+		}
+	</form>
+</div>
+}
 }
 
 templ List(p ProductSellListProps) {
-	@templates.Base() {
-		<div class="max-w-[50rem] mx-auto mt-[5rem]">
-			<h1 class="text-xl font-bold mb-4">Produtos à Venda</h1>
-			<a
-				href="/productsell/create"
-				hx-get="/productsell/create"
-				hx-target="main"
-				hx-swap="outerHTML"
-				class="block w-full bg-green-500 text-white text-center p-2 rounded mb-4"
-			>Novo Produto</a>
-			<ul class="space-y-4">
-				for _, item := range p.Items {
-					<li class="border p-4 rounded flex justify-between items-center">
-						<div>
-							<h2 class="font-semibold">{ item.Name }</h2>
-							<p class="text-sm text-gray-500">{ item.Description }</p>
-							<p class="text-sm">Unidade: { item.Unit }</p>
-							<p class="text-sm">
-								Preço: R$ { fmt.Sprintf("%.2f", item.Price) } – Estoque: { fmt.Sprintf("%.2f",
-                    item.Stock) }
-							</p>
-						</div>
-						<button
-							hx-get={ fmt.Sprintf("/productsell/%d", item.ID) }
-							hx-target="main"
-							hx-swap="outerHTML"
-							class="text-blue-500"
-						>Editar</button>
-					</li>
-				}
-			</ul>
-		</div>
-	}
+@templates.Base() {
+<div class="max-w-[50rem] mx-auto mt-[5rem]">
+	<h1 class="text-xl font-bold mb-4">Produtos à Venda</h1>
+	<a href="/productsell/create" hx-get="/productsell/create" hx-target="body" hx-swap="outerHTML"
+		class="block w-full bg-green-500 text-white text-center p-2 rounded mb-4">Novo Produto</a>
+	<ul class="space-y-4">
+		for _, item := range p.Items {
+		<li class="border p-4 rounded flex justify-between items-center">
+			<div>
+				<h2 class="font-semibold">{ item.Name }</h2>
+				<p class="text-sm text-gray-500">{ item.Description }</p>
+				<p class="text-sm">Unidade: { item.Unit }</p>
+				<p class="text-sm">
+					Preço: R$ { fmt.Sprintf("%.2f", item.Price) } – Estoque: { fmt.Sprintf("%.2f",
+					item.Stock) }
+				</p>
+			</div>
+			<button hx-get={ fmt.Sprintf("/productsell/%d", item.ID) } hx-target="main" hx-swap="outerHTML"
+				class="text-blue-500">Editar</button>
+		</li>
+		}
+	</ul>
+</div>
+}
 }

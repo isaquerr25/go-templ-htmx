@@ -15,14 +15,13 @@ import (
 )
 
 type PlantingItem struct {
-	ID          uint
-	FieldID     uint
-	CropName    string
-	StartedAt   time.Time
-	EndedAt     *time.Time
-	IsCompleted bool
-	AreaUsed    float64
-	Field       Field `form:"fieldId"`
+	ID            uint
+	TypeProductID uint
+	CropName      string
+	StartedAt     time.Time
+	EndedAt       *time.Time
+	IsCompleted   bool
+	AreaUsed      float64
 }
 
 func List(plantings []PlantingItem) templ.Component {
@@ -70,7 +69,7 @@ func List(plantings []PlantingItem) templ.Component {
 				var templ_7745c5c3_Var3 string
 				templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(p.CropName)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/planting/list.templ`, Line: 44, Col: 35}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/planting/list.templ`, Line: 39, Col: 32}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 				if templ_7745c5c3_Err != nil {
@@ -83,7 +82,7 @@ func List(plantings []PlantingItem) templ.Component {
 				var templ_7745c5c3_Var4 string
 				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.2f", p.AreaUsed))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/planting/list.templ`, Line: 45, Col: 56}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/planting/list.templ`, Line: 40, Col: 53}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 				if templ_7745c5c3_Err != nil {
@@ -96,7 +95,7 @@ func List(plantings []PlantingItem) templ.Component {
 				var templ_7745c5c3_Var5 string
 				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(p.StartedAt.Format("02/01/2006"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/planting/list.templ`, Line: 46, Col: 65}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/planting/list.templ`, Line: 41, Col: 62}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 				if templ_7745c5c3_Err != nil {
@@ -110,7 +109,7 @@ func List(plantings []PlantingItem) templ.Component {
 					var templ_7745c5c3_Var6 string
 					templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(p.EndedAt.Format("02/01/2006"))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/planting/list.templ`, Line: 49, Col: 41}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/planting/list.templ`, Line: 44, Col: 37}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 					if templ_7745c5c3_Err != nil {
@@ -153,7 +152,7 @@ func List(plantings []PlantingItem) templ.Component {
 				var templ_7745c5c3_Var8 string
 				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("/plantings/delete/%d", p.ID))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/planting/list.templ`, Line: 71, Col: 62}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/planting/list.templ`, Line: 61, Col: 66}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 				if templ_7745c5c3_Err != nil {

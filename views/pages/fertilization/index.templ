@@ -1,138 +1,112 @@
 package fertilization
 
 import (
-	"fmt"
-	"github.com/isaquerr25/go-templ-htmx/views/pages/client"
-	"github.com/isaquerr25/go-templ-htmx/views/pages/planting"
-	"github.com/isaquerr25/go-templ-htmx/views/pages/pulverization"
-	"github.com/isaquerr25/go-templ-htmx/views/templates"
-	"time"
+"fmt"
+"github.com/isaquerr25/go-templ-htmx/views/pages/client"
+"github.com/isaquerr25/go-templ-htmx/views/pages/planting"
+"github.com/isaquerr25/go-templ-htmx/views/pages/pulverization"
+"github.com/isaquerr25/go-templ-htmx/views/templates"
+"time"
 )
 
 type ApplyFertilizationProps struct {
-	ProductID    uint    `form:"productId"`
-	QuantityUsed float64 `form:"quantityUsed"`
-	Unit         string  `form:"unit"`
+ProductID uint `form:"productId"`
+QuantityUsed float64 `form:"quantityUsed"`
+Unit string `form:"unit"`
 }
 
 type FertilizationProps struct {
-	ID              uint                         `form:"id"`
-	PlantingID      uint                         `form:"plantingId"`
-	ApplicationType string                       `form:"applicationType"` // drip or foliar
-	AppliedAt       Date                         `form:"appliedAt"`
-	Products        []pulverization.ProductInput `form:"products"`
-	Error           map[string]string
+ID uint `form:"id"`
+PlantingID uint `form:"plantingId"`
+ApplicationType string `form:"applicationType"` // drip or foliar
+AppliedAt Date `form:"appliedAt"`
+Products []pulverization.ProductInput `form:"products"`
+Error map[string]string
 }
 
 type FertilizationDateCreateProps struct {
-	clientProps   []client.ClientProps     `form:"client"`
-	plantingProps []planting.PlantingProps `form:"planting"`
+clientProps []client.ClientProps `form:"client"`
+plantingProps []planting.PlantingProps `form:"planting"`
 }
 
 type FertilizationListProps struct {
-	Items []FertilizationProps
+Items []FertilizationProps
 }
 
 type Date struct {
-	time.Time
+time.Time
 }
 
 func (d *Date) UnmarshalParam(param string) error {
-	t, err := time.Parse("2006-01-02", param)
-	if err != nil {
-		return err
-	}
-	d.Time = t
-	return nil
+t, err := time.Parse("2006-01-02", param)
+if err != nil {
+return err
+}
+d.Time = t
+return nil
 }
 
 templ Index(p FertilizationProps, use pulverization.UseProps) {
-	@templates.Base() {
-		<div class="max-w-[50rem] mx-auto mt-[5rem]">
-			<h1 class="text-xl font-bold mb-4">Cadastro de Fertilização</h1>
-			<form
-				if p.ID !=0 {
-					hx-post={ fmt.Sprintf("./update", p.ID) }
-				} else {
-					hx-post=""
-				}
-				hx-swap="outerHTML"
-				hx-target="body"
-				class="space-y-4"
-			>
-				<div id="jiromba" class=" bg-red">
-					for i, pr := range p.Products {
-						@pulverization.ItemsProdut(i, pr, use)
-					}
-					<!-- Botão para adicionar mais produtos (pode ser melhorado com HTMX ou JS) -->
-				</div>
-				<button
-					hx-vals="js:{index: document.getElementById('jiromba').children.length}"
-					hx-swap="beforeend"
-					hx-target="#jiromba"
-					hx-get="/product/showNewInstace"
-					type="button"
-					class="bg-gray-300 text-sm px-2 py-1 rounded"
-				>
-					+ Adicionar Produto
-				</button>
-				<select name="applicationType" class="w-full p-2 border rounded">
-					<option selected={ p.ApplicationType == "drip" } value="drip">Gotejamento</option>
-					<option selected={ p.ApplicationType == "foliar" } value="foliar">Foliar</option>
-				</select>
-				<input
-					value={ p.AppliedAt.Format("2006-01-02") }
-					type="date"
-					name="appliedAt"
-					class="w-full p-2 border rounded"
-				/>
-				<button type="submit" class="w-full bg-blue-500 text-white p-2 rounded">
-					if p.ID == 0 {
-						Cadastrar
-					} else {
-						Atualizar
-					}
-				</button>
-			</form>
+@templates.Base() {
+<div class="max-w-[50rem] mx-auto mt-[5rem]">
+	<h1 class="text-xl font-bold mb-4">Cadastro de Fertilização</h1>
+	<form if p.ID !=0 { hx-post={ fmt.Sprintf("./update", p.ID) } } else { hx-post="" } hx-swap="outerHTML"
+		hx-target="body" class="space-y-4">
+		<div id="jiromba" class=" bg-red">
+			for i, pr := range p.Products {
+			@pulverization.ItemsProdut(i, pr, use)
+			}
+			<!-- Botão para adicionar mais produtos (pode ser melhorado com HTMX ou JS) -->
 		</div>
-	}
+		<button hx-vals="js:{index: document.getElementById('jiromba').children.length}" hx-swap="beforeend"
+			hx-target="#jiromba" hx-get="/product/showNewInstace" type="button"
+			class="bg-gray-300 text-sm px-2 py-1 rounded">
+			+ Adicionar Produto
+		</button>
+		<select name="applicationType" class="w-full p-2 border rounded">
+			<option selected={ p.ApplicationType=="drip" } value="drip">Gotejamento</option>
+			<option selected={ p.ApplicationType=="foliar" } value="foliar">Foliar</option>
+		</select>
+		<input value={ p.AppliedAt.Format("2006-01-02") } type="date" name="appliedAt"
+			class="w-full p-2 border rounded" />
+		<button type="submit" class="w-full bg-blue-500 text-white p-2 rounded">
+			if p.ID == 0 {
+			Cadastrar
+			} else {
+			Atualizar
+			}
+		</button>
+	</form>
+</div>
+}
 }
 
 templ List(p FertilizationListProps) {
-	@templates.Base() {
-		<div class="max-w-[50rem] mx-auto mt-[5rem]">
-			<h1 class="text-xl font-bold mb-4">Fertilizações</h1>
-			<a href="/fertilization/create" class="block w-full bg-green-500 text-white text-center p-2 rounded mb-4">
-				Nova
-				Fertilização
-			</a>
-			<ul class="space-y-4">
-				for _, item := range p.Items {
-					<li class="border p-4 rounded flex justify-between items-center">
-						<div>
-							<p class="text-sm text-gray-500">
-								Aplicação: { item.ApplicationType } – { item.AppliedAt.Format("02/01/2006") }
-							</p>
-						</div>
-						<button
-							hx-get={ fmt.Sprintf("/fertilization/%d", item.ID) }
-							hx-target="main"
-							hx-swap="outerHTML"
-							class="text-blue-500"
-						>Editar</button>
-						<button
-							hx-delete={ templ.URL(fmt.Sprintf("/fertilization/%d", item.ID)) }
-							hx-target="closest li"
-							hx-swap="outerHTML swap:1s"
-							hx-confirm="Tem certeza que deseja excluir este produto?"
-							class="text-red-600 hover:underline"
-							hx-on:htmx:afterRequest="location.reload()"
-						>
-							Excluir
-						</button>
-					</li>
-				}
-			</ul>
-		</div>
-	}
+@templates.Base() {
+<div class="max-w-[50rem] mx-auto mt-[5rem]">
+	<h1 class="text-xl font-bold mb-4">Fertilizações</h1>
+	<a href="/fertilization/create" class="block w-full bg-green-500 text-white text-center p-2 rounded mb-4">
+		Nova
+		Fertilização
+	</a>
+	<ul class="space-y-4">
+		for _, item := range p.Items {
+		<li class="border p-4 rounded flex justify-between items-center">
+			<div>
+				<p class="text-sm text-gray-500">
+					Aplicação: { item.ApplicationType } – { item.AppliedAt.Format("02/01/2006") }
+				</p>
+			</div>
+			<button hx-get={ fmt.Sprintf("/fertilization/%d", item.ID) } hx-target="body" hx-swap="outerHTML"
+				class="text-blue-500">Editar</button>
+			<button hx-delete={ templ.URL(fmt.Sprintf("/fertilization/%d", item.ID)) } hx-target="closest li"
+				hx-swap="outerHTML swap:1s" hx-confirm="Tem certeza que deseja excluir este produto?"
+				class="text-red-600 hover:underline" hx-on:htmx:afterRequest="location.reload()">
+				Excluir
+			</button>
+		</li>
+		}
+	</ul>
+</div>
+}
 }

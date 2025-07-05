@@ -27,11 +27,12 @@ type Field struct {
 
 type Planting struct {
 	gorm.Model
-	CropName    string     `form:"cropName"`
-	StartedAt   time.Time  `form:"startedAt"`
-	EndedAt     *time.Time `form:"endedAt"`
-	IsCompleted bool       `form:"isCompleted"`
-	AreaUsed    float64    `form:"areaUsed"`
+	TypeProductID *uint      `form:"typeProductId"`
+	CropName      string     `form:"cropName"`
+	StartedAt     time.Time  `form:"startedAt"`
+	EndedAt       *time.Time `form:"endedAt"`
+	IsCompleted   bool       `form:"isCompleted"`
+	AreaUsed      float64    `form:"areaUsed"`
 }
 
 type Fertilization struct {
@@ -111,9 +112,11 @@ type ProductSell struct {
 // Sale representa uma venda feita para um cliente
 type Sale struct {
 	gorm.Model
-	ClientID      uint      `form:"clientId"`
+	ClientID      *uint     `form:"clientId"`
 	ProductSellID uint      `form:"productSellId"`
 	SoldAt        time.Time `form:"soldAt"`
+
+	Loss bool `form:"loss"`
 
 	Quantity   float64 `form:"quantity"`
 	Unit       string  `form:"unit"`       // Repetido para facilitar acesso direto
@@ -133,6 +136,13 @@ type Service struct {
 	PlantingID  *uint     `form:"plantingId"`  // Opcional, caso o serviço tenha sido aplicado a um plantio
 	Notes       string    `form:"notes"`       // Observações específicas
 	CreateAt    time.Time `form:"performedAt"`
+}
+
+type TypeProduct struct {
+	gorm.Model
+	Name     string  `form:"name"`
+	Describe string  `form:"describe"`
+	Quantity float64 `form:"quantity"` // Custo total do serviço
 }
 
 type (

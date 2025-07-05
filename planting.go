@@ -154,7 +154,11 @@ func CreatePlanting(db *gorm.DB) echo.HandlerFunc {
 		}
 		if hasError {
 			fmt.Println("Erro de validação no formulário, renderizando página novamente.")
-			return c.Render(http.StatusOK, "main", planting.Index(props, []planting.Field{}))
+			return c.Render(
+				http.StatusOK,
+				"main",
+				planting.Index(props, []planting.TypeProductProps{}),
+			)
 		}
 
 		// Conversão final para time.Time
@@ -175,11 +179,12 @@ func CreatePlanting(db *gorm.DB) echo.HandlerFunc {
 		}
 
 		newPlanting := Planting{
-			CropName:    props.CropName,
-			StartedAt:   startedAt,
-			EndedAt:     endedAt,
-			IsCompleted: props.IsCompleted,
-			AreaUsed:    props.AreaUsed,
+			CropName:      props.CropName,
+			StartedAt:     startedAt,
+			EndedAt:       endedAt,
+			IsCompleted:   props.IsCompleted,
+			AreaUsed:      props.AreaUsed,
+			TypeProductID: &props.TypePoductID,
 		}
 
 		if err := db.Create(&newPlanting).Error; err != nil {
@@ -207,7 +212,7 @@ func UpdatePlanting(db *gorm.DB) echo.HandlerFunc {
 		if err != nil {
 			p.Error = map[string]string{"StartedAt": "Data inválida"}
 
-			return planting.Index(p, []planting.Field{}).
+			return planting.Index(p, []planting.TypeProductProps{}).
 				Render(c.Request().Context(), c.Response().Writer)
 
 		}
@@ -218,22 +223,21 @@ func UpdatePlanting(db *gorm.DB) echo.HandlerFunc {
 			if err != nil {
 				p.Error = map[string]string{"EndedAt": "Data final inválida"}
 
-				return planting.Index(p, []planting.Field{}).
+				return planting.Index(p, []planting.TypeProductProps{}).
 					Render(c.Request().Context(), c.Response().Writer)
 			}
 			endedAt = &t
 		}
 
 		var plant Planting
-		if err := db.First(&plant, id).Error; err != nil {
-			return c.String(http.StatusNotFound, "Plantio não encontrado")
-		}
+		db.First(&plant, id)
 
 		plant.CropName = p.CropName
 		plant.StartedAt = startedAt
 		plant.EndedAt = endedAt
 		plant.IsCompleted = p.IsCompleted
 		plant.AreaUsed = p.AreaUsed
+		plant.TypeProductID = &p.TypePoductID
 
 		if err := db.Save(&plant).Error; err != nil {
 			return c.String(http.StatusInternalServerError, "Erro ao atualizar plantio")
@@ -257,26 +261,44 @@ func DeletePlanting(db *gorm.DB) echo.HandlerFunc {
 
 func ShowPlantingForm(db *gorm.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
+		var pp []TypeProduct
+
+		if err := db.Find(&pp).Error; err != nil {
+			return c.String(http.StatusInternalServerError, "Erro ao buscar tipos de produtos")
+		}
+
+		props := make([]planting.TypeProductProps, len(pp))
+		for i, p := range pp {
+			props[i] = planting.TypeProductProps{
+				ID:   p.ID,
+				Name: p.Name,
+			}
+		}
+
 		id := c.Param("id")
-
 		if id == "" {
-
+			// Novo cadastro
 			p := planting.PlantingProps{
 				ID:          0,
 				CropName:    "milho",
-				StartedAt:   time.Now().Format("2006-01-02"), // Data atual
+				StartedAt:   time.Now().Format("2006-01-02"),
 				AreaUsed:    10.0,
-				IsCompleted: false, // outros valores padrão que desejar
+				IsCompleted: false,
 				EndedAt:     "",
 				Error:       map[string]string{},
 			}
-			return planting.Index(p, []planting.Field{}).
+			return planting.Index(p, props).
 				Render(c.Request().Context(), c.Response().Writer)
 		}
 
-		var plant planting.PlantingItem
+		// Edição
+		plantID, err := strconv.Atoi(id)
+		if err != nil {
+			return c.String(http.StatusBadRequest, "ID inválido")
+		}
 
-		if err := db.Preload("Field").First(&plant, id).Error; err != nil {
+		var plant Planting
+		if err := db.First(&plant, plantID).Error; err != nil {
 			return c.String(http.StatusNotFound, "Plantio não encontrado")
 		}
 
@@ -285,19 +307,23 @@ func ShowPlantingForm(db *gorm.DB) echo.HandlerFunc {
 			endedAt = plant.EndedAt.Format("2006-01-02")
 		}
 
-		p := planting.PlantingProps{
-			ID:          plant.ID,
-			CropName:    plant.CropName,
-			StartedAt:   plant.StartedAt.Format("2006-01-02"),
-			EndedAt:     endedAt,
-			IsCompleted: plant.IsCompleted,
-			AreaUsed:    plant.AreaUsed,
-			Error:       map[string]string{},
-			FieldID:     plant.FieldID,
+		var typeProductID uint
+		if plant.TypeProductID != nil {
+			typeProductID = *plant.TypeProductID
 		}
 
-		// Gerar HTML via templ do go-templ-htmx
-		return planting.Index(p, []planting.Field{}).
+		p := planting.PlantingProps{
+			ID:           plant.ID,
+			CropName:     plant.CropName,
+			StartedAt:    plant.StartedAt.Format("2006-01-02"),
+			EndedAt:      endedAt,
+			IsCompleted:  plant.IsCompleted,
+			AreaUsed:     plant.AreaUsed,
+			Error:        map[string]string{},
+			TypePoductID: typeProductID,
+		}
+
+		return planting.Index(p, props).
 			Render(c.Request().Context(), c.Response().Writer)
 	}
 }

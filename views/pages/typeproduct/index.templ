@@ -1,0 +1,77 @@
+package typeproduct
+
+import (
+"fmt"
+"github.com/isaquerr25/go-templ-htmx/views/templates"
+)
+
+type TypeProductProps struct {
+ID uint `form:"id"`
+Name string `form:"name"`
+Describe string `form:"describe"`
+Quantity float64 `form:"quantity"`
+
+Error map[string]string
+}
+
+type TypeProductListProps struct {
+Items []TypeProductProps
+}
+
+templ Index(p TypeProductProps) {
+@templates.Base() {
+<div class="max-w-[50rem] mx-auto mt-[5rem]">
+	<h1 class="text-xl font-bold mb-4">Cadastro de Produtos Produzidos</h1>
+	<form if p.ID !=0 { hx-post={ fmt.Sprintf("/typeProduct/update/%d", p.ID) } } else { hx-post="/typeProduct/create" }
+		hx-target="body" hx-select="body" hx-swap="outerHTML" class="space-y-4">
+		<input value={ p.Name } type="text" name="name" placeholder="Nome" required class="w-full p-2 border rounded" />
+		if e, ok := p.Error["Name"]; ok {
+		<p class="text-red-500">{ e }</p>
+		}
+		<textarea name="describe" placeholder="Descrição" class="w-full p-2 border rounded">
+			{ p.Describe }
+		</textarea>
+		if e, ok := p.Error["Describe"]; ok {
+		<p class="text-red-500">{ e }</p>
+		}
+		<p class="text-red-500">
+			Quantidade:{ p.Quantity }
+		</p>
+		<button type="submit" class="w-full bg-blue-500 text-white p-2 rounded">
+			if p.ID == 0 {
+			Cadastrar
+			} else {
+			Atualizar
+			}
+		</button>
+		if p.ID != 0 {
+		<button type="submit" hx-post={ fmt.Sprintf("/typeProduct/delete/%d", p.ID) } hx-target="body"
+			hx-swap="outerHTML" class="w-full bg-red-500 text-white p-2 rounded">Remover</button>
+		}
+	</form>
+</div>
+}
+}
+
+templ List(p TypeProductListProps) {
+@templates.Base() {
+<div class="max-w-[50rem] mx-auto mt-[5rem]">
+	<h1 class="text-xl font-bold mb-4">Tipo de Produtos Cadastrados</h1>
+	<a href="/typeProduct/create" hx-target="body" hx-swap="outerHTML"
+		class="block w-full bg-green-500 text-white text-center p-2 rounded mb-4">+ Novo</a>
+	<ul class="space-y-4">
+		for _, item := range p.Items {
+		<li class="border p-4 rounded flex justify-between items-center">
+			<div>
+				<h2 class="font-semibold">{ item.Name }</h2>
+				<p class="text-sm text-gray-500">{ item.Describe }</p>
+				<p class="text-sm text-gray-500">Quantidade:{ item.Quantity }</p>
+			</div>
+			<button hx-get={ fmt.Sprintf("/typeProduct/%d", item.ID) } hx-target="body" hx-swap="outerHTML"
+				class="text-blue-500">Editar</button>
+		</li>
+		}
+	</ul>
+</div>
+}
+}

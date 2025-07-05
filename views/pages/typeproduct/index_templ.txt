@@ -1,0 +1,27 @@
+<div class=\"max-w-[50rem] mx-auto mt-[5rem]\"><h1 class=\"text-xl font-bold mb-4\">Cadastro de Produtos Produzidos</h1><form
+ hx-post=\"
+\"
+ hx-post=\"/typeProduct/create\"
+ hx-target=\"body\" hx-select=\"body\" hx-swap=\"outerHTML\" class=\"space-y-4\"><input value=\"
+\" type=\"text\" name=\"name\" placeholder=\"Nome\" required class=\"w-full p-2 border rounded\"> 
+<p class=\"text-red-500\">
+</p>
+<textarea name=\"describe\" placeholder=\"Descrição\" class=\"w-full p-2 border rounded\">
+</textarea> 
+<p class=\"text-red-500\">
+</p>
+<p class=\"text-red-500\">Quantidade:
+</p><button type=\"submit\" class=\"w-full bg-blue-500 text-white p-2 rounded\">
+Cadastrar
+Atualizar
+</button> 
+<button type=\"submit\" hx-post=\"
+\" hx-target=\"body\" hx-swap=\"outerHTML\" class=\"w-full bg-red-500 text-white p-2 rounded\">Remover</button>
+</form></div>
+<div class=\"max-w-[50rem] mx-auto mt-[5rem]\"><h1 class=\"text-xl font-bold mb-4\">Tipo de Produtos Cadastrados</h1><a href=\"/typeProduct/create\" hx-target=\"body\" hx-swap=\"outerHTML\" class=\"block w-full bg-green-500 text-white text-center p-2 rounded mb-4\">+ Novo</a><ul class=\"space-y-4\">
+<li class=\"border p-4 rounded flex justify-between items-center\"><div><h2 class=\"font-semibold\">
+</h2><p class=\"text-sm text-gray-500\">
+</p><p class=\"text-sm text-gray-500\">Quantidade:
+</p></div><button hx-get=\"
+\" hx-target=\"body\" hx-swap=\"outerHTML\" class=\"text-blue-500\">Editar</button></li>
+</ul></div>
