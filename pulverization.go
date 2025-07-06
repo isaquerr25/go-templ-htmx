@@ -110,6 +110,7 @@ func CreatePulverization(db *gorm.DB) echo.HandlerFunc {
 			form := c.Request().PostForm
 			fmt.Printf("🔍 Form recebido: %+v\n", form)
 
+			validProducts := 0 // 👈 contador de produtos válidos
 			i := 0
 			for {
 				keyID := fmt.Sprintf("products[%d].productId", i)
@@ -179,8 +180,14 @@ func CreatePulverization(db *gorm.DB) echo.HandlerFunc {
 				}
 
 				fmt.Println("✅ Produto aplicado salvo")
+				validProducts++ // 👈 incrementa se tudo deu certo
 				i++
 			}
+			// ✅ Verifica se nenhum produto foi aplicado
+			if validProducts == 0 {
+				return fmt.Errorf("deve conter no mínimo 1 produto válido")
+			}
+
 			fmt.Println("✅ Transação concluída com sucesso")
 			return nil
 		})
