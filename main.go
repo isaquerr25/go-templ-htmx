@@ -68,6 +68,17 @@ func validateProduct(c echo.Context, p *Product) (
 	}
 	p.Quantity = quantity
 
+	// Validate Quantity
+	remaining, err := strconv.ParseFloat(values["remaining"], 64)
+	if err != nil {
+		k.Error["remaining"] = "Only numbers are allowed"
+		hasError = true
+	} else if quantity <= 0 {
+		k.Error["remaining"] = "Cannot be less than or equal to zero"
+		hasError = true
+	}
+	p.Remaining = remaining
+
 	// Validate TotalCost
 	totalCost, err := strconv.ParseFloat(values["totalCost"], 64)
 	if err != nil {
@@ -100,6 +111,7 @@ func validateProduct(c echo.Context, p *Product) (
 	k.Date = p.Date
 	k.TotalCost = p.TotalCost
 	k.Description = p.Description
+	k.Remaining = p.Remaining
 
 	return
 }
@@ -116,6 +128,8 @@ func main() {
 	}
 
 	// Migrate the schema
+	db.AutoMigrate(&Service{})
+	db.AutoMigrate(&AppliedProduct{})
 	db.AutoMigrate(&Product{})
 	db.AutoMigrate(&Field{})
 	db.AutoMigrate(&Planting{})

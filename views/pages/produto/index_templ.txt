@@ -2,40 +2,40 @@
  hx-post=\"
 \"
  hx-post=\"/createProduct\"
- hx-target=\"main\" hx-select=\"main\" hx-swap=\"outerHTML\" class=\"space-y-4\"><input value=\"
-\" type=\"text\" name=\"name\" placeholder=\"Nome\" required class=\"w-full p-2 border rounded\"> 
+ hx-target=\"main\" hx-select=\"main\" hx-swap=\"outerHTML\" class=\"space-y-4\"><!-- Nome --><div><label for=\"name\" class=\"block font-medium\">Nome</label> <input id=\"name\" value=\"
+\" type=\"text\" name=\"name\" placeholder=\"Ex: Fertilizante A\" required class=\"w-full p-2 border rounded\"> 
 <p class=\"text-red-500\">
 </p>
-<input value=\"
-\" type=\"number\" name=\"quantity\" placeholder=\"Quantidade total\" required step=\"0.001\" class=\"w-full p-2 border rounded\"> 
+</div><!-- Quantidade total --><div><label for=\"quantity\" class=\"block font-medium\">Quantidade Total</label> <input id=\"quantity\" value=\"
+\" type=\"number\" name=\"quantity\" placeholder=\"Ex: 100.000\" required step=\"0.001\" class=\"w-full p-2 border rounded\"> 
 <p class=\"text-red-500\">
 </p>
-<input value=\"
-\" type=\"number\" name=\"remaining\" placeholder=\"Quantidade restante\" required step=\"0.001\" class=\"w-full p-2 border rounded\"> 
+</div><!-- Quantidade restante --><div><label for=\"remaining\" class=\"block font-medium\">Quantidade Restante</label> <input id=\"remaining\" value=\"
+\" type=\"number\" name=\"remaining\" placeholder=\"Ex: 25.500\" required step=\"0.001\" class=\"w-full p-2 border rounded\"> 
 <p class=\"text-red-500\">
 </p>
-<select name=\"unit\" class=\"w-full p-2 border rounded\"><option
+</div><!-- Unidade --><div><label for=\"unit\" class=\"block font-medium\">Unidade</label> <select id=\"unit\" name=\"unit\" class=\"w-full p-2 border rounded\"><option
  selected
  value=\"Litros\">Litros</option> <option
  selected
  value=\"Quilos\">Quilos</option></select> 
 <p class=\"text-red-500\">
 </p>
-<input value=\"
+</div><!-- Data --><div><label for=\"date\" class=\"block font-medium\">Data</label> <input id=\"date\" value=\"
 \" type=\"date\" name=\"date\" required class=\"w-full p-2 border rounded\"> 
 <p class=\"text-red-500\">
 </p>
-<input value=\"
-\" type=\"number\" name=\"totalCost\" step=\"0.01\" placeholder=\"Custo total R$\" required class=\"w-full p-2 border rounded\"> 
+</div><!-- Custo total --><div><label for=\"totalCost\" class=\"block font-medium\">Custo Total (R$)</label> <input id=\"totalCost\" value=\"
+\" type=\"number\" name=\"totalCost\" step=\"0.01\" placeholder=\"Ex: 500.00\" required class=\"w-full p-2 border rounded\"> 
 <p class=\"text-red-500\">
 </p>
-<textarea value=\"
-\" name=\"description\" placeholder=\"Descrição\" class=\"w-full p-2 border rounded\"></textarea> 
+</div><!-- Descrição --><div><label for=\"description\" class=\"block font-medium\">Descrição</label> <textarea id=\"description\" name=\"description\" placeholder=\"Informações adicionais sobre o produto\" class=\"w-full p-2 border rounded\">
+</textarea> 
 <p class=\"text-red-500\">
 </p>
-<button type=\"submit\" class=\"w-full bg-blue-500 text-white p-2 rounded\">
+</div><!-- Botão principal --><button type=\"submit\" class=\"w-full bg-blue-500 text-white p-2 rounded\">
 Cadastrar
 Atualizar
-</button> 
+</button><!-- Botão de remover -->
 <button type=\"button\" class=\"w-full bg-red-500 text-white p-2 rounded\">Remover</button>
 </form></div>

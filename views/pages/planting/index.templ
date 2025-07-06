@@ -34,39 +34,59 @@ templ Index(p PlantingProps, typeProducts []TypeProductProps) {
 	</h1>
 	<form if p.ID !=0 { hx-post={ fmt.Sprintf("/plantings/update/%d", p.ID) } } else { hx-post="/plantings/create" }
 		hx-target="main" hx-select="main" hx-swap="outerHTML" class="space-y-4">
-		if e, ok := p.Error["FieldID"]; ok {
-		<p class="text-red-500">{ e }</p>
-		}
-		<input type="text" name="cropName" value={ p.CropName } placeholder="Nome da Cultura" required
-			class="w-full p-2 border rounded" />
-		if e, ok := p.Error["CropName"]; ok {
-		<p class="text-red-500">{ e }</p>
-		}
-		<input type="date" name="startedAt" value={ p.StartedAt } required class="w-full p-2 border rounded" />
-		if e, ok := p.Error["StartedAt"]; ok {
-		<p class="text-red-500">{ e }</p>
-		}
-		<input type="date" name="endedAt" value={ p.EndedAt } class="w-full p-2 border rounded" />
-		if e, ok := p.Error["EndedAt"]; ok {
-		<p class="text-red-500">{ e }</p>
-		}
-		<div class="flex items-center space-x-2">
-			<input type="checkbox" name="isCompleted" checked={ p.IsCompleted } />
-			<label for="isCompleted">Plantio Finalizado</label>
-		</div>
-		<input type="number" step="0.01" name="areaUsed" value={ fmt.Sprintf("%.2f", p.AreaUsed) }
-			placeholder="Área utilizada (ha)" required class="w-full p-2 border rounded" />
-		if e, ok := p.Error["AreaUsed"]; ok {
-		<p class="text-red-500">{ e }</p>
-		}
-		<select name="typeProdutcId" required class="w-full p-2 border rounded">
-			<option value="">Selecione um campo</option>
-			for _, f := range typeProducts {
-			<option value={ fmt.Sprintf("%d", f.ID) } selected={ f.ID==p.TypePoductID }>
-				{ f.Name }
-			</option>
+		<!-- Nome da Cultura -->
+		<div>
+			<label for="cropName" class="block font-medium">Nome da Cultura</label>
+			<input type="text" id="cropName" name="cropName" value={ p.CropName } required
+				class="w-full p-2 border rounded" placeholder="Ex: Milho" />
+			if e, ok := p.Error["CropName"]; ok {
+			<p class="text-red-500">{ e }</p>
 			}
-		</select>
+		</div>
+		<!-- Data de Início -->
+		<div>
+			<label for="startedAt" class="block font-medium">Data de Início</label>
+			<input type="date" id="startedAt" name="startedAt" value={ p.StartedAt } required
+				class="w-full p-2 border rounded" />
+			if e, ok := p.Error["StartedAt"]; ok {
+			<p class="text-red-500">{ e }</p>
+			}
+		</div>
+		<!-- Data de Término -->
+		<div>
+			<label for="endedAt" class="block font-medium">Data de Término</label>
+			<input type="date" id="endedAt" name="endedAt" value={ p.EndedAt } class="w-full p-2 border rounded" />
+			if e, ok := p.Error["EndedAt"]; ok {
+			<p class="text-red-500">{ e }</p>
+			}
+		</div>
+		<!-- Plantio Finalizado -->
+		<div class="flex items-center space-x-2">
+			<input type="checkbox" id="isCompleted" name="isCompleted" if p.IsCompleted { checked } />
+			<label for="isCompleted" class="select-none">Plantio Finalizado</label>
+		</div>
+		<!-- Área Utilizada -->
+		<div>
+			<label for="areaUsed" class="block font-medium">Área Utilizada (ha)</label>
+			<input type="number" step="0.01" id="areaUsed" name="areaUsed" value={ fmt.Sprintf("%.2f", p.AreaUsed) }
+				required class="w-full p-2 border rounded" placeholder="Ex: 2.50" />
+			if e, ok := p.Error["AreaUsed"]; ok {
+			<p class="text-red-500">{ e }</p>
+			}
+		</div>
+		<!-- Tipo de Produto -->
+		<div>
+			<label for="typeProdutcId" class="block font-medium">Tipo de Produto</label>
+			<select id="typeProdutcId" name="typeProdutcId" required class="w-full p-2 border rounded">
+				<option value="">Selecione um tipo</option>
+				for _, f := range typeProducts {
+				<option value={ fmt.Sprintf("%d", f.ID) } selected={ f.ID==p.TypePoductID }>
+					{ f.Name }
+				</option>
+				}
+			</select>
+		</div>
+		<!-- Botões -->
 		<button type="submit" class="w-full bg-blue-500 text-white p-2 rounded">
 			if p.ID == 0 {
 			Cadastrar

@@ -195,55 +195,79 @@ func CreatePlanting(db *gorm.DB) echo.HandlerFunc {
 			)
 		}
 
-		return ListPlantings(db)(c)
+		c.Response().Header().Set("HX-Redirect", "/")
+		return c.String(http.StatusOK, "")
 	}
 }
 
 func UpdatePlanting(db *gorm.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		id, _ := strconv.Atoi(c.Param("id"))
-
-		var p planting.PlantingProps
-		if err := c.Bind(&p); err != nil {
-			return c.String(http.StatusBadRequest, "Erro ao ler dados do formulário")
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			return c.String(http.StatusBadRequest, "ID inválido")
 		}
 
-		startedAt, err := time.Parse("2006-01-02", p.StartedAt)
+		// Usa a mesma função de validação do create para ler os dados do form e validar
+		props, hasError, err := validatePlanting(c)
 		if err != nil {
-			p.Error = map[string]string{"StartedAt": "Data inválida"}
+			fmt.Printf("Erro ao validar plantio: %v\n", err)
+			return c.String(
+				http.StatusBadRequest,
+				"Erro técnico ao processar dados do formulário: "+err.Error(),
+			)
+		}
 
-			return planting.Index(p, []planting.TypeProductProps{}).
-				Render(c.Request().Context(), c.Response().Writer)
+		if hasError {
+			fmt.Println("Erro de validação no formulário, renderizando página novamente.")
+			return c.Render(
+				http.StatusOK,
+				"main",
+				planting.Index(props, []planting.TypeProductProps{}),
+			)
+		}
 
+		startedAt, err := time.Parse("2006-01-02", props.StartedAt)
+		if err != nil {
+			props.Error = map[string]string{"StartedAt": "Data inválida"}
+			return c.Render(
+				http.StatusOK,
+				"main",
+				planting.Index(props, []planting.TypeProductProps{}),
+			)
 		}
 
 		var endedAt *time.Time
-		if p.EndedAt != "" {
-			t, err := time.Parse("2006-01-02", p.EndedAt)
+		if props.EndedAt != "" {
+			t, err := time.Parse("2006-01-02", props.EndedAt)
 			if err != nil {
-				p.Error = map[string]string{"EndedAt": "Data final inválida"}
-
-				return planting.Index(p, []planting.TypeProductProps{}).
-					Render(c.Request().Context(), c.Response().Writer)
+				props.Error = map[string]string{"EndedAt": "Data final inválida"}
+				return c.Render(
+					http.StatusOK,
+					"main",
+					planting.Index(props, []planting.TypeProductProps{}),
+				)
 			}
 			endedAt = &t
 		}
 
 		var plant Planting
-		db.First(&plant, id)
+		if err := db.First(&plant, id).Error; err != nil {
+			return c.String(http.StatusNotFound, "Plantio não encontrado")
+		}
 
-		plant.CropName = p.CropName
+		plant.CropName = props.CropName
 		plant.StartedAt = startedAt
 		plant.EndedAt = endedAt
-		plant.IsCompleted = p.IsCompleted
-		plant.AreaUsed = p.AreaUsed
-		plant.TypeProductID = &p.TypePoductID
+		plant.IsCompleted = props.IsCompleted
+		plant.AreaUsed = props.AreaUsed
+		plant.TypeProductID = &props.TypePoductID // atenção ao typo aqui
 
 		if err := db.Save(&plant).Error; err != nil {
 			return c.String(http.StatusInternalServerError, "Erro ao atualizar plantio")
 		}
 
-		return ListPlantings(db)(c)
+		c.Response().Header().Set("HX-Redirect", "/")
+		return c.String(http.StatusOK, "")
 	}
 }
 
@@ -255,7 +279,8 @@ func DeletePlanting(db *gorm.DB) echo.HandlerFunc {
 			return c.String(http.StatusInternalServerError, "Erro ao deletar plantio")
 		}
 
-		return ListPlantings(db)(c)
+		c.Response().Header().Set("HX-Redirect", "/")
+		return c.String(http.StatusOK, "")
 	}
 }
 

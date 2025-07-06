@@ -3,11 +3,12 @@
 <option value=\"
 \" selected=\"
 \">
-</option>
-</select> <input type=\"number\" step=\"0.01\" name=\"
+ - Restante: 
+ Kg/L</option>
+</select> <input type=\"number\" step=\"0.001\" min=\"0.01\" name=\"
 \" value=\"
 \" placeholder=\"Quantidade\" required></div>
-<form
+<form hx-target=\"body\"
  hx-post=\"\"
  hx-post=\"
 \"
@@ -24,4 +25,7 @@ Editar Pulverização
 \" required class=\"w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500\"></div><!-- Botão de Envio --><div class=\"pt-4\"><button type=\"submit\" class=\"bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md font-medium\">
 Criar
 Atualizar
-</button></div></form>
+</button> 
+<span class=\"text-red-500 text-sm\">
+</span>
+</div></form>

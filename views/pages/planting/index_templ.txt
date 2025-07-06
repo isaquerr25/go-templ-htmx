@@ -5,32 +5,30 @@ Novo Plantio
  hx-post=\"
 \"
  hx-post=\"/plantings/create\"
- hx-target=\"main\" hx-select=\"main\" hx-swap=\"outerHTML\" class=\"space-y-4\">
+ hx-target=\"main\" hx-select=\"main\" hx-swap=\"outerHTML\" class=\"space-y-4\"><!-- Nome da Cultura --><div><label for=\"cropName\" class=\"block font-medium\">Nome da Cultura</label> <input type=\"text\" id=\"cropName\" name=\"cropName\" value=\"
+\" required class=\"w-full p-2 border rounded\" placeholder=\"Ex: Milho\"> 
 <p class=\"text-red-500\">
 </p>
-<input type=\"text\" name=\"cropName\" value=\"
-\" placeholder=\"Nome da Cultura\" required class=\"w-full p-2 border rounded\"> 
-<p class=\"text-red-500\">
-</p>
-<input type=\"date\" name=\"startedAt\" value=\"
+</div><!-- Data de Início --><div><label for=\"startedAt\" class=\"block font-medium\">Data de Início</label> <input type=\"date\" id=\"startedAt\" name=\"startedAt\" value=\"
 \" required class=\"w-full p-2 border rounded\"> 
 <p class=\"text-red-500\">
 </p>
-<input type=\"date\" name=\"endedAt\" value=\"
+</div><!-- Data de Término --><div><label for=\"endedAt\" class=\"block font-medium\">Data de Término</label> <input type=\"date\" id=\"endedAt\" name=\"endedAt\" value=\"
 \" class=\"w-full p-2 border rounded\"> 
 <p class=\"text-red-500\">
 </p>
-<div class=\"flex items-center space-x-2\"><input type=\"checkbox\" name=\"isCompleted\" checked=\"
-\"> <label for=\"isCompleted\">Plantio Finalizado</label></div><input type=\"number\" step=\"0.01\" name=\"areaUsed\" value=\"
-\" placeholder=\"Área utilizada (ha)\" required class=\"w-full p-2 border rounded\"> 
+</div><!-- Plantio Finalizado --><div class=\"flex items-center space-x-2\"><input type=\"checkbox\" id=\"isCompleted\" name=\"isCompleted\"
+ checked
+> <label for=\"isCompleted\" class=\"select-none\">Plantio Finalizado</label></div><!-- Área Utilizada --><div><label for=\"areaUsed\" class=\"block font-medium\">Área Utilizada (ha)</label> <input type=\"number\" step=\"0.01\" id=\"areaUsed\" name=\"areaUsed\" value=\"
+\" required class=\"w-full p-2 border rounded\" placeholder=\"Ex: 2.50\"> 
 <p class=\"text-red-500\">
 </p>
-<select name=\"typeProdutcId\" required class=\"w-full p-2 border rounded\"><option value=\"\">Selecione um campo</option> 
+</div><!-- Tipo de Produto --><div><label for=\"typeProdutcId\" class=\"block font-medium\">Tipo de Produto</label> <select id=\"typeProdutcId\" name=\"typeProdutcId\" required class=\"w-full p-2 border rounded\"><option value=\"\">Selecione um tipo</option> 
 <option value=\"
 \" selected=\"
 \">
 </option>
-</select> <button type=\"submit\" class=\"w-full bg-blue-500 text-white p-2 rounded\">
+</select></div><!-- Botões --><button type=\"submit\" class=\"w-full bg-blue-500 text-white p-2 rounded\">
 Cadastrar
 Atualizar
 </button> 

@@ -25,31 +25,52 @@ templ Index(p ProductSellProps) {
 	<h1 class="text-xl font-bold mb-4">Cadastro de Produto</h1>
 	<form if p.ID !=0 { hx-post={ fmt.Sprintf("/updateProductSell/%d", p.ID) } } else { hx-post="/createProductSell" }
 		hx-target="main" hx-select="main" hx-swap="outerHTML" class="space-y-4">
-		<input value={ p.Name } type="text" name="name" placeholder="Nome" required class="w-full p-2 border rounded" />
-		if e, ok := p.Error["Name"]; ok {
-		<p class="text-red-500">{ e }</p>
-		}
-		<textarea name="description" placeholder="Descrição" class="w-full p-2 border rounded">
-			{ p.Description }
-		</textarea>
-		if e, ok := p.Error["Description"]; ok {
-		<p class="text-red-500">{ e }</p>
-		}
-		<input value={ p.Unit } type="text" name="unit" placeholder="Unidade (ex: kg, L)"
-			class="w-full p-2 border rounded" />
-		if e, ok := p.Error["Unit"]; ok {
-		<p class="text-red-500">{ e }</p>
-		}
-		<input value={ fmt.Sprintf("%.2f", p.Price) } type="number" step="0.01" name="price" placeholder="Preço"
-			class="w-full p-2 border rounded" />
-		if e, ok := p.Error["Price"]; ok {
-		<p class="text-red-500">{ e }</p>
-		}
-		<input value={ fmt.Sprintf("%.2f", p.Stock) } type="number" step="0.01" name="stock" placeholder="Estoque"
-			class="w-full p-2 border rounded" />
-		if e, ok := p.Error["Stock"]; ok {
-		<p class="text-red-500">{ e }</p>
-		}
+		<!-- Nome do Produto -->
+		<div>
+			<label for="name" class="block font-medium">Nome do Produto</label>
+			<input id="name" value={ p.Name } type="text" name="name" required placeholder="Ex: Tomate"
+				class="w-full p-2 border rounded" />
+			if e, ok := p.Error["Name"]; ok {
+			<p class="text-red-500">{ e }</p>
+			}
+		</div>
+		<!-- Descrição -->
+		<div>
+			<label for="description" class="block font-medium">Descrição</label>
+			<textarea id="description" name="description" placeholder="Ex: Tomate cereja orgânico"
+				class="w-full p-2 border rounded">{ p.Description }</textarea>
+			if e, ok := p.Error["Description"]; ok {
+			<p class="text-red-500">{ e }</p>
+			}
+		</div>
+		<!-- Unidade -->
+		<div>
+			<label for="unit" class="block font-medium">Unidade de Medida</label>
+			<input id="unit" value={ p.Unit } type="text" name="unit" placeholder="Ex: kg, L"
+				class="w-full p-2 border rounded" />
+			if e, ok := p.Error["Unit"]; ok {
+			<p class="text-red-500">{ e }</p>
+			}
+		</div>
+		<!-- Preço -->
+		<div>
+			<label for="price" class="block font-medium">Preço</label>
+			<input id="price" value={ fmt.Sprintf("%.2f", p.Price) } type="number" step="0.01" name="price"
+				placeholder="Ex: 9.99" class="w-full p-2 border rounded" />
+			if e, ok := p.Error["Price"]; ok {
+			<p class="text-red-500">{ e }</p>
+			}
+		</div>
+		<!-- Estoque -->
+		<div>
+			<label for="stock" class="block font-medium">Estoque Disponível</label>
+			<input id="stock" value={ fmt.Sprintf("%.2f", p.Stock) } type="number" step="0.01" name="stock"
+				placeholder="Ex: 100.00" class="w-full p-2 border rounded" />
+			if e, ok := p.Error["Stock"]; ok {
+			<p class="text-red-500">{ e }</p>
+			}
+		</div>
+		<!-- Botão Principal -->
 		<button type="submit" class="w-full bg-blue-500 text-white p-2 rounded">
 			if p.ID == 0 {
 			Cadastrar
@@ -57,6 +78,7 @@ templ Index(p ProductSellProps) {
 			Atualizar
 			}
 		</button>
+		<!-- Botão de Remoção -->
 		if p.ID != 0 {
 		<button type="button" class="w-full bg-red-500 text-white p-2 rounded">
 			Remover

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -20,9 +21,6 @@ func ListDasboard() echo.HandlerFunc {
 
 		var items []planting.PlantingItem
 		for _, p := range plantings {
-			if p.IsCompleted {
-				continue // pula os finalizados
-			}
 			items = append(items, planting.PlantingItem{
 				ID:          p.ID,
 				CropName:    p.CropName,
@@ -67,9 +65,21 @@ func DashboardShowPlanting() echo.HandlerFunc {
 		db.Preload("Products").Where("planting_id = ?", planting.ID).Find(&pulverizations)
 
 		var sales []Sale
-		db.Where("planting_id = ?", planting.ID).Find(&sales) // melhor filtrar por planting_id
 
-		// Monta custos a partir de serviços, irrigations e fertilizações, pulverizações
+		var pulverizationIDs []uint
+		for _, p := range pulverizations {
+			pulverizationIDs = append(pulverizationIDs, p.ID)
+		}
+
+		var appliedProducts []AppliedProduct
+		if len(pulverizationIDs) > 0 {
+			err = db.Where("pulverization_id IN ?", pulverizationIDs).Find(&appliedProducts).Error
+			if err != nil {
+				fmt.Println("error aqui")
+				return err
+			}
+		} // Monta custos a partir de serviços, irrigations e fertilizações, pulverizações
+
 		var costs []dashboard.Cost
 		for _, svc := range services {
 			costs = append(costs, dashboard.Cost{
@@ -77,6 +87,9 @@ func DashboardShowPlanting() echo.HandlerFunc {
 				Description: svc.Description,
 				Amount:      svc.Cost,
 				CreatedAt:   time.Time{},
+				PlantingID:  0,
+				Quantity:    0,
+				Type:        "services",
 			})
 		}
 
@@ -86,6 +99,26 @@ func DashboardShowPlanting() echo.HandlerFunc {
 				Description: "Irrigação",
 				PlantingID:  0,
 				CreatedAt:   time.Time{},
+				Amount:      0,
+				Quantity:    0,
+				Type:        "irrigations",
+			})
+		}
+
+		for _, irr := range appliedProducts {
+
+			var pd Product
+
+			db.First(&pd, irr.ProductID)
+
+			costs = append(costs, dashboard.Cost{
+				ID:          irr.ID,
+				Description: pd.Name,
+				PlantingID:  0,
+				CreatedAt:   time.Time{},
+				Amount:      regraDeTres(pd.Quantity, pd.TotalCost, irr.QuantityUsed),
+				Quantity:    irr.QuantityUsed,
+				Type:        pd.Description,
 			})
 		}
 

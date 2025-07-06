@@ -160,3 +160,10 @@ const (
 	SaleMethodCard   SaleMethod = "card"
 	SaleMethodCredit SaleMethod = "credit"
 )
+
+func regraDeTres(a, b, c float64) float64 {
+	if a == 0 {
+		panic("Divisão por zero: 'a' não pode ser 0")
+	}
+	return (b * c) / a
+}

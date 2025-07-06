@@ -67,59 +67,145 @@ func ListPulverizations() echo.HandlerFunc {
 
 func CreatePulverization(db *gorm.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
+		fmt.Println("Início da função CreatePulverization") // ✅ 1
+
 		planId := c.Param("planId")
+		fmt.Println("planId recebido:", planId) // ✅ 2
+
 		planIdInt, err := strconv.Atoi(planId)
 		if err != nil {
+			fmt.Println("Erro ao converter planId:", err) // ✅ 3
 			return c.String(http.StatusBadRequest, "planId inválido")
 		}
+		fmt.Println("planId convertido para inteiro:", planIdInt) // ✅ 4
 
-		// Extrair campos individuais
+		// Supondo que você tenha parsing de data
 		appliedAtStr := c.FormValue("appliedAt")
-		unit := c.FormValue("unit")
+		fmt.Println("appliedAtStr recebido:", appliedAtStr) // ✅ 5
 
 		appliedAt, err := time.Parse("2006-01-02", appliedAtStr)
 		if err != nil {
-			return c.String(http.StatusBadRequest, "Data (AppliedAt) inválida")
+			fmt.Println("Erro ao fazer parse da data:", err) // ✅ 6
+			return c.String(http.StatusBadRequest, "Data inválida")
 		}
+		fmt.Println("Data aplicada convertida:", appliedAt) // ✅ 7
 
-		// Criar a pulverização principal
-		newPulverization := Pulverization{
-			PlantingID: uint(planIdInt),
-			AppliedAt:  appliedAt,
-			Unit:       unit,
-		}
+		// Aqui entra alguma transação
+		err = db.Transaction(func(tx *gorm.DB) error {
+			fmt.Println("✅ Dentro da transação") // ✅ 1
 
-		if err := db.Create(&newPulverization).Error; err != nil {
-			return c.String(http.StatusInternalServerError, "Erro ao criar pulverização")
-		}
-
-		// Processar os produtos aplicados
-		form := c.Request().PostForm
-		productIDs := form["Products[].ProductID"]
-		quantities := form["Products[].QuantityUsed"]
-
-		for i := range productIDs {
-			productID, err := strconv.Atoi(productIDs[i])
-			if err != nil {
-				continue // Ignora produto inválido
+			pulv := Pulverization{
+				PlantingID: uint(planIdInt),
+				AppliedAt:  appliedAt,
+				Products:   []AppliedProduct{},
 			}
 
-			quantity, err := strconv.ParseFloat(quantities[i], 64)
-			if err != nil {
-				continue // Ignora quantidade inválida
+			fmt.Println("➡️ Criando Pulverization...")
+			if err := tx.Create(&pulv).Error; err != nil {
+				fmt.Println("❌ Erro ao criar Pulverization:", err) // ✅ 2
+				return err
+			}
+			fmt.Println("✅ Pulverization criada com ID:", pulv.ID) // ✅ 3
+
+			form := c.Request().PostForm
+			fmt.Printf("🔍 Form recebido: %+v\n", form)
+
+			i := 0
+			for {
+				keyID := fmt.Sprintf("products[%d].productId", i)
+				keyQty := fmt.Sprintf("products[%d].quantityUsed", i)
+
+				idStr := form.Get(keyID)
+				qtyStr := form.Get(keyQty)
+
+				if idStr == "" && qtyStr == "" {
+					break
+				}
+
+				fmt.Printf("🔁 Produto %d: id=%s, qtd=%s\n", i, idStr, qtyStr)
+
+				productID, err := strconv.Atoi(idStr)
+				if err != nil {
+					fmt.Println("⚠️ ProdutoID inválido:", idStr, err)
+					i++
+					continue
+				}
+
+				quantity, err := strconv.ParseFloat(qtyStr, 64)
+				if err != nil {
+					fmt.Println("⚠️ Quantidade inválida:", qtyStr, err)
+					i++
+					continue
+				}
+
+				// 🔎 Buscar o produto no banco
+				var product Product
+				if err := tx.First(&product, productID).Error; err != nil {
+					fmt.Printf("❌ Produto com ID %d não encontrado\n", productID)
+					return fmt.Errorf("produto %d não encontrado", productID)
+				}
+
+				fmt.Printf("📦 Produto encontrado: %+v\n", product)
+
+				// ⚖️ Verificar se há quantidade suficiente
+				if product.Remaining < quantity {
+					fmt.Printf(
+						"❌ Estoque insuficiente para produto ID %d. Em estoque: %.2f, solicitado: %.2f\n",
+						productID,
+						product.Remaining,
+						quantity,
+					)
+					return fmt.Errorf("estoque insuficiente para produto %s", product.Name)
+				}
+
+				// ➖ Descontar do estoque
+				product.Remaining -= quantity
+				if err := tx.Save(&product).Error; err != nil {
+					fmt.Println("❌ Erro ao atualizar estoque do produto:", err)
+					return err
+				}
+
+				// ✅ Criar registro de aplicação
+				applied := AppliedProduct{
+					PulverizationID: pulv.ID,
+					ProductID:       uint(productID),
+					QuantityUsed:    quantity,
+				}
+				fmt.Printf("➡️ Salvando produto aplicado: %+v\n", applied)
+
+				if err := tx.Create(&applied).Error; err != nil {
+					fmt.Println("❌ Erro ao criar produto aplicado:", err)
+					return err
+				}
+
+				fmt.Println("✅ Produto aplicado salvo")
+				i++
+			}
+			fmt.Println("✅ Transação concluída com sucesso")
+			return nil
+		})
+		if err != nil {
+			fmt.Println("Erro na transação:", err)
+
+			// Preenche o campo Error no props para mostrar no template
+			p := pulverization.PulverizationProps{
+				// ... preencha outros campos necessários para manter os dados do formulário
+				Error: map[string]string{
+					"Form": err.Error(),
+				},
 			}
 
-			applied := AppliedProduct{
-				PulverizationID: newPulverization.ID,
-				ProductID:       uint(productID),
-				QuantityUsed:    quantity,
-			}
+			a, _ := GetAllProductsProps()
+			b, _ := GetAllPlantings()
 
-			if err := db.Create(&applied).Error; err != nil {
-				return c.String(http.StatusInternalServerError, "Erro ao salvar produto aplicado")
-			}
+			// Renderiza o template passando p, para mostrar o erro na página
+			return pulverization.Index(p, pulverization.UseProps{
+				Prod: a,
+				Plan: b,
+			}).Render(c.Request().Context(), c.Response().Writer)
 		}
 
+		fmt.Println("Fim da função CreatePulverization") // ✅ 12
 		c.Response().Header().Set("HX-Redirect", "../")
 		return c.String(http.StatusOK, "")
 	}
