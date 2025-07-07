@@ -8,9 +8,17 @@
 <p class=\"text-xl\">
 </p>
 <p class=\"italic text-yellow-600 font-semibold\">Em andamento</p>
-</div></div></section><section class=\"mb-10\"><h2 class=\"text-2xl font-bold text-red-600 mb-4 border-b border-red-300 pb-2\">Custos</h2>
+</div></div></section><section class=\"mb-10\"><h2 class=\"text-2xl font-bold text-red-600 mb-4 border-b border-red-300 pb-2\">Insumos</h2>
 <ul class=\"bg-red-50 rounded-lg p-6 shadow-md space-y-3\">
 <li class=\"flex justify-between text-red-800 font-semibold border-b border-red-100 last:border-none pb-2\"><span>
+</span> <span>
+ Kg/L</span> <span>R$ 
+</span></li>
+</ul>
+<p class=\"italic text-red-300 text-lg\">Nenhum custo registrado.</p>
+</section><section class=\"mb-10\"><h2 class=\"text-2xl font-bold text-orange-600 mb-4 border-b border-orange-300 pb-2\">Serviços Prestados</h2>
+<ul class=\"bg-orange-50 rounded-lg p-6 shadow-md space-y-3\">
+<li class=\"flex justify-between text-orange-800 font-semibold border-b border-orange-100 last:border-none pb-2\"><span>
 </span> <span>R$ 
 </span></li>
 </ul>
@@ -26,7 +34,8 @@
 <ul class=\"bg-yellow-50 rounded-lg p-6 shadow-md space-y-3\">
 <li class=\"flex justify-between text-yellow-900 font-semibold border-b border-yellow-100 last:border-none pb-2\"><span>
 </span> <span>
- kg</span></li>
+ kg</span> <span>R$ 
+</span></li>
 </ul>
 <p class=\"italic text-yellow-400 text-lg\">Nenhum adubo registrado.</p>
 </section></div>

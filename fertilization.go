@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/isaquerr25/go-templ-htmx/views/pages/fertilization"
 	"github.com/isaquerr25/go-templ-htmx/views/pages/pulverization"
 	"github.com/labstack/echo/v4"
+	"gorm.io/gorm"
 )
 
 func ListFertilization(c echo.Context) error {
@@ -74,77 +76,164 @@ func ShowFertilization(c echo.Context) error {
 }
 
 func CreateFertilization(c echo.Context) error {
-	// Supondo que você receba os dados dos produtos via JSON ou formulário com repetição (ex: products[0].productId, products[0].quantityUsed...)
+	fmt.Println("👉 Início da função CreateFertilization")
 
 	planId := c.Param("planId")
+	fmt.Println("🔹 planId recebido:", planId)
 
-	var input fertilization.FertilizationProps
-	if err := c.Bind(&input); err != nil {
-		fmt.Println(err)
-		return c.String(http.StatusBadRequest, "Erro ao fazer bind dos dados do formulário")
+	req := c.Request()
+	if err := req.ParseForm(); err != nil {
+		fmt.Println("❌ Erro ao fazer ParseForm:", err)
+		return c.String(http.StatusBadRequest, "Erro ao processar formulário")
+	}
+	form := req.Form // Agora vai funcionar corretamente!
+	fmt.Println("📥 Dados do formulário (ParseForm):", form)
+
+	fmt.Println("📥 Dados do formulário:", form)
+
+	input := fertilization.FertilizationProps{
+		Error:           map[string]string{},
+		ID:              0,
+		PlantingID:      0,
+		ApplicationType: "",
+		AppliedAt:       fertilization.Date{},
+		Products:        []pulverization.ProductInput{},
 	}
 
-	input.Error = make(map[string]string)
+	fmt.Println(form)
+	// Extrai campos simples
+	input.ApplicationType = form.Get("applicationType")
+	fmt.Println("📌 ApplicationType:", input.ApplicationType)
+
+	appliedAtStr := form.Get("appliedAt")
+	appliedAt, err := time.Parse("2006-01-02", appliedAtStr)
+	if err != nil {
+		fmt.Println("❌ Erro ao converter appliedAt:", err)
+		input.Error["AppliedAt"] = "Data inválida ou não informada"
+	} else {
+		fmt.Println("📆 appliedAt convertido:", appliedAt)
+	}
 
 	if input.ApplicationType == "" {
+		fmt.Println("⚠️ ApplicationType não informado")
 		input.Error["ApplicationType"] = "Tipo de aplicação obrigatório"
 	}
-	if input.AppliedAt.IsZero() {
-		input.Error["AppliedAt"] = "Data inválida ou não informada"
-	}
 
-	// Validar os produtos
+	// Extrai produtos (repetidos)
+	i := 0
+	for {
+		keyID := fmt.Sprintf("products[%d].productId", i)
+		keyQty := fmt.Sprintf("products[%d].quantityUsed", i)
 
-	for i, p := range input.Products {
-		if p.ProductID == 0 {
+		idStr := form.Get(keyID)
+		qtyStr := form.Get(keyQty)
+
+		if idStr == "" && qtyStr == "" {
+			break
+		}
+
+		fmt.Printf("🔸 Produto %d -> ID: %s | Qtd: %s\n", i, idStr, qtyStr)
+
+		productID, errID := strconv.Atoi(idStr)
+		qty, errQty := strconv.ParseFloat(qtyStr, 64)
+
+		if errID != nil || productID == 0 {
+			fmt.Printf("❌ Erro no ID do produto %d: %v\n", i, errID)
 			input.Error["Products"] = "Produto inválido no item " + strconv.Itoa(i+1)
 		}
-		if p.QuantityUsed <= 0 {
-			input.Error["Products"] = "Quantidade usada inválida no item " + strconv.Itoa(i+1)
+		if errQty != nil || qty <= 0 {
+			fmt.Printf("❌ Erro na quantidade do produto %d: %v\n", i, errQty)
+			input.Error["Products"] = "Quantidade inválida no item " + strconv.Itoa(i+1)
 		}
 
+		input.Products = append(input.Products, pulverization.ProductInput{
+			ProductID:    uint(productID),
+			QuantityUsed: qty,
+		})
+
+		i++
 	}
 
 	if len(input.Error) > 0 {
-		fmt.Println("errrrrrrrrrrrrrrrrrr")
-
+		fmt.Println("⚠️ Erros de validação encontrados:", input.Error)
 		return fertilization.Index(input, pulverization.UseProps{}).
 			Render(c.Request().Context(), c.Response())
 	}
 
 	planIdInt, err := strconv.Atoi(planId)
 	if err != nil {
+		fmt.Println("❌ Erro ao converter planId para inteiro:", err)
 		return err
 	}
 
-	// Criar registro principal
-	f := Fertilization{
-		PlantingID:      uint(planIdInt),
-		ApplicationType: input.ApplicationType,
-		AppliedAt:       input.AppliedAt.Time,
-	}
+	// Transação segura com verificação de estoque
+	fmt.Println("🚀 Iniciando transação no banco")
+	err = db.Transaction(func(tx *gorm.DB) error {
+		f := Fertilization{
+			PlantingID:      uint(planIdInt),
+			ApplicationType: input.ApplicationType,
+			AppliedAt:       appliedAt,
+		}
 
-	if err := db.Create(&f).Error; err != nil {
-		input.Error["global"] = "Erro ao salvar fertilização"
+		if err := tx.Create(&f).Error; err != nil {
+			fmt.Println("❌ Erro ao salvar fertilização:", err)
+			input.Error["global"] = "Erro ao salvar fertilização"
+			return err
+		}
+		fmt.Println("✅ Fertilização criada com ID:", f.ID)
+
+		for _, p := range input.Products {
+			fmt.Println("🔍 Buscando produto ID:", p.ProductID)
+
+			var product Product
+			if err := tx.First(&product, p.ProductID).Error; err != nil {
+				fmt.Printf("❌ Produto ID %d não encontrado\n", p.ProductID)
+				input.Error["Products"] = fmt.Sprintf("Produto ID %d não encontrado", p.ProductID)
+				return fmt.Errorf("produto %d não encontrado", p.ProductID)
+			}
+
+			fmt.Printf("📦 Estoque atual do produto '%s': %.2f\n", product.Name, product.Remaining)
+			if product.Remaining < p.QuantityUsed {
+				fmt.Printf("❌ Estoque insuficiente para '%s'\n", product.Name)
+				input.Error["Products"] = fmt.Sprintf(
+					"Estoque insuficiente para '%s': necessário %.2f, disponível %.2f",
+					product.Name,
+					p.QuantityUsed,
+					product.Remaining,
+				)
+				return fmt.Errorf("estoque insuficiente")
+			}
+
+			product.Remaining -= p.QuantityUsed
+			if err := tx.Save(&product).Error; err != nil {
+				fmt.Println("❌ Erro ao atualizar estoque:", err)
+				input.Error["global"] = "Erro ao atualizar estoque"
+				return err
+			}
+
+			af := ApplyFertilization{
+				FertilizationID: f.ID,
+				ProductID:       p.ProductID,
+				QuantityUsed:    p.QuantityUsed,
+			}
+			if err := tx.Create(&af).Error; err != nil {
+				fmt.Println("❌ Erro ao salvar aplicação de produto:", err)
+				input.Error["global"] = "Erro ao salvar produtos aplicados"
+				return err
+			}
+
+			fmt.Printf("✅ Produto %d aplicado com %.2f\n", p.ProductID, p.QuantityUsed)
+		}
+
+		return nil
+	})
+	if err != nil {
+		fmt.Println("❌ Erro na transação:", err)
 		return fertilization.Index(input, pulverization.UseProps{}).
 			Render(c.Request().Context(), c.Response())
 	}
 
-	// Criar os ApplyFertilization vinculados
-	for _, p := range input.Products {
-		af := ApplyFertilization{
-			FertilizationID: f.ID,
-			ProductID:       p.ProductID,
-			QuantityUsed:    p.QuantityUsed,
-		}
-		if err := db.Create(&af).Error; err != nil {
-			input.Error["global"] = "Erro ao salvar produtos aplicados"
-			return fertilization.Index(input, pulverization.UseProps{}).
-				Render(c.Request().Context(), c.Response())
-		}
-	}
-	fmt.Println("sssssssssssss")
-	// Força refresh via HTMX
+	fmt.Println("✅ Fertilização finalizada com sucesso")
 	c.Response().Header().Set("HX-Redirect", "../")
 	return c.String(http.StatusOK, "")
 }

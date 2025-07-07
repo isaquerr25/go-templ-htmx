@@ -81,17 +81,6 @@ func DashboardShowPlanting() echo.HandlerFunc {
 		} // Monta custos a partir de serviços, irrigations e fertilizações, pulverizações
 
 		var costs []dashboard.Cost
-		for _, svc := range services {
-			costs = append(costs, dashboard.Cost{
-				ID:          svc.ID,
-				Description: svc.Description,
-				Amount:      svc.Cost,
-				CreatedAt:   time.Time{},
-				PlantingID:  0,
-				Quantity:    0,
-				Type:        "services",
-			})
-		}
 
 		for _, irr := range irrigations {
 			costs = append(costs, dashboard.Cost{
@@ -122,6 +111,16 @@ func DashboardShowPlanting() echo.HandlerFunc {
 			})
 		}
 
+		var costsServices []dashboard.Cost
+
+		for _, irr := range services {
+			costsServices = append(costsServices, dashboard.Cost{
+				ID:          irr.ID,
+				Description: irr.Name,
+				Amount:      irr.Cost,
+			})
+		}
+
 		var fertilizationsIDs []uint
 		for _, p := range fertilizations {
 			fertilizationsIDs = append(fertilizationsIDs, p.ID)
@@ -145,6 +144,7 @@ func DashboardShowPlanting() echo.HandlerFunc {
 			fertilizers = append(fertilizers, dashboard.Fertilizer{
 				Amount: fmt.Sprintln(fert.QuantityUsed),
 				Name:   pd.Name,
+				Value:  regraDeTres(pd.Quantity, pd.TotalCost, fert.QuantityUsed),
 			})
 		}
 
@@ -181,6 +181,7 @@ func DashboardShowPlanting() echo.HandlerFunc {
 				ID:   typeProduc.ID,
 				Name: typeProduc.Name,
 			},
+			Service: costsServices,
 		}
 
 		return dashboard.Show(a).Render(c.Request().Context(), c.Response().Writer)

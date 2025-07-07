@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/isaquerr25/go-templ-htmx/views/pages/service"
@@ -12,38 +13,81 @@ import (
 
 func CreateService(db *gorm.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
+		fmt.Println("👉 Início da função CreateService")
+
+		planId := c.Param("planId")
+
+		req := c.Request()
+		if err := req.ParseForm(); err != nil {
+			fmt.Println("❌ Erro ao fazer ParseForm:", err)
+			return c.String(http.StatusBadRequest, "Erro ao processar formulário")
+		}
+
+		fmt.Println("📥 Dados do formulário:", req.Form.Encode())
+
+		planIdInt, err := strconv.Atoi(planId)
+		if err != nil {
+			fmt.Println("Erro ao converter planId:", err) // ✅ 3
+			return c.String(http.StatusBadRequest, "planId inválido")
+		}
+
 		var s Service
 
-		// Leitura manual dos campos do formulário
+		// Leitura dos campos do formulário
+		plantingID := uint(planIdInt)
+		s.PlantingID = &plantingID
 		s.Name = c.FormValue("name")
 		s.Description = c.FormValue("description")
 		s.Notes = c.FormValue("notes")
 
+		fmt.Println("📌 Name:", s.Name)
+		fmt.Println("📝 Description:", s.Description)
+		fmt.Println("🗒️ Notes:", s.Notes)
+
 		// Custo
 		if costStr := c.FormValue("cost"); costStr != "" {
-			fmt.Sscanf(costStr, "%f", &s.Cost)
+			fmt.Println("💰 Cost (string):", costStr)
+			if _, err := fmt.Sscanf(costStr, "%f", &s.Cost); err != nil {
+				fmt.Println("❌ Erro ao converter cost:", err)
+			}
 		}
 
 		// PlantingID
 		if plantingIdStr := c.FormValue("plantingId"); plantingIdStr != "" {
+			fmt.Println("🌱 PlantingID (string):", plantingIdStr)
 			var plantingId uint
-			fmt.Sscanf(plantingIdStr, "%d", &plantingId)
-			s.PlantingID = &plantingId
+			if _, err := fmt.Sscanf(plantingIdStr, "%d", &plantingId); err != nil {
+				fmt.Println("❌ Erro ao converter plantingId:", err)
+			} else {
+				s.PlantingID = &plantingId
+				fmt.Println("✅ PlantingID (uint):", *s.PlantingID)
+			}
 		}
 
 		// Data
 		if dateStr := c.FormValue("performedAt"); dateStr != "" {
+			fmt.Println("📅 performedAt (string):", dateStr)
 			parsedDate, err := time.Parse("2006-01-02", dateStr)
-			if err == nil {
+			if err != nil {
+				fmt.Println("❌ Erro ao converter data:", err)
+			} else {
 				s.CreateAt = parsedDate
+				fmt.Println("✅ Data convertida:", s.CreateAt)
 			}
 		}
 
+		// Tentativa de salvar no banco
+		fmt.Println("🚀 Salvando serviço no banco:", s)
+
 		if err := db.Create(&s).Error; err != nil {
+			fmt.Println("❌ Erro ao salvar no banco:", err)
 			return c.String(http.StatusInternalServerError, "Erro ao salvar serviço")
 		}
 
-		return c.Redirect(http.StatusSeeOther, "/services")
+		fmt.Println("✅ Serviço salvo com sucesso. Redirecionando.")
+
+		c.Response().Header().Set("HX-Redirect", "./")
+		return c.String(http.StatusOK, "")
 	}
 }
 
@@ -88,7 +132,8 @@ func UpdateService(db *gorm.DB) echo.HandlerFunc {
 			return c.String(http.StatusInternalServerError, "Erro ao atualizar serviço")
 		}
 
-		return c.Redirect(http.StatusSeeOther, "/services")
+		c.Response().Header().Set("HX-Redirect", "../")
+		return c.String(http.StatusOK, "")
 	}
 }
 
