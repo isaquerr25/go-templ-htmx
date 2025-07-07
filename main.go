@@ -129,6 +129,7 @@ func main() {
 
 	// Migrate the schema
 	db.AutoMigrate(&Service{})
+	db.AutoMigrate(&ApplyFertilization{})
 	db.AutoMigrate(&AppliedProduct{})
 	db.AutoMigrate(&Product{})
 	db.AutoMigrate(&Field{})

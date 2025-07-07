@@ -122,12 +122,29 @@ func DashboardShowPlanting() echo.HandlerFunc {
 			})
 		}
 
+		var fertilizationsIDs []uint
+		for _, p := range fertilizations {
+			fertilizationsIDs = append(fertilizationsIDs, p.ID)
+		}
+
+		var adu []ApplyFertilization
+		if len(fertilizationsIDs) > 0 {
+			err = db.Where("fertilization_id IN ?", fertilizationsIDs).Find(&adu).Error
+			if err != nil {
+				fmt.Println("error aqui")
+				return err
+			}
+		} // Monta custos a partir de serviços, irrigations e fertilizações, pulverizações
+
 		// Fertilizantes
 		var fertilizers []dashboard.Fertilizer
-		for _, fert := range fertilizations {
+		for _, fert := range adu {
+			var pd Product
+
+			db.First(&pd, fert.ProductID)
 			fertilizers = append(fertilizers, dashboard.Fertilizer{
-				Amount: "",
-				Name:   fert.CreatedAt.String(),
+				Amount: fmt.Sprintln(fert.QuantityUsed),
+				Name:   pd.Name,
 			})
 		}
 
