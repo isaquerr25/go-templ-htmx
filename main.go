@@ -370,7 +370,7 @@ func main() {
 			Error:     map[string]string{},
 		}).Render(c.Request().Context(), c.Response())
 	})
-	e.POST("/dashboard/plantings/:planId/harvest/create", CreateHarvest())
+	e.POST("/dashboard/plantings/:planId/harvest/create", CreateHarvest(db))
 
 	// e.GET("/harvest", ListHarvest)
 	e.GET("/harvest/:id", ShowHarvest)
@@ -378,7 +378,7 @@ func main() {
 		return harvest.Index(harvest.HarvestProps{}).Render(c.Request().Context(), c.Response())
 	})
 
-	e.POST("/harvest/create", CreateHarvest())
+	e.POST("/harvest/create", CreateHarvest(db))
 	e.POST("/harvest/update/:id", UpdateHarvest)
 	e.DELETE("/harvest/delete/:id", DeleteHarvest)
 	// Fertilization routes

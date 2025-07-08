@@ -1,12 +1,14 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/isaquerr25/go-templ-htmx/views/pages/harvest"
 	"github.com/labstack/echo/v4"
+	"gorm.io/gorm"
 )
 
 func DeleteHarvest(c echo.Context) error {
@@ -71,32 +73,41 @@ func ShowHarvest(c echo.Context) error {
 	return harvest.Index(p).Render(c.Request().Context(), c.Response())
 }
 
-func CreateHarvest() echo.HandlerFunc {
+func CreateHarvest(db *gorm.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		planId := c.Param("planId")
+		fmt.Println("👉 Iniciando CreateHarvest")
 
-		// Extrair os campos
+		planId := c.Param("planId")
+		fmt.Println("📌 planId recebido:", planId)
+
+		// Parse IDs e campos
+		plantingId, err := strconv.Atoi(planId)
+		if err != nil {
+			fmt.Println("❌ Erro ao converter planId:", err)
+			return c.String(http.StatusBadRequest, "PlantingID inválido")
+		}
+
 		quantityStr := c.FormValue("quantity")
 		unit := c.FormValue("unit")
 		harvestedAtStr := c.FormValue("appliedAt")
 
-		// Parse de tipos
-		plantingId, err := strconv.Atoi(planId)
-		if err != nil {
-			return c.String(http.StatusBadRequest, "PlantingID inválido")
-		}
+		fmt.Println("📥 quantityStr:", quantityStr)
+		fmt.Println("📥 unit:", unit)
+		fmt.Println("📥 harvestedAtStr:", harvestedAtStr)
 
 		quantity, err := strconv.ParseFloat(quantityStr, 64)
 		if err != nil {
+			fmt.Println("❌ Erro ao converter quantidade:", err)
 			return c.String(http.StatusBadRequest, "Quantidade inválida")
 		}
 
 		harvestedAt, err := time.Parse("2006-01-02", harvestedAtStr)
 		if err != nil {
+			fmt.Println("❌ Erro ao converter data:", err)
 			return c.String(http.StatusBadRequest, "Data (HarvestedAt) inválida")
 		}
 
-		// Criar o registro de colheita
+		// Criar colheita
 		h := Harvest{
 			PlantingID:  uint(plantingId),
 			HarvestedAt: harvestedAt,
@@ -104,11 +115,43 @@ func CreateHarvest() echo.HandlerFunc {
 			Unit:        unit,
 		}
 
+		fmt.Println("✅ Colheita a ser salva:", h)
+
 		if err := db.Create(&h).Error; err != nil {
+			fmt.Println("❌ Erro ao salvar colheita:", err)
 			return c.String(http.StatusInternalServerError, "Erro ao salvar colheita")
 		}
 
+		// Buscar o Planting para pegar o TypeProductID
+		var planting Planting
+		if err := db.First(&planting, plantingId).Error; err != nil {
+			fmt.Println("❌ Erro ao buscar plantio:", err)
+			return c.String(http.StatusInternalServerError, "Erro ao buscar plantio")
+		}
+		fmt.Println("🌱 Plantio encontrado:", planting)
+
+		// Atualizar valor no TypeProduct
+		var tp TypeProduct
+		if err := db.First(&tp, planting.TypeProductID).Error; err != nil {
+			fmt.Println("❌ Erro ao buscar tipo de produto:", err)
+			return c.String(http.StatusInternalServerError, "Erro ao buscar tipo de produto")
+		}
+		fmt.Println("📦 TypeProduct antes da atualização:", tp)
+
+		tp.Quantity += quantity
+
+		if err := db.Save(&tp).Error; err != nil {
+			fmt.Println("❌ Erro ao atualizar tipo de produto:", err)
+			return c.String(
+				http.StatusInternalServerError,
+				"Erro ao atualizar valor do tipo de produto",
+			)
+		}
+		fmt.Println("✅ TypeProduct atualizado com sucesso:", tp)
+
+		// Redirecionamento
 		c.Response().Header().Set("HX-Redirect", "../")
+		fmt.Println("✅ Finalizado com sucesso")
 		return c.String(http.StatusOK, "")
 	}
 }

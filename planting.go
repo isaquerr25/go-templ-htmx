@@ -104,12 +104,14 @@ func validatePlanting(c echo.Context) (props planting.PlantingProps, hasError bo
 	// Interpretação do checkbox
 	isCompleted := isCompletedStr == "on" || isCompletedStr == "true" || isCompletedStr == "1"
 
+	typeProdutcId, _ := strconv.ParseFloat(c.FormValue("typeProdutcId"), 64)
 	// Preenche props
 	props.CropName = cropName
 	props.StartedAt = startedAtStr
 	props.EndedAt = endedAtStr
 	props.IsCompleted = isCompleted
 	props.AreaUsed = areaUsed
+	props.TypePoductID = uint(typeProdutcId)
 
 	fmt.Printf("Props validados: %+v\n", props)
 
