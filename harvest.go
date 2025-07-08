@@ -21,7 +21,7 @@ func DeleteHarvest(db *gorm.DB) echo.HandlerFunc {
 			return c.String(http.StatusBadRequest, "ID inválido")
 		}
 
-		// Buscar a colheita antes de deletar
+		// Buscar a colheita
 		var harvest Harvest
 		if err := db.First(&harvest, id).Error; err != nil {
 			fmt.Println("❌ Erro ao buscar colheita:", err)
@@ -29,7 +29,7 @@ func DeleteHarvest(db *gorm.DB) echo.HandlerFunc {
 		}
 		fmt.Println("📦 Colheita encontrada:", harvest)
 
-		// Buscar o Planting relacionado
+		// Buscar o plantio
 		var planting Planting
 		if err := db.First(&planting, harvest.PlantingID).Error; err != nil {
 			fmt.Println("❌ Erro ao buscar plantio:", err)
@@ -37,7 +37,7 @@ func DeleteHarvest(db *gorm.DB) echo.HandlerFunc {
 		}
 		fmt.Println("🌱 Plantio relacionado:", planting)
 
-		// Buscar o TypeProduct e atualizar o valor
+		// Buscar o tipo de produto
 		var tp TypeProduct
 		if err := db.First(&tp, planting.TypeProductID).Error; err != nil {
 			fmt.Println("❌ Erro ao buscar tipo de produto:", err)
@@ -45,25 +45,35 @@ func DeleteHarvest(db *gorm.DB) echo.HandlerFunc {
 		}
 		fmt.Println("📦 TypeProduct antes da atualização:", tp)
 
-		tp.Quantity -= harvest.Quantity
-		if tp.Quantity < 0 {
-			tp.Quantity = 0 // Evita número negativo por segurança
+		// Verificar se a subtração resultará em valor negativo
+		if tp.Quantity < harvest.Quantity {
+			fmt.Printf(
+				"❌ Erro: tentativa de subtrair %.2f de %.2f\n",
+				harvest.Quantity,
+				tp.Quantity,
+			)
+			return c.String(
+				http.StatusBadRequest,
+				"Não é possível excluir esta colheita: quantidade no tipo de produto ficaria negativa.",
+			)
 		}
 
+		// Atualizar o valor
+		tp.Quantity -= harvest.Quantity
 		if err := db.Save(&tp).Error; err != nil {
 			fmt.Println("❌ Erro ao atualizar tipo de produto:", err)
 			return c.String(http.StatusInternalServerError, "Erro ao atualizar tipo de produto")
 		}
 		fmt.Println("✅ TypeProduct atualizado com sucesso:", tp)
 
-		// Agora sim, deletar a colheita
+		// Deletar a colheita
 		if err := db.Delete(&Harvest{}, id).Error; err != nil {
 			fmt.Println("❌ Erro ao deletar colheita:", err)
 			return c.String(http.StatusInternalServerError, "Erro ao deletar colheita")
 		}
 		fmt.Println("🗑️ Colheita deletada com sucesso")
 
-		// Resposta HTMX ou redirect normal
+		// HTMX ou redirect
 		if c.Request().Header.Get("HX-Request") == "true" {
 			c.Response().Header().Set("HX-Redirect", "")
 			return c.String(http.StatusOK, "")
