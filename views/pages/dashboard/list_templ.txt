@@ -31,8 +31,8 @@
 <ul class=\"bg-orange-50 rounded-lg p-6 shadow-md space-y-3\">
 <li class=\"flex justify-between items-center text-orange-800 font-semibold border-b border-orange-100 last:border-none pb-2\"><div class=\"flex gap-4 items-center\"><span>
 </span> <span>R$ 
-</span></div><form hx-delete=\"
-\" hx-confirm=\"Deseja realmente excluir este serviço?\" hx-target=\"closest li\" hx-swap=\"outerHTML swap:1s\" method=\"POST\" class=\"inline\"><button type=\"submit\" class=\"text-xs text-red-500 hover:text-red-700 underline ml-2\">Excluir</button></form></li>
+</span></div><button hx-delete=\"
+\" hx-confirm=\"Deseja realmente excluir este serviço?\" hx-target=\"body\" class=\"text-xs text-red-500 hover:text-red-700 underline ml-2\">Excluir</button></li>
 </ul>
 <p class=\"italic text-red-300 text-lg\">Nenhum custo registrado.</p>
 </section><!-- Fertilizantes --><section><h2 class=\"text-2xl font-bold text-yellow-700 mb-4 border-b border-yellow-300 pb-2\">Adubos Utilizados</h2>

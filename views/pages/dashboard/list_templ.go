@@ -429,20 +429,20 @@ func Show(props PlantingDetailProps) templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "</span></div><form hx-delete=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "</span></div><button hx-delete=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var22 string
 					templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(templ.SafeURL(fmt.Sprintf("/service/delete/%d", c.ID)))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/dashboard/list.templ`, Line: 213, Col: 76}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/dashboard/list.templ`, Line: 213, Col: 78}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "\" hx-confirm=\"Deseja realmente excluir este serviço?\" hx-target=\"closest li\" hx-swap=\"outerHTML swap:1s\" method=\"POST\" class=\"inline\"><button type=\"submit\" class=\"text-xs text-red-500 hover:text-red-700 underline ml-2\">Excluir</button></form></li>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "\" hx-confirm=\"Deseja realmente excluir este serviço?\" hx-target=\"body\" class=\"text-xs text-red-500 hover:text-red-700 underline ml-2\">Excluir</button></li>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -474,7 +474,7 @@ func Show(props PlantingDetailProps) templ.Component {
 					var templ_7745c5c3_Var23 string
 					templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(f.Name)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/dashboard/list.templ`, Line: 236, Col: 19}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/dashboard/list.templ`, Line: 234, Col: 19}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
 					if templ_7745c5c3_Err != nil {
@@ -487,7 +487,7 @@ func Show(props PlantingDetailProps) templ.Component {
 					var templ_7745c5c3_Var24 string
 					templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs(f.Amount)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/dashboard/list.templ`, Line: 237, Col: 21}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/dashboard/list.templ`, Line: 235, Col: 21}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
 					if templ_7745c5c3_Err != nil {
@@ -500,7 +500,7 @@ func Show(props PlantingDetailProps) templ.Component {
 					var templ_7745c5c3_Var25 string
 					templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs(f.Value)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/dashboard/list.templ`, Line: 238, Col: 23}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/dashboard/list.templ`, Line: 236, Col: 23}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
 					if templ_7745c5c3_Err != nil {
@@ -513,7 +513,7 @@ func Show(props PlantingDetailProps) templ.Component {
 					var templ_7745c5c3_Var26 string
 					templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinStringErrs(templ.SafeURL(fmt.Sprintf("/fertilizers/delete/%d", f.ID)))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/dashboard/list.templ`, Line: 240, Col: 80}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/dashboard/list.templ`, Line: 238, Col: 80}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var26))
 					if templ_7745c5c3_Err != nil {

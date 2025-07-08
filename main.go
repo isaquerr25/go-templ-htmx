@@ -440,7 +440,7 @@ func main() {
 
 	e.POST("/dashboard/plantings/:planId/service/create", CreateService(db))
 	e.POST("/service/update/:id", UpdateService(db))
-	e.POST("/service/delete/:id", DeleteService(db))
+	e.DELETE("/service/delete/:id", DeleteService(db))
 	e.GET("/dashboard/plantings/:planId/service", NewService(db))
 
 	// Rotas

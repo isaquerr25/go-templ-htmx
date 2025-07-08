@@ -155,11 +155,18 @@ func NewService(db *gorm.DB) echo.HandlerFunc {
 
 func DeleteService(db *gorm.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		id := c.Param("id")
+		idParam := c.Param("id")
+		id, err := strconv.Atoi(idParam)
+		if err != nil {
+			return c.String(http.StatusBadRequest, "ID inválido")
+		}
+
 		if err := db.Delete(&Service{}, id).Error; err != nil {
 			return c.String(http.StatusInternalServerError, "Erro ao excluir serviço")
 		}
-		return c.Redirect(http.StatusSeeOther, "/services")
+
+		c.Response().Header().Set("HX-Redirect", "")
+		return c.String(http.StatusOK, "")
 	}
 }
 
