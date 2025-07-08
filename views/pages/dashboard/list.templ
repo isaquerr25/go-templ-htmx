@@ -11,6 +11,7 @@ type Fertilizer struct {
 Name string
 Amount string
 Value float64
+ID float64
 }
 
 type SoilDetail struct {
@@ -146,14 +147,23 @@ templ Show(props PlantingDetailProps) {
 			</div>
 		</div>
 	</section>
+	<!-- Colheitas -->
 	<section class="mb-10">
 		<h2 class="text-2xl font-bold text-red-600 mb-4 border-b border-red-300 pb-2">Colheitas</h2>
 		if len(props.Harvest) > 0 {
 		<ul class="bg-red-50 rounded-lg p-6 shadow-md space-y-3">
 			for _, c := range props.Harvest {
-			<li class="flex justify-between text-red-800 font-semibold border-b border-red-100 last:border-none pb-2">
-				<span>{ c.HarvestedAt.Format("2006-01-02") }</span>
-				<span>{ c.Quantity }{ c.Unit }</span>
+			<li
+				class="flex justify-between items-center text-red-800 font-semibold border-b border-red-100 last:border-none pb-2">
+				<div class="flex gap-4 items-center">
+					<span>{ c.HarvestedAt.Format("2006-01-02") }</span>
+					<span>{ c.Quantity }{ c.Unit }</span>
+				</div>
+				<button hx-delete={ templ.SafeURL(fmt.Sprintf("/harvest/delete/%d", c.ID)) }
+					hx-confirm="Deseja realmente deletar esta colheita?" hx-target="closest li"
+					hx-swap="outerHTML swap:1s" class="text-xs text-red-500 hover:text-red-700 underline ml-2">
+					Excluir
+				</button>
 			</li>
 			}
 		</ul>
@@ -161,15 +171,26 @@ templ Show(props PlantingDetailProps) {
 		<p class="italic text-red-300 text-lg">Nenhum custo registrado.</p>
 		}
 	</section>
+	<!-- Custos -->
 	<section class="mb-10">
 		<h2 class="text-2xl font-bold text-red-600 mb-4 border-b border-red-300 pb-2">Insumos</h2>
 		if len(props.Costs) > 0 {
 		<ul class="bg-red-50 rounded-lg p-6 shadow-md space-y-3">
 			for _, c := range props.Costs {
-			<li class="flex justify-between text-red-800 font-semibold border-b border-red-100 last:border-none pb-2">
-				<span>{ c.Description }</span>
-				<span>{ c.Quantity } Kg/L</span>
-				<span>R$ { fmt.Sprintf("%.2f", c.Amount) }</span>
+			<li
+				class="flex justify-between items-center text-red-800 font-semibold border-b border-red-100 last:border-none pb-2">
+				<div class="flex gap-4 items-center">
+					<span>{ c.Description }</span>
+					<span>{ c.Quantity } Kg/L</span>
+					<span>R$ { fmt.Sprintf("%.2f", c.Amount) }</span>
+				</div>
+				<form hx-delete={ templ.SafeURL(fmt.Sprintf("/costs/delete/%d", c.ID)) }
+					hx-confirm="Deseja realmente excluir este custo?" hx-target="closest li" hx-swap="outerHTML swap:1s"
+					method="POST" class="inline">
+					<button type="submit" class="text-xs text-red-500 hover:text-red-700 underline ml-2">
+						Excluir
+					</button>
+				</form>
 			</li>
 			}
 		</ul>
@@ -177,15 +198,25 @@ templ Show(props PlantingDetailProps) {
 		<p class="italic text-red-300 text-lg">Nenhum custo registrado.</p>
 		}
 	</section>
+	<!-- Custos Diversos -->
 	<section class="mb-10">
 		<h2 class="text-2xl font-bold text-orange-600 mb-4 border-b border-orange-300 pb-2">Custos Diversos</h2>
 		if len(props.Service) > 0 {
 		<ul class="bg-orange-50 rounded-lg p-6 shadow-md space-y-3">
 			for _, c := range props.Service {
 			<li
-				class="flex justify-between text-orange-800 font-semibold border-b border-orange-100 last:border-none pb-2">
-				<span>{ c.Description }</span>
-				<span>R$ { fmt.Sprintf("%.2f", c.Amount) }</span>
+				class="flex justify-between items-center text-orange-800 font-semibold border-b border-orange-100 last:border-none pb-2">
+				<div class="flex gap-4 items-center">
+					<span>{ c.Description }</span>
+					<span>R$ { fmt.Sprintf("%.2f", c.Amount) }</span>
+				</div>
+				<form hx-delete={ templ.SafeURL(fmt.Sprintf("/service/delete/%d", c.ID)) }
+					hx-confirm="Deseja realmente excluir este serviço?" hx-target="closest li"
+					hx-swap="outerHTML swap:1s" method="POST" class="inline">
+					<button type="submit" class="text-xs text-red-500 hover:text-red-700 underline ml-2">
+						Excluir
+					</button>
+				</form>
 			</li>
 			}
 		</ul>
@@ -193,16 +224,26 @@ templ Show(props PlantingDetailProps) {
 		<p class="italic text-red-300 text-lg">Nenhum custo registrado.</p>
 		}
 	</section>
+	<!-- Fertilizantes -->
 	<section>
 		<h2 class="text-2xl font-bold text-yellow-700 mb-4 border-b border-yellow-300 pb-2">Adubos Utilizados</h2>
 		if len(props.Fertilizers) > 0 {
 		<ul class="bg-yellow-50 rounded-lg p-6 shadow-md space-y-3">
 			for _, f := range props.Fertilizers {
 			<li
-				class="flex justify-between text-yellow-900 font-semibold border-b border-yellow-100 last:border-none pb-2">
-				<span>{ f.Name }</span>
-				<span>{ f.Amount } kg</span>
-				<span>R$ { f.Value } </span>
+				class="flex justify-between items-center text-yellow-900 font-semibold border-b border-yellow-100 last:border-none pb-2">
+				<div class="flex gap-4 items-center">
+					<span>{ f.Name }</span>
+					<span>{ f.Amount } kg</span>
+					<span>R$ { f.Value }</span>
+				</div>
+				<form hx-delete={ templ.SafeURL(fmt.Sprintf("/fertilizers/delete/%d", f.ID)) }
+					hx-confirm="Deseja realmente excluir este adubo?" hx-target="closest li" hx-swap="outerHTML swap:1s"
+					method="POST" class="inline">
+					<button type="submit" class="text-xs text-red-500 hover:text-red-700 underline ml-2">
+						Excluir
+					</button>
+				</form>
 			</li>
 			}
 		</ul>

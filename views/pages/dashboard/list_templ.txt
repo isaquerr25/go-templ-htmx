@@ -10,34 +10,38 @@
 <p class=\"text-xl\">
 </p>
 <p class=\"italic text-yellow-600 font-semibold\">Em andamento</p>
-</div></div></section><section class=\"mb-10\"><h2 class=\"text-2xl font-bold text-red-600 mb-4 border-b border-red-300 pb-2\">Colheitas</h2>
+</div></div></section><!-- Colheitas --><section class=\"mb-10\"><h2 class=\"text-2xl font-bold text-red-600 mb-4 border-b border-red-300 pb-2\">Colheitas</h2>
 <ul class=\"bg-red-50 rounded-lg p-6 shadow-md space-y-3\">
-<li class=\"flex justify-between text-red-800 font-semibold border-b border-red-100 last:border-none pb-2\"><span>
+<li class=\"flex justify-between items-center text-red-800 font-semibold border-b border-red-100 last:border-none pb-2\"><div class=\"flex gap-4 items-center\"><span>
 </span> <span>
-</span></li>
+</span></div><button hx-delete=\"
+\" hx-confirm=\"Deseja realmente deletar esta colheita?\" hx-target=\"closest li\" hx-swap=\"outerHTML swap:1s\" class=\"text-xs text-red-500 hover:text-red-700 underline ml-2\">Excluir</button></li>
 </ul>
 <p class=\"italic text-red-300 text-lg\">Nenhum custo registrado.</p>
-</section><section class=\"mb-10\"><h2 class=\"text-2xl font-bold text-red-600 mb-4 border-b border-red-300 pb-2\">Insumos</h2>
+</section><!-- Custos --><section class=\"mb-10\"><h2 class=\"text-2xl font-bold text-red-600 mb-4 border-b border-red-300 pb-2\">Insumos</h2>
 <ul class=\"bg-red-50 rounded-lg p-6 shadow-md space-y-3\">
-<li class=\"flex justify-between text-red-800 font-semibold border-b border-red-100 last:border-none pb-2\"><span>
+<li class=\"flex justify-between items-center text-red-800 font-semibold border-b border-red-100 last:border-none pb-2\"><div class=\"flex gap-4 items-center\"><span>
 </span> <span>
  Kg/L</span> <span>R$ 
-</span></li>
+</span></div><form hx-delete=\"
+\" hx-confirm=\"Deseja realmente excluir este custo?\" hx-target=\"closest li\" hx-swap=\"outerHTML swap:1s\" method=\"POST\" class=\"inline\"><button type=\"submit\" class=\"text-xs text-red-500 hover:text-red-700 underline ml-2\">Excluir</button></form></li>
 </ul>
 <p class=\"italic text-red-300 text-lg\">Nenhum custo registrado.</p>
-</section><section class=\"mb-10\"><h2 class=\"text-2xl font-bold text-orange-600 mb-4 border-b border-orange-300 pb-2\">Custos Diversos</h2>
+</section><!-- Custos Diversos --><section class=\"mb-10\"><h2 class=\"text-2xl font-bold text-orange-600 mb-4 border-b border-orange-300 pb-2\">Custos Diversos</h2>
 <ul class=\"bg-orange-50 rounded-lg p-6 shadow-md space-y-3\">
-<li class=\"flex justify-between text-orange-800 font-semibold border-b border-orange-100 last:border-none pb-2\"><span>
+<li class=\"flex justify-between items-center text-orange-800 font-semibold border-b border-orange-100 last:border-none pb-2\"><div class=\"flex gap-4 items-center\"><span>
 </span> <span>R$ 
-</span></li>
+</span></div><form hx-delete=\"
+\" hx-confirm=\"Deseja realmente excluir este serviço?\" hx-target=\"closest li\" hx-swap=\"outerHTML swap:1s\" method=\"POST\" class=\"inline\"><button type=\"submit\" class=\"text-xs text-red-500 hover:text-red-700 underline ml-2\">Excluir</button></form></li>
 </ul>
 <p class=\"italic text-red-300 text-lg\">Nenhum custo registrado.</p>
-</section><section><h2 class=\"text-2xl font-bold text-yellow-700 mb-4 border-b border-yellow-300 pb-2\">Adubos Utilizados</h2>
+</section><!-- Fertilizantes --><section><h2 class=\"text-2xl font-bold text-yellow-700 mb-4 border-b border-yellow-300 pb-2\">Adubos Utilizados</h2>
 <ul class=\"bg-yellow-50 rounded-lg p-6 shadow-md space-y-3\">
-<li class=\"flex justify-between text-yellow-900 font-semibold border-b border-yellow-100 last:border-none pb-2\"><span>
+<li class=\"flex justify-between items-center text-yellow-900 font-semibold border-b border-yellow-100 last:border-none pb-2\"><div class=\"flex gap-4 items-center\"><span>
 </span> <span>
  kg</span> <span>R$ 
-</span></li>
+</span></div><form hx-delete=\"
+\" hx-confirm=\"Deseja realmente excluir este adubo?\" hx-target=\"closest li\" hx-swap=\"outerHTML swap:1s\" method=\"POST\" class=\"inline\"><button type=\"submit\" class=\"text-xs text-red-500 hover:text-red-700 underline ml-2\">Excluir</button></form></li>
 </ul>
 <p class=\"italic text-yellow-400 text-lg\">Nenhum adubo registrado.</p>
 </section></div>

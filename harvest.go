@@ -9,6 +9,25 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+func DeleteHarvest(c echo.Context) error {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.String(http.StatusBadRequest, "ID inválido")
+	}
+
+	if err := db.Delete(&Harvest{}, id).Error; err != nil {
+		return c.String(http.StatusInternalServerError, "Erro ao deletar colheita")
+	}
+
+	// Se for uma requisição HTMX, pode responder com um redirect ou fragmento
+	if c.Request().Header.Get("HX-Request") == "true" {
+		c.Response().Header().Set("HX-Redirect", "")
+		return c.String(http.StatusOK, "")
+	}
+
+	return c.Redirect(http.StatusSeeOther, "")
+}
+
 func ListHarvest(c echo.Context) error {
 	var harvests []Harvest
 	if err := db.Find(&harvests).Error; err != nil {

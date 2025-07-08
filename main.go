@@ -377,8 +377,10 @@ func main() {
 	e.GET("/harvest/create", func(c echo.Context) error {
 		return harvest.Index(harvest.HarvestProps{}).Render(c.Request().Context(), c.Response())
 	})
+
 	e.POST("/harvest/create", CreateHarvest())
 	e.POST("/harvest/update/:id", UpdateHarvest)
+	e.DELETE("/harvest/delete/:id", DeleteHarvest)
 	// Fertilization routes
 	e.GET("/fertilization", ListFertilization)
 	e.GET("/fertilization/create", func(c echo.Context) error {
