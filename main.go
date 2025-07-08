@@ -380,7 +380,7 @@ func main() {
 
 	e.POST("/harvest/create", CreateHarvest(db))
 	e.POST("/harvest/update/:id", UpdateHarvest)
-	e.DELETE("/harvest/delete/:id", DeleteHarvest)
+	e.DELETE("/harvest/delete/:id", DeleteHarvest(db))
 	// Fertilization routes
 	e.GET("/fertilization", ListFertilization)
 	e.GET("/fertilization/create", func(c echo.Context) error {

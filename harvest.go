@@ -11,23 +11,66 @@ import (
 	"gorm.io/gorm"
 )
 
-func DeleteHarvest(c echo.Context) error {
-	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		return c.String(http.StatusBadRequest, "ID inválido")
-	}
+func DeleteHarvest(db *gorm.DB) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		fmt.Println("🗑️ Iniciando DeleteHarvest")
 
-	if err := db.Delete(&Harvest{}, id).Error; err != nil {
-		return c.String(http.StatusInternalServerError, "Erro ao deletar colheita")
-	}
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			fmt.Println("❌ ID inválido:", err)
+			return c.String(http.StatusBadRequest, "ID inválido")
+		}
 
-	// Se for uma requisição HTMX, pode responder com um redirect ou fragmento
-	if c.Request().Header.Get("HX-Request") == "true" {
-		c.Response().Header().Set("HX-Redirect", "")
-		return c.String(http.StatusOK, "")
-	}
+		// Buscar a colheita antes de deletar
+		var harvest Harvest
+		if err := db.First(&harvest, id).Error; err != nil {
+			fmt.Println("❌ Erro ao buscar colheita:", err)
+			return c.String(http.StatusInternalServerError, "Erro ao buscar colheita")
+		}
+		fmt.Println("📦 Colheita encontrada:", harvest)
 
-	return c.Redirect(http.StatusSeeOther, "")
+		// Buscar o Planting relacionado
+		var planting Planting
+		if err := db.First(&planting, harvest.PlantingID).Error; err != nil {
+			fmt.Println("❌ Erro ao buscar plantio:", err)
+			return c.String(http.StatusInternalServerError, "Erro ao buscar plantio")
+		}
+		fmt.Println("🌱 Plantio relacionado:", planting)
+
+		// Buscar o TypeProduct e atualizar o valor
+		var tp TypeProduct
+		if err := db.First(&tp, planting.TypeProductID).Error; err != nil {
+			fmt.Println("❌ Erro ao buscar tipo de produto:", err)
+			return c.String(http.StatusInternalServerError, "Erro ao buscar tipo de produto")
+		}
+		fmt.Println("📦 TypeProduct antes da atualização:", tp)
+
+		tp.Quantity -= harvest.Quantity
+		if tp.Quantity < 0 {
+			tp.Quantity = 0 // Evita número negativo por segurança
+		}
+
+		if err := db.Save(&tp).Error; err != nil {
+			fmt.Println("❌ Erro ao atualizar tipo de produto:", err)
+			return c.String(http.StatusInternalServerError, "Erro ao atualizar tipo de produto")
+		}
+		fmt.Println("✅ TypeProduct atualizado com sucesso:", tp)
+
+		// Agora sim, deletar a colheita
+		if err := db.Delete(&Harvest{}, id).Error; err != nil {
+			fmt.Println("❌ Erro ao deletar colheita:", err)
+			return c.String(http.StatusInternalServerError, "Erro ao deletar colheita")
+		}
+		fmt.Println("🗑️ Colheita deletada com sucesso")
+
+		// Resposta HTMX ou redirect normal
+		if c.Request().Header.Get("HX-Request") == "true" {
+			c.Response().Header().Set("HX-Redirect", "")
+			return c.String(http.StatusOK, "")
+		}
+
+		return c.Redirect(http.StatusSeeOther, "")
+	}
 }
 
 func ListHarvest(c echo.Context) error {
