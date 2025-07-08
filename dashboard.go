@@ -154,6 +154,7 @@ func DashboardShowPlanting() echo.HandlerFunc {
 				Amount: fmt.Sprintln(fert.QuantityUsed),
 				Name:   pd.Name,
 				Value:  r,
+				ID:     float64(fert.ID),
 			})
 		}
 

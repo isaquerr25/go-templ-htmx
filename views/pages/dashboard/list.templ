@@ -44,7 +44,6 @@ CropName string
 AreaUsed float64
 TotalCost float64
 TotalHarvest float64
-TotalLoss float64
 StartedAt time.Time
 EndedAt *time.Time
 IsCompleted bool
@@ -122,10 +121,6 @@ templ Show(props PlantingDetailProps) {
 			<div>
 				<h3 class="text-lg font-semibold text-gray-700">Colhido</h3>
 				<p class="text-xl font-medium">{ fmt.Sprintf("%.2f",props.TotalHarvest) } Kg/L</p>
-			</div>
-			<div>
-				<h3 class="text-lg font-semibold text-gray-700">Colheita Perdida</h3>
-				<p class="text-xl font-medium">R${ fmt.Sprintf("%.2f",props.TotalLoss) }</p>
 			</div>
 			<div>
 				<h3 class="text-lg font-semibold text-gray-700">Custo Total</h3>
@@ -235,13 +230,11 @@ templ Show(props PlantingDetailProps) {
 					<span>{ f.Amount } kg</span>
 					<span>R$ { f.Value }</span>
 				</div>
-				<form hx-delete={ templ.SafeURL(fmt.Sprintf("/fertilizers/delete/%d", f.ID)) }
-					hx-confirm="Deseja realmente excluir este adubo?" hx-target="closest li" hx-swap="outerHTML swap:1s"
-					method="POST" class="inline">
-					<button type="submit" class="text-xs text-red-500 hover:text-red-700 underline ml-2">
-						Excluir
-					</button>
-				</form>
+				<button hx-delete={ templ.SafeURL(fmt.Sprintf("/fertilization/%d", int(f.ID))) }
+					hx-confirm="Deseja realmente excluir este adubo? Ele irá remover todos os produtos que foram aplicados juntos"
+					hx-target="body" class="text-xs text-red-500 hover:text-red-700 underline ml-2">
+					Excluir
+				</button>
 			</li>
 			}
 		</ul>

@@ -291,7 +291,7 @@ func DeleteFertilization(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "ID inválido")
 	}
 
-	var f Fertilization
+	var f ApplyFertilization
 	if err := db.First(&f, id).Error; err != nil {
 		return c.String(http.StatusNotFound, "Fertilização não encontrada")
 	}
@@ -303,5 +303,6 @@ func DeleteFertilization(c echo.Context) error {
 	// Opcional: deletar também produtos aplicados
 	db.Where("fertilization_id = ?", f.ID).Delete(&ApplyFertilization{})
 
-	return c.NoContent(http.StatusNoContent)
+	c.Response().Header().Set("HX-Redirect", "")
+	return c.String(http.StatusOK, "")
 }
