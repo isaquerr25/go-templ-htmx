@@ -1,215 +1,215 @@
 package dashboard
 
 import (
-	"fmt"
-	"github.com/isaquerr25/go-templ-htmx/views/templates"
-	"time"
+"fmt"
+"github.com/isaquerr25/go-templ-htmx/views/pages/harvest"
+"github.com/isaquerr25/go-templ-htmx/views/templates"
+"time"
 )
 
 type Fertilizer struct {
-	Name   string
-	Amount string
-	Value  float64
+Name string
+Amount string
+Value float64
 }
 
 type SoilDetail struct {
-	Key   string
-	Value string
+Key string
+Value string
 }
 
 type WeatherDay struct {
-	Date     time.Time
-	Wind     string
-	Humidity int
+Date time.Time
+Wind string
+Humidity int
 }
 
 type CostRevenue struct {
-	Cost    float64
-	Revenue float64
-	Profit  float64
-	Label   string
+Cost float64
+Revenue float64
+Profit float64
+Label string
 }
 
 type TypeProductProps struct {
-	ID   uint
-	Name string
+ID uint
+Name string
 }
 
 type PlantingDetailProps struct {
-	ID               uint
-	TypeProductProps TypeProductProps
-	CropName         string
-	AreaUsed         float64
-	StartedAt        time.Time
-	EndedAt          *time.Time
-	IsCompleted      bool
-	Service          []Cost
-	Costs            []Cost
-	Revenues         []Revenue
-	Fertilizers      []Fertilizer
+ID uint
+TypeProductProps TypeProductProps
+CropName string
+AreaUsed float64
+TotalCost float64
+TotalHarvest float64
+TotalLoss float64
+StartedAt time.Time
+EndedAt *time.Time
+IsCompleted bool
+Service []Cost
+Costs []Cost
+Revenues []Revenue
+Fertilizers []Fertilizer
+Harvest []harvest.HarvestProps
 }
 
 type Cost struct {
-	ID          uint    `gorm:"primaryKey"`
-	PlantingID  uint    `gorm:"not null"` // foreign key
-	Description string  `gorm:"not null"`
-	Amount      float64 `gorm:"not null"`
-	Quantity    float64
-	Type        string
-	CreatedAt   time.Time
+ID uint `gorm:"primaryKey"`
+PlantingID uint `gorm:"not null"` // foreign key
+Description string `gorm:"not null"`
+Amount float64 `gorm:"not null"`
+Quantity float64
+Type string
+CreatedAt time.Time
 }
 
 type Revenue struct {
-	ID          uint    `gorm:"primaryKey"`
-	PlantingID  uint    `gorm:"not null"` // foreign key
-	Description string  `gorm:"not null"`
-	Amount      float64 `gorm:"not null"`
-	CreatedAt   time.Time
+ID uint `gorm:"primaryKey"`
+PlantingID uint `gorm:"not null"` // foreign key
+Description string `gorm:"not null"`
+Amount float64 `gorm:"not null"`
+CreatedAt time.Time
 }
 
 // em views/pages/dashboard/show.templ
 templ Show(props PlantingDetailProps) {
-	@templates.Base() {
-		<div class="max-w-5xl mx-auto mt-12 px-8 font-sans text-gray-800">
-			<a href="./harvest/create" class="text-sm text-blue-600 hover:underline">
-				<i class="fas fa-seedling"></i> Nova Colheita
+@templates.Base() {
+<div class="max-w-5xl mx-auto mt-12 px-8 font-sans text-gray-800">
+	<a href="./harvest/create" class="text-sm text-blue-600 hover:underline">
+		<i class="fas fa-seedling"></i> Nova Colheita
+	</a>
+	-
+	<a href="./fertilization/create" class="text-sm text-blue-600 hover:underline">
+		<i class="fas fa-flask"></i> Nova Adubação
+	</a>
+	-
+	<a href="./pulverization/create" class="text-sm text-blue-600 hover:underline">
+		<i class="fas fa-spray-can"></i> Nova Pulverização
+	</a>
+	-
+	<a href="./service" class="text-sm text-blue-600 hover:underline">
+		<i class="fas fa-concierge-bell"></i> Custo Diversos
+	</a>
+	<header class="mb-10 border-b border-green-300 pb-4 flex justify-between items-center">
+		<h1 class="text-4xl font-extrabold text-green-700 tracking-tight">Detalhes do Plantio</h1>
+		<div class="space-x-3">
+			<a href={ templ.SafeURL(fmt.Sprintf("/plantings/edit/%d", props.ID)) }
+				class="inline-block bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm font-medium transition">
+				Editar
 			</a>
-			-
-			<a href="./fertilization/create" class="text-sm text-blue-600 hover:underline">
-				<i class="fas fa-flask"></i> Nova Adubação
-			</a>
-			-
-			<a href="./pulverization/create" class="text-sm text-blue-600 hover:underline">
-				<i class="fas fa-spray-can"></i> Nova Pulverização
-			</a>
-			-
-			<a href="./service" class="text-sm text-blue-600 hover:underline">
-				<i class="fas fa-concierge-bell"></i> Serviço
-			</a>
-			<header class="mb-10 border-b border-green-300 pb-4 flex justify-between items-center">
-				<h1 class="text-4xl font-extrabold text-green-700 tracking-tight">Detalhes do Plantio</h1>
-				<div class="space-x-3">
-					<a
-						href={ templ.SafeURL(fmt.Sprintf("/plantings/edit/%d", props.ID)) }
-						class="inline-block bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm font-medium transition"
-					>
-						Editar
-					</a>
-					<form
-						hx-delete={ templ.SafeURL(fmt.Sprintf("/plantings/delete/%d", props.ID)) }
-						hx-confirm="Tem certeza que deseja excluir este plantio?"
-						hx-target="body"
-						hx-swap="none"
-						method="POST"
-						class="inline"
-					>
-						<button
-							type="submit"
-							class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 text-sm font-medium transition"
-						>
-							Excluir
-						</button>
-					</form>
-				</div>
-			</header>
-			<section class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-				<div class="space-y-3">
-					<div>
-						<h3 class="text-lg font-semibold text-gray-700">Cultura</h3>
-						<p class="text-xl font-medium text-green-800">{ props.CropName }</p>
-					</div>
-					<div>
-						<h3 class="text-lg font-semibold text-gray-700">Área utilizada</h3>
-						<p class="text-xl font-medium">{ fmt.Sprintf("%.2f", props.AreaUsed) } </p>
-					</div>
-					<div>
-						<h3 class="text-lg font-semibold text-gray-700">Produto produzido</h3>
-						<p class="text-xl font-medium">{ props.TypeProductProps.Name }</p>
-					</div>
-				</div>
-				<div class="space-y-3">
-					<div>
-						<h3 class="text-lg font-semibold text-gray-700">Início</h3>
-						<p class="text-xl">{ props.StartedAt.Format("02/01/2006") }</p>
-					</div>
-					<div>
-						<h3 class="text-lg font-semibold text-gray-700">Fim</h3>
-						if props.EndedAt != nil {
-							<p class="text-xl">{ props.EndedAt.Format("02/01/2006") }</p>
-						} else {
-							<p class="italic text-yellow-600 font-semibold">Em andamento</p>
-						}
-					</div>
-				</div>
-			</section>
-			<section class="mb-10">
-				<h2 class="text-2xl font-bold text-red-600 mb-4 border-b border-red-300 pb-2">Insumos</h2>
-				if len(props.Costs) > 0 {
-					<ul class="bg-red-50 rounded-lg p-6 shadow-md space-y-3">
-						for _, c := range props.Costs {
-							<li class="flex justify-between text-red-800 font-semibold border-b border-red-100 last:border-none pb-2">
-								<span>{ c.Description }</span>
-								<span>{ c.Quantity } Kg/L</span>
-								<span>R$ { fmt.Sprintf("%.2f", c.Amount) }</span>
-							</li>
-						}
-					</ul>
-				} else {
-					<p class="italic text-red-300 text-lg">Nenhum custo registrado.</p>
-				}
-			</section>
-			<section class="mb-10">
-				<h2 class="text-2xl font-bold text-orange-600 mb-4 border-b border-orange-300 pb-2">Serviços Prestados</h2>
-				if len(props.Service) > 0 {
-					<ul class="bg-orange-50 rounded-lg p-6 shadow-md space-y-3">
-						for _, c := range props.Service {
-							<li
-								class="flex justify-between text-orange-800 font-semibold border-b border-orange-100 last:border-none pb-2"
-							>
-								<span>{ c.Description }</span>
-								<span>R$ { fmt.Sprintf("%.2f", c.Amount) }</span>
-							</li>
-						}
-					</ul>
-				} else {
-					<p class="italic text-red-300 text-lg">Nenhum custo registrado.</p>
-				}
-			</section>
-			<section class="mb-10">
-				<h2 class="text-2xl font-bold text-green-600 mb-4 border-b border-green-300 pb-2">Receitas / Lucros</h2>
-				if len(props.Revenues) > 0 {
-					<ul class="bg-green-50 rounded-lg p-6 shadow-md space-y-3">
-						for _, r := range props.Revenues {
-							<li
-								class="flex justify-between text-green-800 font-semibold border-b border-green-100 last:border-none pb-2"
-							>
-								<span>{ r.Description }</span>
-								<span>R$ { fmt.Sprintf("%.2f", r.Amount) }</span>
-							</li>
-						}
-					</ul>
-				} else {
-					<p class="italic text-green-300 text-lg">Nenhuma receita registrada.</p>
-				}
-			</section>
-			<section>
-				<h2 class="text-2xl font-bold text-yellow-700 mb-4 border-b border-yellow-300 pb-2">Adubos Utilizados</h2>
-				if len(props.Fertilizers) > 0 {
-					<ul class="bg-yellow-50 rounded-lg p-6 shadow-md space-y-3">
-						for _, f := range props.Fertilizers {
-							<li
-								class="flex justify-between text-yellow-900 font-semibold border-b border-yellow-100 last:border-none pb-2"
-							>
-								<span>{ f.Name }</span>
-								<span>{ f.Amount } kg</span>
-								<span>R$ { f.Value } </span>
-							</li>
-						}
-					</ul>
-				} else {
-					<p class="italic text-yellow-400 text-lg">Nenhum adubo registrado.</p>
-				}
-			</section>
+			<form hx-delete={ templ.SafeURL(fmt.Sprintf("/plantings/delete/%d", props.ID)) }
+				hx-confirm="Tem certeza que deseja excluir este plantio?" hx-target="body" hx-swap="none" method="POST"
+				class="inline">
+				<button type="submit"
+					class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 text-sm font-medium transition">
+					Excluir
+				</button>
+			</form>
 		</div>
-	}
+	</header>
+	<section class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+		<div class="space-y-3">
+			<div>
+				<h3 class="text-lg font-semibold text-gray-700">Cultura</h3>
+				<p class="text-xl font-medium text-green-800">{ props.CropName }</p>
+			</div>
+			<div>
+				<h3 class="text-lg font-semibold text-gray-700">Área utilizada</h3>
+				<p class="text-xl font-medium">{ fmt.Sprintf("%.2f", props.AreaUsed) } </p>
+			</div>
+			<div>
+				<h3 class="text-lg font-semibold text-gray-700">Colhido</h3>
+				<p class="text-xl font-medium">{ fmt.Sprintf("%.2f",props.TotalHarvest) } Kg/L</p>
+			</div>
+			<div>
+				<h3 class="text-lg font-semibold text-gray-700">Colheita Perdida</h3>
+				<p class="text-xl font-medium">R${ fmt.Sprintf("%.2f",props.TotalLoss) }</p>
+			</div>
+			<div>
+				<h3 class="text-lg font-semibold text-gray-700">Custo Total</h3>
+				<p class="text-xl font-medium">R${ fmt.Sprintf("%.2f",props.TotalCost) }</p>
+			</div>
+		</div>
+		<div class="space-y-3">
+			<div>
+				<h3 class="text-lg font-semibold text-gray-700">Início</h3>
+				<p class="text-xl">{ props.StartedAt.Format("02/01/2006") }</p>
+			</div>
+			<div>
+				<h3 class="text-lg font-semibold text-gray-700">Fim</h3>
+				if props.EndedAt != nil {
+				<p class="text-xl">{ props.EndedAt.Format("02/01/2006") }</p>
+				} else {
+				<p class="italic text-yellow-600 font-semibold">Em andamento</p>
+				}
+			</div>
+		</div>
+	</section>
+	<section class="mb-10">
+		<h2 class="text-2xl font-bold text-red-600 mb-4 border-b border-red-300 pb-2">Colheitas</h2>
+		if len(props.Harvest) > 0 {
+		<ul class="bg-red-50 rounded-lg p-6 shadow-md space-y-3">
+			for _, c := range props.Harvest {
+			<li class="flex justify-between text-red-800 font-semibold border-b border-red-100 last:border-none pb-2">
+				<span>{ c.HarvestedAt.Format("2006-01-02") }</span>
+				<span>{ c.Quantity }{ c.Unit }</span>
+			</li>
+			}
+		</ul>
+		} else {
+		<p class="italic text-red-300 text-lg">Nenhum custo registrado.</p>
+		}
+	</section>
+	<section class="mb-10">
+		<h2 class="text-2xl font-bold text-red-600 mb-4 border-b border-red-300 pb-2">Insumos</h2>
+		if len(props.Costs) > 0 {
+		<ul class="bg-red-50 rounded-lg p-6 shadow-md space-y-3">
+			for _, c := range props.Costs {
+			<li class="flex justify-between text-red-800 font-semibold border-b border-red-100 last:border-none pb-2">
+				<span>{ c.Description }</span>
+				<span>{ c.Quantity } Kg/L</span>
+				<span>R$ { fmt.Sprintf("%.2f", c.Amount) }</span>
+			</li>
+			}
+		</ul>
+		} else {
+		<p class="italic text-red-300 text-lg">Nenhum custo registrado.</p>
+		}
+	</section>
+	<section class="mb-10">
+		<h2 class="text-2xl font-bold text-orange-600 mb-4 border-b border-orange-300 pb-2">Custos Diversos</h2>
+		if len(props.Service) > 0 {
+		<ul class="bg-orange-50 rounded-lg p-6 shadow-md space-y-3">
+			for _, c := range props.Service {
+			<li
+				class="flex justify-between text-orange-800 font-semibold border-b border-orange-100 last:border-none pb-2">
+				<span>{ c.Description }</span>
+				<span>R$ { fmt.Sprintf("%.2f", c.Amount) }</span>
+			</li>
+			}
+		</ul>
+		} else {
+		<p class="italic text-red-300 text-lg">Nenhum custo registrado.</p>
+		}
+	</section>
+	<section>
+		<h2 class="text-2xl font-bold text-yellow-700 mb-4 border-b border-yellow-300 pb-2">Adubos Utilizados</h2>
+		if len(props.Fertilizers) > 0 {
+		<ul class="bg-yellow-50 rounded-lg p-6 shadow-md space-y-3">
+			for _, f := range props.Fertilizers {
+			<li
+				class="flex justify-between text-yellow-900 font-semibold border-b border-yellow-100 last:border-none pb-2">
+				<span>{ f.Name }</span>
+				<span>{ f.Amount } kg</span>
+				<span>R$ { f.Value } </span>
+			</li>
+			}
+		</ul>
+		} else {
+		<p class="italic text-yellow-400 text-lg">Nenhum adubo registrado.</p>
+		}
+	</section>
+</div>
+}
 }

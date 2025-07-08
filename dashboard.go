@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/isaquerr25/go-templ-htmx/views/pages/dashboard"
+	"github.com/isaquerr25/go-templ-htmx/views/pages/harvest"
 	"github.com/isaquerr25/go-templ-htmx/views/pages/planting"
 	"github.com/labstack/echo/v4"
 )
@@ -43,6 +44,9 @@ func DashboardShowPlanting() echo.HandlerFunc {
 		if err != nil || id <= 0 {
 			return c.NoContent(http.StatusBadRequest)
 		}
+
+		var totalCost float64
+		var totalHarvest float64
 
 		var planting Planting
 		if err := db.First(&planting, id).Error; err != nil {
@@ -100,12 +104,14 @@ func DashboardShowPlanting() echo.HandlerFunc {
 
 			db.First(&pd, irr.ProductID)
 
+			r := regraDeTres(pd.Quantity, pd.TotalCost, irr.QuantityUsed)
+			totalCost = totalCost + r
 			costs = append(costs, dashboard.Cost{
 				ID:          irr.ID,
 				Description: pd.Name,
 				PlantingID:  0,
 				CreatedAt:   time.Time{},
-				Amount:      regraDeTres(pd.Quantity, pd.TotalCost, irr.QuantityUsed),
+				Amount:      r,
 				Quantity:    irr.QuantityUsed,
 				Type:        pd.Description,
 			})
@@ -114,6 +120,7 @@ func DashboardShowPlanting() echo.HandlerFunc {
 		var costsServices []dashboard.Cost
 
 		for _, irr := range services {
+			totalCost = totalCost + irr.Cost
 			costsServices = append(costsServices, dashboard.Cost{
 				ID:          irr.ID,
 				Description: irr.Name,
@@ -141,10 +148,12 @@ func DashboardShowPlanting() echo.HandlerFunc {
 			var pd Product
 
 			db.First(&pd, fert.ProductID)
+			r := regraDeTres(pd.Quantity, pd.TotalCost, fert.QuantityUsed)
+			totalCost = totalCost + r
 			fertilizers = append(fertilizers, dashboard.Fertilizer{
 				Amount: fmt.Sprintln(fert.QuantityUsed),
 				Name:   pd.Name,
-				Value:  regraDeTres(pd.Quantity, pd.TotalCost, fert.QuantityUsed),
+				Value:  r,
 			})
 		}
 
@@ -154,11 +163,25 @@ func DashboardShowPlanting() echo.HandlerFunc {
 		// Receitas a partir de vendas
 		var revenues []dashboard.Revenue
 		for _, sale := range sales {
+			totalCost = totalCost + sale.TotalPrice
 			revenues = append(revenues, dashboard.Revenue{
 				ID:          sale.ID,
 				Description: sale.Notes,
 				Amount:      sale.TotalPrice,
 				CreatedAt:   sale.DeletedAt.Time,
+			})
+		}
+
+		var harvestProps []harvest.HarvestProps
+		for _, h := range harvests {
+			totalHarvest = totalHarvest + h.Quantity
+			harvestProps = append(harvestProps, harvest.HarvestProps{
+				ID: h.ID,
+				HarvestedAt: harvest.Date{
+					Time: h.HarvestedAt,
+				},
+				Quantity: h.Quantity,
+				Unit:     h.Unit,
 			})
 		}
 
@@ -181,7 +204,10 @@ func DashboardShowPlanting() echo.HandlerFunc {
 				ID:   typeProduc.ID,
 				Name: typeProduc.Name,
 			},
-			Service: costsServices,
+			Service:      costsServices,
+			Harvest:      harvestProps,
+			TotalCost:    float64(totalCost),
+			TotalHarvest: totalHarvest,
 		}
 
 		return dashboard.Show(a).Render(c.Request().Context(), c.Response().Writer)

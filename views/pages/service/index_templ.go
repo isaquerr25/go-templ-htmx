@@ -57,7 +57,7 @@ func Index(s ServiceProps) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"max-w-[50rem] mx-auto mt-[5rem]\"><h1 class=\"text-xl font-bold mb-4\">Cadastro de Serviço</h1><form")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"max-w-[50rem] mx-auto mt-[5rem]\"><h1 class=\"text-xl font-bold mb-4\">Cadastro de Diversos</h1><form")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -85,7 +85,7 @@ func Index(s ServiceProps) templ.Component {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, " hx-target=\"body\" hx-swap=\"outerHTML\" class=\"space-y-4\"><div><label for=\"name\" class=\"block mb-1 font-medium\">Nome do Serviço</label> <input id=\"name\" name=\"name\" type=\"text\" value=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, " hx-target=\"body\" hx-swap=\"outerHTML\" class=\"space-y-4\"><div><label for=\"name\" class=\"block mb-1 font-medium\">Nome ou serviço</label> <input id=\"name\" name=\"name\" type=\"text\" value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
