@@ -9,13 +9,13 @@ import (
 // Produto representa um item no banco de dados
 type Product struct {
 	gorm.Model
-	Name        string    `form:"name"`        // Product name
-	Quantity    float64   `form:"quantity"`    // Total purchased quantity
-	Remaining   float64   `form:"remaining"`   // Remaining in stock
-	Unit        string    `form:"unit"`        // e.g., kg, L
-	Date        time.Time `form:"date"`        // Purchase date
-	TotalCost   float64   `form:"totalCost"`   // Total cost for the batch
-	Description string    `form:"description"` // Notes or comments
+	Name        string    `form:"name"`
+	Quantity    float64   `form:"quantity"`
+	Remaining   float64   `form:"remaining"`
+	Unit        string    `form:"unit"`
+	Date        time.Time `form:"date"`
+	TotalCost   float64   `form:"totalCost"`
+	Description string    `form:"description"`
 }
 
 type Field struct {
@@ -27,7 +27,7 @@ type Field struct {
 
 type Planting struct {
 	gorm.Model
-	TypeProductID *uint      `form:"typeProductId"`
+	TypeProductID *uint      `form:"typeProductId" gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL"`
 	CropName      string     `form:"cropName"`
 	StartedAt     time.Time  `form:"startedAt"`
 	EndedAt       *time.Time `form:"endedAt"`
@@ -37,15 +37,15 @@ type Planting struct {
 
 type Fertilization struct {
 	gorm.Model
-	PlantingID      uint                 `form:"plantingId"`
-	ApplicationType string               `form:"applicationType"` // drip or foliar
+	PlantingID      uint                 `form:"plantingId"                 gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	ApplicationType string               `form:"applicationType"`
 	AppliedAt       time.Time            `form:"appliedAt"`
-	Products        []ApplyFertilization `form:"foreignKey:FertilizationID"`
+	Products        []ApplyFertilization `form:"foreignKey:FertilizationID" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }
 
 type ApplyFertilization struct {
 	gorm.Model
-	FertilizationID uint    `form:"fertilizationId"`
+	FertilizationID uint    `form:"fertilizationId" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	ProductID       uint    `form:"productId"`
 	QuantityUsed    float64 `form:"quantityUsed"`
 	Unit            string  `form:"unit"`
@@ -53,39 +53,39 @@ type ApplyFertilization struct {
 
 type Pulverization struct {
 	gorm.Model
-	PlantingID uint             `form:"plantingId"`
+	PlantingID uint             `form:"plantingId"                 gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	AppliedAt  time.Time        `form:"appliedAt"`
 	Unit       string           `form:"unit"`
-	Products   []AppliedProduct `form:"foreignKey:PulverizationID"`
+	Products   []AppliedProduct `form:"foreignKey:PulverizationID" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }
 
 type AppliedProduct struct {
 	gorm.Model
-	PulverizationID uint    `form:"pulverizationId"`
+	PulverizationID uint    `form:"pulverizationId" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	ProductID       uint    `form:"productId"`
 	QuantityUsed    float64 `form:"quantityUsed"`
 }
 
 type Irrigation struct {
 	gorm.Model
-	PlantingID uint      `form:"plantingId"`
+	PlantingID uint      `form:"plantingId" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	AppliedAt  time.Time `form:"appliedAt"`
-	Method     string    `form:"method"` // drip, sprinkler, etc.
+	Method     string    `form:"method"`
 	Notes      string    `form:"notes"`
 }
 
 type IrrigationAction struct {
 	gorm.Model
-	IrrigationID uint      `form:"plantingId"`
+	IrrigationID uint      `form:"plantingId" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	AppliedAt    time.Time `form:"appliedAt"`
 }
 
 type Harvest struct {
 	gorm.Model
-	PlantingID  uint      `form:"plantingId"`
+	PlantingID  uint      `form:"plantingId"  gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	HarvestedAt time.Time `form:"harvestedAt"`
-	Quantity    float64   `form:"quantity"` // Amount harvested
-	Unit        string    `form:"unit"`     // e.g., kg, liter
+	Quantity    float64   `form:"quantity"`
+	Unit        string    `form:"unit"`
 }
 
 // Client representa um cliente (comprador ou parceiro)
@@ -104,37 +104,37 @@ type ProductSell struct {
 	gorm.Model
 	Name        string  `form:"name"`
 	Description string  `form:"description"`
-	Unit        string  `form:"unit"`  // kg, L, etc.
-	Price       float64 `form:"price"` // Preço por unidade
-	Stock       float64 `form:"stock"` // Quantidade disponível
+	Unit        string  `form:"unit"`
+	Price       float64 `form:"price"`
+	Stock       float64 `form:"stock"`
 }
 
 // Sale representa uma venda feita para um cliente
 type Sale struct {
 	gorm.Model
-	ClientID      *uint     `form:"clientId"`
-	ProductSellID uint      `form:"productSellId"`
+	ClientID      *uint     `form:"clientId"      gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL"`
+	ProductSellID uint      `form:"productSellId" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	SoldAt        time.Time `form:"soldAt"`
 
 	Loss bool `form:"loss"`
 
 	Quantity   float64 `form:"quantity"`
-	Unit       string  `form:"unit"`       // Repetido para facilitar acesso direto
-	TotalPrice float64 `form:"totalPrice"` // Total da venda
+	Unit       string  `form:"unit"`
+	TotalPrice float64 `form:"totalPrice"`
 
-	Method SaleMethod `form:"method"` // ex: dinheiro, cartão, pix
-	State  SaleState  `form:"state"`  // ex: pendente, pago, cancelado
+	Method SaleMethod `form:"method"`
+	State  SaleState  `form:"state"`
 
 	Notes string `form:"notes"`
 }
 
 type Service struct {
 	gorm.Model
-	Name        string    `form:"name"`        // Nome do serviço (ex: Transporte, Consultoria)
-	Description string    `form:"description"` // Descrição adicional
-	Cost        float64   `form:"cost"`        // Custo total do serviço
-	PlantingID  *uint     `form:"plantingId"`  // Opcional, caso o serviço tenha sido aplicado a um plantio
-	Notes       string    `form:"notes"`       // Observações específicas
+	Name        string    `form:"name"`
+	Description string    `form:"description"`
+	Cost        float64   `form:"cost"`
+	PlantingID  *uint     `form:"plantingId"  gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL"`
+	Notes       string    `form:"notes"`
 	CreateAt    time.Time `form:"performedAt"`
 }
 
@@ -142,7 +142,7 @@ type TypeProduct struct {
 	gorm.Model
 	Name     string  `form:"name"`
 	Describe string  `form:"describe"`
-	Quantity float64 `form:"quantity"` // Custo total do serviço
+	Quantity float64 `form:"quantity"`
 }
 
 type (
@@ -167,3 +167,4 @@ func regraDeTres(a, b, c float64) float64 {
 	}
 	return (b * c) / a
 }
+

@@ -5,7 +5,8 @@
  hx-swap=\"outerHTML\" hx-target=\"body\" class=\"space-y-4\"><div id=\"jiromba\" class=\" bg-red\">
 <!-- Botão para adicionar mais produtos (pode ser melhorado com HTMX ou JS) --></div><button hx-vals=\"js:{index: document.getElementById(&#39;jiromba&#39;).children.length}\" hx-swap=\"beforeend\" hx-target=\"#jiromba\" hx-get=\"/product/showNewInstace\" type=\"button\" class=\"bg-gray-300 text-sm px-2 py-1 rounded\">+ Adicionar Produto</button> <select name=\"applicationType\" class=\"w-full p-2 border rounded\"><option selected=\"
 \" value=\"drip\">Gotejamento</option> <option selected=\"
-\" value=\"foliar\">Foliar</option></select> <input value=\"
+\" value=\"foliar\">Foliar</option> <option selected=\"
+\" value=\"plantio\">Plantio</option></select> <input value=\"
 \" type=\"date\" name=\"appliedAt\" class=\"w-full p-2 border rounded\"> <button type=\"submit\" class=\"w-full bg-blue-500 text-white p-2 rounded\">
 Cadastrar
 Atualizar

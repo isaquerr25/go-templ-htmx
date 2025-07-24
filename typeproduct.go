@@ -81,20 +81,29 @@ func (s Server) UpdateTypeProduct(c echo.Context) error {
 
 func (s Server) CreateTypeProduct(c echo.Context) error {
 	var m TypeProduct
+
+	// Validação
 	props, hasError, err := validateTypeProduct(c, &m)
 	if err != nil {
+		fmt.Println("Erro na validação:", err)
 		return err
 	}
+	fmt.Println("Resultado da validação:")
+	fmt.Printf("TypeProduct: %+v\n", m)
+	fmt.Println("HasError:", hasError)
 
 	if !hasError {
+		// Tenta criar no banco
 		if err := db.Create(&m).Error; err != nil {
-			fmt.Println(err)
+			fmt.Println("Erro ao criar no banco:", err)
 			return c.String(500, "Erro ao criar")
 		}
+		fmt.Println("Tipo de produto criado com sucesso:", m)
 		c.Response().Header().Set("HX-Redirect", "/listTypeProduct")
 		return c.NoContent(200)
 	}
 
+	fmt.Println("Erro de validação detectado. Renderizando com props:", props)
 	return Render(c, 200, typeproduct.Index(props))
 }
 
@@ -105,10 +114,14 @@ func validateTypeProduct(
 	var props typeproduct.TypeProductProps
 	errors := make(map[string]string)
 
+	// Tenta fazer o bind dos dados da requisição para o struct
 	if err := c.Bind(m); err != nil {
+		fmt.Println("Erro ao fazer o bind:", err)
 		return props, true, err
 	}
+	fmt.Println("Bind realizado com sucesso:", *m)
 
+	// Prepara os props com os dados recebidos
 	props = typeproduct.TypeProductProps{
 		ID:       m.ID,
 		Name:     m.Name,
@@ -116,15 +129,19 @@ func validateTypeProduct(
 		Error:    errors,
 	}
 
+	// Validação dos campos
 	if m.Name == "" {
 		errors["Name"] = "Nome é obrigatório"
-	}
-	if m.Describe == "" {
-		errors["Describe"] = "Descrição é obrigatória"
+		fmt.Println("Erro: Nome vazio")
 	}
 
 	hasError := len(errors) > 0
 	props.Error = errors
+
+	// Log final
+	fmt.Println("Resultado da validação:")
+	fmt.Printf("Erros: %+v\n", errors)
+	fmt.Println("hasError:", hasError)
 
 	return props, hasError, nil
 }

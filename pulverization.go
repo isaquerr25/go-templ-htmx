@@ -132,12 +132,15 @@ func CreatePulverization(db *gorm.DB) echo.HandlerFunc {
 					continue
 				}
 
-				quantity, err := strconv.ParseFloat(qtyStr, 64)
+				rawQuantity, err := strconv.ParseFloat(qtyStr, 64)
 				if err != nil {
 					fmt.Println("⚠️ Quantidade inválida:", qtyStr, err)
 					i++
 					continue
 				}
+
+				// 🔄 Converter de ml/g para kg/L com base na densidade do produto
+				quantity := rawQuantity / 1000 // pois ml ou g → dividir por 1000 para obter kg/L
 
 				// 🔎 Buscar o produto no banco
 				var product Product

@@ -5,14 +5,14 @@
 \">
  - Restante: 
  Kg/L</option>
-</select> <input type=\"number\" step=\"0.001\" min=\"0.01\" name=\"
+</select> <input type=\"number\" step=\"0.0001\" min=\"0.0001\" name=\"
 \" value=\"
-\" placeholder=\"Quantidade\" required></div>
+\" placeholder=\"Quantidade\" required><div class=\" whitespace-nowrap \">g ou ml</div></div>
 <form hx-target=\"body\"
  hx-post=\"\"
  hx-post=\"
 \"
- hx-swap=\"outerHTML\" class=\"space-y-6 bg-white p-6 rounded-lg shadow-md max-w-2xl mx-auto\"><h2 class=\"text-xl font-bold text-gray-800 mb-4\">
+ hx-swap=\"outerHTML\" class=\"space-y-6 bg-white p-6 rounded-lg shadow-md max-w-3xl mx-auto\"><h2 class=\"text-xl font-bold text-gray-800 mb-4\">
 Nova Pulverização
 Editar Pulverização
 </h2><div><h3 class=\"text-lg font-semibold text-gray-800 mb-1\">Produtos</h3><p class=\"text-sm text-gray-500 mb-2\">Total de produtos: 

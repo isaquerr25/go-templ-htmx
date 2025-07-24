@@ -66,6 +66,7 @@ templ Index(p FertilizationProps, use pulverization.UseProps) {
 		<select name="applicationType" class="w-full p-2 border rounded">
 			<option selected={ p.ApplicationType=="drip" } value="drip">Gotejamento</option>
 			<option selected={ p.ApplicationType=="foliar" } value="foliar">Foliar</option>
+			<option selected={ p.ApplicationType=="plantio" } value="plantio">Plantio</option>
 		</select>
 		<input value={ p.AppliedAt.Format("2006-01-02") } type="date" name="appliedAt"
 			class="w-full p-2 border rounded" />

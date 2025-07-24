@@ -50,15 +50,16 @@ templ ItemsProdut(i int, pr ProductInput, prod UseProps) {
 		</option>
 		}
 	</select>
-	<input type="number" step="0.001" min="0.01" name={ fmt.Sprintf("products[%d].quantityUsed", i) } value={
+	<input type="number" step="0.0001" min="0.0001" name={ fmt.Sprintf("products[%d].quantityUsed", i) } value={
 		pr.QuantityUsed } placeholder="Quantidade" required />
+	<div class=" whitespace-nowrap ">g ou ml</div>
 </div>
 }
 
 templ Index(p PulverizationProps, use UseProps) {
 @templates.Base() {
 <form hx-target="body" if p.ID==0 { hx-post="" } else { hx-post={ fmt.Sprintf("./pulverization/%d", p.ID) } }
-	hx-swap="outerHTML" class="space-y-6 bg-white p-6 rounded-lg shadow-md max-w-2xl mx-auto">
+	hx-swap="outerHTML" class="space-y-6 bg-white p-6 rounded-lg shadow-md max-w-3xl mx-auto">
 	<h2 class="text-xl font-bold text-gray-800 mb-4">
 		if p.ID == 0 {
 		Nova Pulverização
