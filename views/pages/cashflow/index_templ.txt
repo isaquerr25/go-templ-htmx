@@ -1,0 +1,64 @@
+<div class=\"max-w-[50rem] mx-auto mt-[5rem] space-y-6\"><h1 class=\"text-xl font-bold\">
+Cadastrar Movimentação
+Editar Movimentação
+</h1><form
+ hx-post=\"
+\"
+ hx-post=\"/cashflow/create\"
+ hx-target=\"body\" hx-swap=\"outerHTML\" class=\"space-y-4 border p-4 rounded shadow-sm bg-white\"><!-- Tipo --><div><label for=\"type\" class=\"block font-medium mb-1\">Tipo</label> <select id=\"type\" name=\"type\" required class=\"w-full p-2 border rounded\"><option value=\"\">Selecione...</option> <option
+ selected
+ value=\"in\">Entrada</option> <option
+ selected
+ value=\"out\">Saída</option></select> 
+<p class=\"text-sm text-red-500\">
+</p>
+</div><!-- Categoria --><div><label for=\"category\" class=\"block font-medium mb-1\">Categoria</label> <select id=\"category\" name=\"category\" class=\"w-full p-2 border rounded\"><option value=\"\">Selecione...</option> <option
+ selected
+ value=\"sale\">Venda</option> <option
+ selected
+ value=\"service\">Serviço</option> <option
+ selected
+ value=\"purchase\">Compra</option> <option
+ selected
+ value=\"expense\">Despesa</option> <option
+ selected
+ value=\"investment\">Investimento</option> <option
+ selected
+ value=\"other\">Outro</option></select></div><!-- Valor --><div><label for=\"amount\" class=\"block font-medium mb-1\">Valor (R$)</label> <input id=\"amount\" name=\"amount\" type=\"number\" step=\"0.01\" value=\"
+\" class=\"w-full p-2 border rounded\" required> 
+<p class=\"text-sm text-red-500\">
+</p>
+</div><!-- Método --><div><label for=\"method\" class=\"block font-medium mb-1\">Método</label> <select id=\"method\" name=\"method\" class=\"w-full p-2 border rounded\"><option value=\"\">Selecione...</option> <option
+ selected
+ value=\"cash\">Dinheiro</option> <option
+ selected
+ value=\"pix\">Pix</option> <option
+ selected
+ value=\"card\">Cartão</option> <option
+ selected
+ value=\"transfer\">Transferência</option> <option
+ selected
+ value=\"installment\">A Prazo</option></select></div><!-- Data --><div><label for=\"occurredAt\" class=\"block font-medium mb-1\">Data da Movimentação</label> <input id=\"occurredAt\" name=\"occurredAt\" type=\"datetime-local\" value=\"
+\" class=\"w-full p-2 border rounded\" required></div><!-- Descrição --><div><label for=\"description\" class=\"block font-medium mb-1\">Descrição</label> <textarea id=\"description\" name=\"description\" class=\"w-full p-2 border rounded\" rows=\"2\">
+</textarea></div><!-- Notas --><div><label for=\"notes\" class=\"block font-medium mb-1\">Notas</label> <textarea id=\"notes\" name=\"notes\" class=\"w-full p-2 border rounded\" rows=\"2\">
+</textarea></div><!-- Botão --><button type=\"submit\" class=\"w-full bg-blue-500 text-white p-2 rounded\">
+Cadastrar
+Atualizar
+</button></form></div>
+<div class=\"max-w-[60rem] mx-auto mt-[5rem] space-y-6\"><h1 class=\"text-xl font-bold mb-2\">Movimentações Financeiras</h1><!-- Totais --><div class=\"grid grid-cols-3 gap-4 text-center bg-gray-50 p-4 rounded-lg shadow-sm\"><div><p class=\"text-sm text-gray-600\">Entradas</p><p class=\"text-green-600 font-semibold text-lg\">R$ 
+</p></div><div><p class=\"text-sm text-gray-600\">Saídas</p><p class=\"text-red-600 font-semibold text-lg\">R$ 
+</p></div><div><p class=\"text-sm text-gray-600\">Saldo</p>
+<p class=\"
+\">R$ 
+</p></div></div><a href=\"/cashflow/create\" class=\"block bg-green-500 text-white text-center p-2 rounded hover:bg-green-600\">Nova Movimentação</a><ul class=\"space-y-3\">
+<li class=\"border rounded p-4 flex justify-between items-center bg-white shadow-sm\"><div><p class=\"font-medium\">
+Entrada — R$ 
+Saída — R$ 
+</p><p class=\"text-sm text-gray-600\">
+ • 
+ • 
+</p><p class=\"text-sm text-gray-500 truncate max-w-[30rem]\">
+</p></div><div class=\"flex items-center gap-2\"><a href=\"
+\" class=\"text-blue-600 hover:underline\">Editar</a> <button hx-delete=\"
+\" hx-target=\"closest li\" hx-swap=\"outerHTML swap:1s\" hx-confirm=\"Deseja realmente excluir esta movimentação?\" class=\"text-red-600 hover:underline\" hx-on:htmx:afterRequest=\"location.reload()\">Excluir</button></div></li>
+</ul></div>

@@ -1,0 +1,208 @@
+package cashflow
+
+import (
+	"fmt"
+	"time"
+
+	"github.com/isaquerr25/go-templ-htmx/views/templates"
+)
+
+// Props principais da movimentação financeira
+type CashFlowProps struct {
+	ID          uint      `form:"id"`
+	Type        string    `form:"type"`     // in, out
+	Category    string    `form:"category"` // sale, service, purchase, expense...
+	Amount      float64   `form:"amount"`
+	Method      string    `form:"method"` // cash, pix, card, transfer...
+	OccurredAt  time.Time `form:"occurredAt"`
+	Description string    `form:"description"`
+	Notes       string    `form:"notes"`
+	Error       map[string]string
+}
+
+// Props da listagem
+type CashFlowListProps struct {
+	Items    []CashFlowProps
+	TotalIn  float64
+	TotalOut float64
+	Balance  float64
+}
+
+// 📄 Formulário de Criação / Atualização
+templ Index(p CashFlowProps) {
+	@templates.Base() {
+		<div class="max-w-[50rem] mx-auto mt-[5rem] space-y-6">
+			<h1 class="text-xl font-bold">
+				if p.ID == 0 {
+					Cadastrar Movimentação
+				} else {
+					Editar Movimentação
+				}
+			</h1>
+			<form
+				if p.ID !=0 {
+					hx-post={ fmt.Sprintf("/cashflow/update/%d", p.ID) }
+				} else {
+					hx-post="/cashflow/create"
+				}
+				hx-target="body"
+				hx-swap="outerHTML"
+				class="space-y-4 border p-4 rounded shadow-sm bg-white"
+			>
+				<!-- Tipo -->
+				<div>
+					<label for="type" class="block font-medium mb-1">Tipo</label>
+					<select id="type" name="type" required class="w-full p-2 border rounded">
+						<option value="">Selecione...</option>
+						<option selected?={ p.Type=="in" } value="in">Entrada</option>
+						<option selected?={ p.Type=="out" } value="out">Saída</option>
+					</select>
+					if p.Error["Type"] != "" {
+						<p class="text-sm text-red-500">{ p.Error["Type"] }</p>
+					}
+				</div>
+				<!-- Categoria -->
+				<div>
+					<label for="category" class="block font-medium mb-1">Categoria</label>
+					<select id="category" name="category" class="w-full p-2 border rounded">
+						<option value="">Selecione...</option>
+						<option selected?={ p.Category=="sale" } value="sale">Venda</option>
+						<option selected?={ p.Category=="service" } value="service">Serviço</option>
+						<option selected?={ p.Category=="purchase" } value="purchase">Compra</option>
+						<option selected?={ p.Category=="expense" } value="expense">Despesa</option>
+						<option selected?={ p.Category=="investment" } value="investment">Investimento</option>
+						<option selected?={ p.Category=="other" } value="other">Outro</option>
+					</select>
+				</div>
+				<!-- Valor -->
+				<div>
+					<label for="amount" class="block font-medium mb-1">Valor (R$)</label>
+					<input
+						id="amount"
+						name="amount"
+						type="number"
+						step="0.01"
+						value={ fmt.Sprintf("%.2f", p.Amount) }
+						class="w-full p-2 border rounded"
+						required
+					/>
+					if p.Error["Amount"] != "" {
+						<p class="text-sm text-red-500">{ p.Error["Amount"] }</p>
+					}
+				</div>
+				<!-- Método -->
+				<div>
+					<label for="method" class="block font-medium mb-1">Método</label>
+					<select id="method" name="method" class="w-full p-2 border rounded">
+						<option value="">Selecione...</option>
+						<option selected?={ p.Method=="cash" } value="cash">Dinheiro</option>
+						<option selected?={ p.Method=="pix" } value="pix">Pix</option>
+						<option selected?={ p.Method=="card" } value="card">Cartão</option>
+						<option selected?={ p.Method=="transfer" } value="transfer">Transferência</option>
+						<option selected?={ p.Method=="installment" } value="installment">A Prazo</option>
+					</select>
+				</div>
+				<!-- Data -->
+				<div>
+					<label for="occurredAt" class="block font-medium mb-1">Data da Movimentação</label>
+					<input
+						id="occurredAt"
+						name="occurredAt"
+						type="datetime-local"
+						value={ p.OccurredAt.Format("2006-01-02T15:04") }
+						class="w-full p-2 border rounded"
+						required
+					/>
+				</div>
+				<!-- Descrição -->
+				<div>
+					<label for="description" class="block font-medium mb-1">Descrição</label>
+					<textarea id="description" name="description" class="w-full p-2 border rounded" rows="2">
+						{ p.Description }
+					</textarea>
+				</div>
+				<!-- Notas -->
+				<div>
+					<label for="notes" class="block font-medium mb-1">Notas</label>
+					<textarea id="notes" name="notes" class="w-full p-2 border rounded" rows="2">{ p.Notes }</textarea>
+				</div>
+				<!-- Botão -->
+				<button type="submit" class="w-full bg-blue-500 text-white p-2 rounded">
+					if p.ID == 0 {
+						Cadastrar
+					} else {
+						Atualizar
+					}
+				</button>
+			</form>
+		</div>
+	}
+}
+
+templ List(p CashFlowListProps) {
+	@templates.Base() {
+		<div class="max-w-[60rem] mx-auto mt-[5rem] space-y-6">
+			<h1 class="text-xl font-bold mb-2">Movimentações Financeiras</h1>
+			<!-- Totais -->
+			<div class="grid grid-cols-3 gap-4 text-center bg-gray-50 p-4 rounded-lg shadow-sm">
+				<div>
+					<p class="text-sm text-gray-600">Entradas</p>
+					<p class="text-green-600 font-semibold text-lg">R$ { fmt.Sprintf("%.2f", p.TotalIn) }</p>
+				</div>
+				<div>
+					<p class="text-sm text-gray-600">Saídas</p>
+					<p class="text-red-600 font-semibold text-lg">R$ { fmt.Sprintf("%.2f", p.TotalOut) }</p>
+				</div>
+				<div>
+					<p class="text-sm text-gray-600">Saldo</p>
+					<p
+						class={ fmt.Sprintf("font-semibold text-lg %s", func() string { if p.Balance>= 0 {
+				return "text-green-700"
+				}
+				return "text-red-700"
+				}(),
+				) }
+					>
+						R$ { fmt.Sprintf("%.2f", p.Balance) }
+					</p>
+				</div>
+			</div>
+			<a href="/cashflow/create" class="block bg-green-500 text-white text-center p-2 rounded hover:bg-green-600">
+				Nova Movimentação
+			</a>
+			<ul class="space-y-3">
+				for _, item := range p.Items {
+					<li class="border rounded p-4 flex justify-between items-center bg-white shadow-sm">
+						<div>
+							<p class="font-medium">
+								if item.Type == "in" {
+									Entrada — R$ { fmt.Sprintf("%.2f", item.Amount) }
+								} else {
+									Saída — R$ { fmt.Sprintf("%.2f", item.Amount) }
+								}
+							</p>
+							<p class="text-sm text-gray-600">
+								{ item.Category } • { item.Method } • { item.OccurredAt.Format("02/01/2006 15:04") }
+							</p>
+							<p class="text-sm text-gray-500 truncate max-w-[30rem]">{ item.Description }</p>
+						</div>
+						<div class="flex items-center gap-2">
+							<a
+								href={ templ.SafeURL(fmt.Sprintf("/cashflow/%d", item.ID)) }
+								class="text-blue-600 hover:underline"
+							>Editar</a>
+							<button
+								hx-delete={ templ.SafeURL(fmt.Sprintf("/cashflow/%d", item.ID)) }
+								hx-target="closest li"
+								hx-swap="outerHTML swap:1s"
+								hx-confirm="Deseja realmente excluir esta movimentação?"
+								class="text-red-600 hover:underline"
+								hx-on:htmx:afterRequest="location.reload()"
+							>Excluir</button>
+						</div>
+					</li>
+				}
+			</ul>
+		</div>
+	}
+}
