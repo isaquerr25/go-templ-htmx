@@ -1,114 +1,174 @@
 package pulverization
 
 import (
-"fmt"
-"github.com/isaquerr25/go-templ-htmx/views/pages/planting"
-"github.com/isaquerr25/go-templ-htmx/views/pages/produto"
-"github.com/isaquerr25/go-templ-htmx/views/templates"
-"time"
+	"fmt"
+	"github.com/isaquerr25/go-templ-htmx/views/pages/planting"
+	"github.com/isaquerr25/go-templ-htmx/views/pages/produto"
+	"github.com/isaquerr25/go-templ-htmx/views/templates"
+	"time"
 )
 
 type PulverizationItem struct {
-ID uint `form:"ID"`
-PlantingID uint `form:"PlantingID"`
-ProductID uint `form:"ProductID"`
-AppliedAt string `form:"AppliedAt"`
-QuantityUsed float64 `form:"QuantityUsed"`
-Unit string `form:"Unit"`
+	ID           uint    `form:"ID"`
+	PlantingID   uint    `form:"PlantingID"`
+	ProductID    uint    `form:"ProductID"`
+	AppliedAt    string  `form:"AppliedAt"`
+	QuantityUsed float64 `form:"QuantityUsed"`
+	Unit         string  `form:"Unit"`
 }
 
 type ProductInput struct {
-ProductID uint `form:"ProductID"`
-QuantityUsed float64 `form:"QuantityUsed"`
+	ProductID    uint    `form:"ProductID"`
+	QuantityUsed float64 `form:"QuantityUsed"`
 }
 
 type PulverizationProps struct {
-ID uint `form:"ID"`
-PlantingID uint `form:"PlantingID"`
-AppliedAt Date `form:"AppliedAt"`
-Unit string `form:"Unit"`
-Products []ProductInput `form:"Products"` // múltiplos produtos com quantidades
-Error map[string]string
+	ID         uint           `form:"ID"`
+	PlantingID uint           `form:"PlantingID"`
+	AppliedAt  Date           `form:"AppliedAt"`
+	Unit       string         `form:"Unit"`
+	Products   []ProductInput `form:"Products"` // múltiplos produtos com quantidades
+	Error      map[string]string
 }
 
 type UseProps struct {
-Prod []produto.ProductProps `form:"Prod"`
-Plan []planting.PlantingProps `form:"Plan"`
+	Prod []produto.ProductProps   `form:"Prod"`
+	Plan []planting.PlantingProps `form:"Plan"`
 }
 
 type Date struct {
-time.Time
+	time.Time
 }
 
 templ ItemsProdut(i int, pr ProductInput, prod UseProps) {
-<div class="flex items-center gap-4 mb-2" id="itemProduct">
-	<select name={ fmt.Sprintf("products[%d].productId", i) } name="fieldId" required class="w-full p-2 border rounded">
-		<option value="">Selecione um campo</option>
-		for _, f := range prod.Prod {
-		<option value={ fmt.Sprintf("%d", f.ID) } selected={ f.ID==pr.ProductID }>
-			{ f.Name } - Restante: { f.Remaining } Kg/L
-		</option>
-		}
-	</select>
-	<input type="number" step="0.0001" min="0.0001" name={ fmt.Sprintf("products[%d].quantityUsed", i) } value={
-		pr.QuantityUsed } placeholder="Quantidade" required />
-	<div class=" whitespace-nowrap ">g ou ml</div>
-</div>
+	<div class="flex items-center gap-4 mb-2" id={ fmt.Sprintf("itemProduct-%d", i) }>
+		<select name={ fmt.Sprintf("products[%d].productId", i) } required class="w-full p-2 border rounded">
+			<option value="">Selecione um produto</option>
+			for _, f := range prod.Prod {
+				<option data-qtd={ f.PrePulverizationBase } value={ fmt.Sprintf("%d", f.ID) } selected={ f.ID == pr.ProductID }>
+					{ f.Name } - Restante: { f.Remaining } Kg/L
+				</option>
+			}
+		</select>
+		<input
+			id="qtdInput"
+			type="number"
+			step="0.0001"
+			min="0.0001"
+			name={ fmt.Sprintf("products[%d].quantityUsed", i) }
+			value={ pr.QuantityUsed }
+			placeholder="Quantidade"
+			required
+			class="w-28 p-2 border rounded"
+		/>
+		<div class="whitespace-nowrap text-sm text-gray-600">gg ou ml</div>
+		<!-- Botão de remover -->
+		<button
+			type="button"
+			class="text-red-600 hover:text-red-800 font-medium"
+			hx-delete={ fmt.Sprintf("/product/remove/%d", pr.ProductID) }
+			hx-target={ fmt.Sprintf("#itemProduct-%d", i) }
+			hx-swap="outerHTML"
+			title="Remover produto"
+		>
+			🗑️
+		</button>
+	</div>
 }
 
 templ Index(p PulverizationProps, use UseProps) {
-@templates.Base() {
-<form hx-target="body" if p.ID==0 { hx-post="" } else { hx-post={ fmt.Sprintf("./pulverization/%d", p.ID) } }
-	hx-swap="outerHTML" class="space-y-6 bg-white p-6 rounded-lg shadow-md max-w-3xl mx-auto">
-	<h2 class="text-xl font-bold text-gray-800 mb-4">
-		if p.ID == 0 {
-		Nova Pulverização
-		} else {
-		Editar Pulverização
-		}
-	</h2>
-	<div>
-		<h3 class="text-lg font-semibold text-gray-800 mb-1">Produtos</h3>
-		<p class="text-sm text-gray-500 mb-2">Total de produtos: { len(p.Products) }</p>
-		<div id="patomanco" class="space-y-4">
-			for i, pr := range p.Products {
-			@ItemsProdut(i, pr, use)
-			}
-		</div>
-		<button hx-vals="js:{index: document.getElementById('patomanco').children.length}" hx-swap="beforeend"
-			hx-target="#patomanco" hx-get="/product/showNewInstace" type="button"
-			class="text-blue-600 text-sm font-medium hover:underline mt-2">
-			+ Adicionar Produto
-		</button>
-	</div>
-	<!-- Data de Aplicação -->
-	<div class="space-y-1">
-		<label for="appliedAt" class="block text-sm font-medium text-gray-700">Data de Aplicação</label>
-		<input type="date" name="appliedAt" value={ p.AppliedAt.Format("2006-01-02") } required
-			class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
-		if err := p.Error["AppliedAt"]; err != "" {
-		<p class="text-red-500 text-sm">{ err }</p>
-		}
-	</div>
-	<!-- Unidade -->
-	<div class="space-y-1">
-		<label for="unit" class="block text-sm font-medium text-gray-700">Calda</label>
-		<input type="text" name="unit" value={ p.Unit } required
-			class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
-	</div>
-	<!-- Botão de Envio -->
-	<div class="pt-4">
-		<button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md font-medium">
-			if p.ID == 0 {
-			Criar
+	@templates.Base() {
+		<form
+			hx-target="body"
+			if p.ID==0 {
+				hx-post=""
 			} else {
-			Atualizar
+				hx-post={ fmt.Sprintf("./pulverization/%d", p.ID) }
 			}
-		</button>
-		if errMsg := p.Error["Form"]; errMsg != "" {
-		<span class="text-red-500 text-sm">{ errMsg }</span>
+			hx-swap="outerHTML"
+			class="space-y-6 bg-white p-6 rounded-lg shadow-md max-w-3xl mx-auto"
+		>
+			<h2 class="text-xl font-bold text-gray-800 mb-4">
+				if p.ID == 0 {
+					Nova Pulverização
+				} else {
+					Editar Pulverização
+				}
+			</h2>
+			<div>
+				<h3 class="text-lg font-semibold text-gray-800 mb-1">Produtos</h3>
+				<p class="text-sm text-gray-500 mb-2">Total de produtos: { len(p.Products) }</p>
+				<div id="patomanco" class="space-y-4">
+					for i, pr := range p.Products {
+						@ItemsProdut(i, pr, use)
+					}
+				</div>
+				<button
+					hx-vals="js:{index: document.getElementById('patomanco').children.length}"
+					hx-swap="beforeend"
+					hx-target="#patomanco"
+					hx-get="/product/showNewInstace"
+					type="button"
+					class="text-blue-600 text-sm font-medium hover:underline mt-2"
+				>
+					+ Adicionar Produto
+				</button>
+			</div>
+			<!-- Data de Aplicação -->
+			<div class="space-y-1">
+				<label for="appliedAt" class="block text-sm font-medium text-gray-700">Data de Aplicação</label>
+				<input
+					type="date"
+					name="appliedAt"
+					value={ p.AppliedAt.Format("2006-01-02") }
+					required
+					class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+				/>
+				if err := p.Error["AppliedAt"]; err != "" {
+					<p class="text-red-500 text-sm">{ err }</p>
+				}
+			</div>
+			<!-- Unidade -->
+			<div class="space-y-1">
+				<label for="unit" class="block text-sm font-medium text-gray-700">Calda</label>
+				<input
+					type="text"
+					name="unit"
+					value={ p.Unit }
+					required
+					class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+				/>
+			</div>
+			<!-- Botão de Envio -->
+			<div class="pt-4">
+				<button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md font-medium">
+					if p.ID == 0 {
+						Criar
+					} else {
+						Atualizar
+					}
+				</button>
+				if errMsg := p.Error["Form"]; errMsg != "" {
+					<span class="text-red-500 text-sm">{ errMsg }</span>
+				}
+			</div>
+		</form>
+		<script>
+	document.addEventListener("change", function (e) {
+		if (e.target.matches('select[name^="products"][name$=".productId"]')) {
+			const select = e.target
+			const selectedOption = select.options[select.selectedIndex]
+			const qtd = selectedOption.getAttribute("data-qtd") || ""
+			const parent = select.closest("div.flex")
+			if (parent) {
+				const input = parent.querySelector('input[name^="products"][name$=".quantityUsed"]')
+				if (input) {
+					input.value = qtd
+					console.log("✅ Script rodou: quantidade atualizada para", qtd)
+				}
+			}
 		}
-	</div>
-</form>
-}
+	})
+</script>
+	}
 }

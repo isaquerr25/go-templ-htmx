@@ -1,13 +1,17 @@
-<div class=\"flex items-center gap-4 mb-2\" id=\"itemProduct\"><select name=\"
-\" name=\"fieldId\" required class=\"w-full p-2 border rounded\"><option value=\"\">Selecione um campo</option> 
-<option value=\"
+<div class=\"flex items-center gap-4 mb-2\" id=\"
+\"><select name=\"
+\" required class=\"w-full p-2 border rounded\"><option value=\"\">Selecione um produto</option> 
+<option data-qtd=\"
+\" value=\"
 \" selected=\"
 \">
  - Restante: 
  Kg/L</option>
-</select> <input type=\"number\" step=\"0.0001\" min=\"0.0001\" name=\"
+</select> <input id=\"qtdInput\" type=\"number\" step=\"0.0001\" min=\"0.0001\" name=\"
 \" value=\"
-\" placeholder=\"Quantidade\" required><div class=\" whitespace-nowrap \">g ou ml</div></div>
+\" placeholder=\"Quantidade\" required class=\"w-28 p-2 border rounded\"><div class=\"whitespace-nowrap text-sm text-gray-600\">gg ou ml</div><!-- Botão de remover --><button type=\"button\" class=\"text-red-600 hover:text-red-800 font-medium\" hx-delete=\"
+\" hx-target=\"
+\" hx-swap=\"outerHTML\" title=\"Remover produto\">🗑️</button></div>
 <form hx-target=\"body\"
  hx-post=\"\"
  hx-post=\"
@@ -28,4 +32,4 @@ Atualizar
 </button> 
 <span class=\"text-red-500 text-sm\">
 </span>
-</div></form>
+</div></form><script>\n\tdocument.addEventListener(\"change\", function (e) {\n\t\tif (e.target.matches('select[name^=\"products\"][name$=\".productId\"]')) {\n\t\t\tconst select = e.target\n\t\t\tconst selectedOption = select.options[select.selectedIndex]\n\t\t\tconst qtd = selectedOption.getAttribute(\"data-qtd\") || \"\"\n\t\t\tconst parent = select.closest(\"div.flex\")\n\t\t\tif (parent) {\n\t\t\t\tconst input = parent.querySelector('input[name^=\"products\"][name$=\".quantityUsed\"]')\n\t\t\t\tif (input) {\n\t\t\t\t\tinput.value = qtd\n\t\t\t\t\tconsole.log(\"✅ Script rodou: quantidade atualizada para\", qtd)\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t})\n</script>

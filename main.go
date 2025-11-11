@@ -104,6 +104,16 @@ func validateProduct(c echo.Context, p *Product) (
 		hasError = true
 	}
 
+	prePulverizationBase, err := strconv.ParseFloat(values["prePulverizationBase"], 64)
+	if err != nil {
+		k.Error["PrePulverizationBase"] = "Only numbers are allowed"
+		hasError = true
+	} else if prePulverizationBase < 0 {
+		k.Error["PrePulverizationBase"] = "Cannot be less than 1"
+		hasError = true
+	}
+	p.PrePulverizationBase = prePulverizationBase
+
 	// Populate ProductProps with validated data
 	k.Name = p.Name
 	k.Quantity = p.Quantity
@@ -112,6 +122,7 @@ func validateProduct(c echo.Context, p *Product) (
 	k.TotalCost = p.TotalCost
 	k.Description = p.Description
 	k.Remaining = p.Remaining
+	k.PrePulverizationBase = p.PrePulverizationBase
 
 	return
 }
@@ -128,8 +139,10 @@ func main() {
 	}
 
 	// Migrate the schema
+	db.AutoMigrate(&CashFlow{})
 	db.AutoMigrate(&Service{})
 	db.AutoMigrate(&ApplyFertilization{})
+
 	db.AutoMigrate(&AppliedProduct{})
 	db.AutoMigrate(&Product{})
 	db.AutoMigrate(&Field{})
@@ -151,7 +164,7 @@ func main() {
 	e.GET("/product/showNewInstace", func(c echo.Context) error {
 		jj, _ := strconv.Atoi(c.QueryParam("index"))
 
-		a, _ := GetAllProductsProps()
+		a, _ := GetAllProductsForUserProps()
 		return Render(
 			c,
 			200,
@@ -159,6 +172,16 @@ func main() {
 				Prod: a,
 			}),
 		)
+	})
+
+	e.DELETE("/product/remove/:id", func(c echo.Context) error {
+		id := c.Param("id")
+
+		// Aqui você pode, se quiser, validar ou logar
+		fmt.Println("Produto removido visualmente:", id)
+
+		// Não precisa deletar no banco — é apenas visual
+		return c.NoContent(200) // HTMX entende que deu certo e aplica o swap
 	})
 
 	e.DELETE("/deleteProduct/:ID", s.DeleteProduct)
@@ -188,14 +211,15 @@ func main() {
 	e.GET("/newProduct",
 		func(c echo.Context) error {
 			return Render(c, 200, produto.Index(produto.ProductProps{
-				Quantity:    1,
-				Date:        time.Now(),
-				Error:       map[string]string{},
-				Name:        "",
-				Remaining:   0,
-				Unit:        "",
-				TotalCost:   150,
-				Description: "",
+				Quantity:             1,
+				Date:                 time.Now(),
+				Error:                map[string]string{},
+				Name:                 "",
+				Remaining:            1,
+				Unit:                 "",
+				TotalCost:            150,
+				Description:          "",
+				PrePulverizationBase: 0.01,
 			}))
 		},
 	)
@@ -215,9 +239,10 @@ func main() {
 
 			for i, p := range pp {
 				props[i] = produto.ProductProps{
-					ID:          p.ID,
-					Name:        p.Name,
-					Quantity:    p.Quantity,
+					ID:       p.ID,
+					Name:     p.Name,
+					Quantity: p.Quantity,
+
 					Remaining:   p.Remaining,
 					Unit:        p.Unit,
 					Date:        p.Date,
@@ -458,6 +483,14 @@ func main() {
 	e.POST("/typeProduct/create", s.CreateTypeProduct)
 	e.POST("/typeProduct/update/:ID", s.UpdateTypeProduct)
 	e.POST("/typeProduct/delete/:ID", s.DeleteTypeProduct)
+
+	e.GET("/cashflow", ListCashFlows)
+
+	e.GET("/cashflow/create", ShowCreateCashFlow)
+	e.POST("/cashflow/create", CreateCashFlow)
+	e.GET("/cashflow/:id", ShowCashFlow)
+	e.POST("/cashflow/update/:id", UpdateCashFlow)
+	e.DELETE("/cashflow/:id", DeleteCashFlow)
 
 	e.Logger.Fatal(e.Start(":1323"))
 }

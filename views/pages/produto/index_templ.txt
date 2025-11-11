@@ -2,15 +2,15 @@
  hx-post=\"
 \"
  hx-post=\"/createProduct\"
- hx-target=\"main\" hx-select=\"main\" hx-swap=\"outerHTML\" class=\"space-y-4\"><!-- Nome --><div><label for=\"name\" class=\"block font-medium\">Nome</label> <input id=\"name\" value=\"
+ hx-target=\"body\" hx-swap=\"outerHTML\" class=\"space-y-4\"><!-- Nome --><div><label for=\"name\" class=\"block font-medium\">Nome</label> <input id=\"name\" value=\"
 \" type=\"text\" name=\"name\" placeholder=\"Ex: Fertilizante A\" required class=\"w-full p-2 border rounded\"> 
 <p class=\"text-red-500\">
 </p>
-</div><!-- Quantidade total --><div><label for=\"quantity\" class=\"block font-medium\">Quantidade Total</label> <input id=\"quantity\" value=\"
+</div><!-- Quantidade total --><div><label for=\"quantity\" class=\"block font-medium\">Quantidade Total. L/Kg</label> <input id=\"quantity\" value=\"
 \" type=\"number\" name=\"quantity\" placeholder=\"Ex: 100.000\" required step=\"0.001\" class=\"w-full p-2 border rounded\"> 
 <p class=\"text-red-500\">
 </p>
-</div><!-- Quantidade restante --><div><label for=\"remaining\" class=\"block font-medium\">Quantidade Restante</label> <input id=\"remaining\" value=\"
+</div><!-- Quantidade restante --><div><label for=\"remaining\" class=\"block font-medium\">Quantidade Restante L/Kg</label> <input id=\"remaining\" value=\"
 \" type=\"number\" name=\"remaining\" placeholder=\"Ex: 25.500\" required step=\"0.001\" class=\"w-full p-2 border rounded\"> 
 <p class=\"text-red-500\">
 </p>
@@ -27,6 +27,10 @@
 </p>
 </div><!-- Custo total --><div><label for=\"totalCost\" class=\"block font-medium\">Custo Total (R$)</label> <input id=\"totalCost\" value=\"
 \" type=\"number\" name=\"totalCost\" step=\"0.01\" placeholder=\"Ex: 500.00\" required class=\"w-full p-2 border rounded\"> 
+<p class=\"text-red-500\">
+</p>
+</div><div><label for=\"prePulverizationBase\" class=\"block font-medium\">Base de Aplicação ML/Gramas</label> <input id=\"prePulverizationBase\" value=\"
+\" type=\"number\" name=\"prePulverizationBase\" step=\"0.01\" placeholder=\"Ex: 500.00\" required class=\"w-full p-2 border rounded\"> 
 <p class=\"text-red-500\">
 </p>
 </div><!-- Descrição --><div><label for=\"description\" class=\"block font-medium\">Descrição</label> <textarea id=\"description\" name=\"description\" placeholder=\"Informações adicionais sobre o produto\" class=\"w-full p-2 border rounded\">

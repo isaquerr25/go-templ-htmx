@@ -18,15 +18,48 @@ func GetAllProductsProps() ([]produto.ProductProps, error) {
 	var productPropsList []produto.ProductProps
 	for _, p := range products {
 		productPropsList = append(productPropsList, produto.ProductProps{
-			ID:          p.ID,
-			Name:        p.Name,
-			Quantity:    p.Quantity,
-			Remaining:   p.Remaining,
-			Unit:        p.Unit,
-			Date:        p.Date,
-			TotalCost:   p.TotalCost,
-			Description: p.Description,
-			Error:       map[string]string{},
+			ID:                   p.ID,
+			Name:                 p.Name,
+			Quantity:             p.Quantity,
+			Remaining:            p.Remaining,
+			Unit:                 p.Unit,
+			Date:                 p.Date,
+			TotalCost:            p.TotalCost,
+			Description:          p.Description,
+			PrePulverizationBase: p.PrePulverizationBase,
+
+			Error: map[string]string{},
+		})
+	}
+
+	return productPropsList, nil
+}
+
+func GetAllProductsForUserProps() ([]produto.ProductProps, error) {
+	var products []Product
+	if err := db.Find(&products).Error; err != nil {
+		return nil, err
+	}
+
+	var productPropsList []produto.ProductProps
+	for _, p := range products {
+
+		if p.Remaining <= 0 {
+			continue
+		}
+
+		productPropsList = append(productPropsList, produto.ProductProps{
+			ID:                   p.ID,
+			Name:                 p.Name,
+			Quantity:             p.Quantity,
+			Remaining:            p.Remaining,
+			Unit:                 p.Unit,
+			Date:                 p.Date,
+			TotalCost:            p.TotalCost,
+			Description:          p.Description,
+			PrePulverizationBase: p.PrePulverizationBase,
+
+			Error: map[string]string{},
 		})
 	}
 
@@ -69,15 +102,16 @@ func (s Server) EditProduct(c echo.Context) error {
 	}
 
 	props := &produto.ProductProps{
-		ID:          p.ID,
-		Name:        p.Name,
-		Quantity:    p.Quantity,
-		Remaining:   p.Remaining,
-		Unit:        p.Unit,
-		Date:        p.Date,
-		TotalCost:   p.TotalCost,
-		Description: p.Description,
-		Error:       make(map[string]string), // inicializa vazio
+		ID:                   p.ID,
+		Name:                 p.Name,
+		Quantity:             p.Quantity,
+		Remaining:            p.Remaining,
+		Unit:                 p.Unit,
+		Date:                 p.Date,
+		TotalCost:            p.TotalCost,
+		Description:          p.Description,
+		PrePulverizationBase: p.PrePulverizationBase,
+		Error:                make(map[string]string), // inicializa vazio
 	}
 
 	return Render(c, 200, produto.Index(*props))

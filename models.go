@@ -9,13 +9,14 @@ import (
 // Produto representa um item no banco de dados
 type Product struct {
 	gorm.Model
-	Name        string    `form:"name"`
-	Quantity    float64   `form:"quantity"`
-	Remaining   float64   `form:"remaining"`
-	Unit        string    `form:"unit"`
-	Date        time.Time `form:"date"`
-	TotalCost   float64   `form:"totalCost"`
-	Description string    `form:"description"`
+	Name                 string    `form:"name"`
+	Quantity             float64   `form:"quantity"`
+	Remaining            float64   `form:"remaining"`
+	Unit                 string    `form:"unit"`
+	Date                 time.Time `form:"date"`
+	TotalCost            float64   `form:"totalCost"`
+	Description          string    `form:"description"`
+	PrePulverizationBase float64   `form:"prePulverizationBase"` // base de pré-pulverização
 }
 
 type Field struct {
@@ -145,6 +146,55 @@ type TypeProduct struct {
 	Quantity float64 `form:"quantity"`
 }
 
+// CashFlow representa uma movimentação financeira (entrada ou saída de dinheiro)
+type CashFlow struct {
+	gorm.Model
+	Type        FlowType     `form:"type"`        // entrada ou saída
+	Category    FlowCategory `form:"category"`    // ex: venda, compra, serviço, despesa, outro
+	Amount      float64      `form:"amount"`      // valor da transação
+	Method      FlowMethod   `form:"method"`      // pix, dinheiro, cartão, transferência...
+	OccurredAt  time.Time    `form:"occurredAt"`  // data da transação
+	Description string       `form:"description"` // descrição livre
+
+	// Referências opcionais para relacionar com outras tabelas
+	SaleID    *uint `form:"saleId"    gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL"`
+	ServiceID *uint `form:"serviceId" gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL"`
+	ClientID  *uint `form:"clientId"  gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL"`
+
+	Notes string `form:"notes"`
+}
+
+// FlowType define se é entrada ou saída
+type FlowType string
+
+const (
+	FlowTypeIn  FlowType = "in"  // entrada
+	FlowTypeOut FlowType = "out" // saída
+)
+
+// FlowMethod define o método de pagamento ou recebimento
+type FlowMethod string
+
+const (
+	FlowMethodCash        FlowMethod = "cash"        // dinheiro
+	FlowMethodPix         FlowMethod = "pix"         // pix
+	FlowMethodCard        FlowMethod = "card"        // cartão
+	FlowMethodTransfer    FlowMethod = "transfer"    // transferência bancária
+	FlowMethodInstallment FlowMethod = "installment" // a prazo
+)
+
+// FlowCategory define o tipo de origem/destino do dinheiro
+type FlowCategory string
+
+const (
+	FlowCategorySale       FlowCategory = "sale"       // entrada por venda
+	FlowCategoryService    FlowCategory = "service"    // entrada por serviço
+	FlowCategoryPurchase   FlowCategory = "purchase"   // saída por compra
+	FlowCategoryExpense    FlowCategory = "expense"    // saída por despesa geral
+	FlowCategoryInvestment FlowCategory = "investment" // saída/entrada de investimento
+	FlowCategoryOther      FlowCategory = "other"      // outro tipo
+)
+
 type (
 	SaleMethod string
 	SaleState  string
@@ -167,4 +217,3 @@ func regraDeTres(a, b, c float64) float64 {
 	}
 	return (b * c) / a
 }
-
