@@ -31,11 +31,12 @@ type ProductInput struct {
 }
 
 type PulverizationProps struct {
-	ID         uint           `form:"ID"`
-	PlantingID uint           `form:"PlantingID"`
-	AppliedAt  Date           `form:"AppliedAt"`
-	Unit       string         `form:"Unit"`
-	Products   []ProductInput `form:"Products"` // múltiplos produtos com quantidades
+	ID         uint                `form:"ID"`
+	PlantingID uint                `form:"PlantingID"`
+	AppliedAt  Date                `form:"AppliedAt"`
+	Unit       string              `form:"Unit"`
+	Products   []ProductInput      `form:"Products"` // múltiplos produtos com quantidades
+	Plantings  []TypePlantingProps `form:"Products"` // múltiplos produtos com quantidades
 	Error      map[string]string
 }
 
@@ -76,7 +77,7 @@ func ItemsProdut(i int, pr ProductInput, prod UseProps) templ.Component {
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("itemProduct-%d", i))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/pulverization/index.templ`, Line: 44, Col: 80}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/pulverization/index.templ`, Line: 45, Col: 80}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
@@ -89,7 +90,7 @@ func ItemsProdut(i int, pr ProductInput, prod UseProps) templ.Component {
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("products[%d].productId", i))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/pulverization/index.templ`, Line: 45, Col: 57}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/pulverization/index.templ`, Line: 46, Col: 57}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
@@ -107,7 +108,7 @@ func ItemsProdut(i int, pr ProductInput, prod UseProps) templ.Component {
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(f.PrePulverizationBase)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/pulverization/index.templ`, Line: 48, Col: 45}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/pulverization/index.templ`, Line: 49, Col: 45}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -120,7 +121,7 @@ func ItemsProdut(i int, pr ProductInput, prod UseProps) templ.Component {
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", f.ID))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/pulverization/index.templ`, Line: 48, Col: 79}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/pulverization/index.templ`, Line: 49, Col: 79}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
@@ -133,7 +134,7 @@ func ItemsProdut(i int, pr ProductInput, prod UseProps) templ.Component {
 			var templ_7745c5c3_Var6 string
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(f.ID == pr.ProductID)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/pulverization/index.templ`, Line: 48, Col: 113}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/pulverization/index.templ`, Line: 49, Col: 113}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
@@ -146,7 +147,7 @@ func ItemsProdut(i int, pr ProductInput, prod UseProps) templ.Component {
 			var templ_7745c5c3_Var7 string
 			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(f.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/pulverization/index.templ`, Line: 49, Col: 13}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/pulverization/index.templ`, Line: 50, Col: 13}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 			if templ_7745c5c3_Err != nil {
@@ -159,7 +160,7 @@ func ItemsProdut(i int, pr ProductInput, prod UseProps) templ.Component {
 			var templ_7745c5c3_Var8 string
 			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(f.Remaining)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/pulverization/index.templ`, Line: 49, Col: 41}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/pulverization/index.templ`, Line: 50, Col: 41}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 			if templ_7745c5c3_Err != nil {
@@ -177,7 +178,7 @@ func ItemsProdut(i int, pr ProductInput, prod UseProps) templ.Component {
 		var templ_7745c5c3_Var9 string
 		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("products[%d].quantityUsed", i))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/pulverization/index.templ`, Line: 58, Col: 53}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/pulverization/index.templ`, Line: 59, Col: 53}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 		if templ_7745c5c3_Err != nil {
@@ -190,7 +191,7 @@ func ItemsProdut(i int, pr ProductInput, prod UseProps) templ.Component {
 		var templ_7745c5c3_Var10 string
 		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(pr.QuantityUsed)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/pulverization/index.templ`, Line: 59, Col: 26}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/pulverization/index.templ`, Line: 60, Col: 26}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 		if templ_7745c5c3_Err != nil {
@@ -203,7 +204,7 @@ func ItemsProdut(i int, pr ProductInput, prod UseProps) templ.Component {
 		var templ_7745c5c3_Var11 string
 		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("/product/remove/%d", pr.ProductID))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/pulverization/index.templ`, Line: 69, Col: 62}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/pulverization/index.templ`, Line: 70, Col: 62}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 		if templ_7745c5c3_Err != nil {
@@ -216,7 +217,7 @@ func ItemsProdut(i int, pr ProductInput, prod UseProps) templ.Component {
 		var templ_7745c5c3_Var12 string
 		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("#itemProduct-%d", i))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/pulverization/index.templ`, Line: 70, Col: 48}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/pulverization/index.templ`, Line: 71, Col: 48}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 		if templ_7745c5c3_Err != nil {
@@ -280,7 +281,7 @@ func Index(p PulverizationProps, use UseProps) templ.Component {
 				var templ_7745c5c3_Var15 string
 				templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("./pulverization/%d", p.ID))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/pulverization/index.templ`, Line: 86, Col: 53}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/pulverization/index.templ`, Line: 87, Col: 53}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 				if templ_7745c5c3_Err != nil {
@@ -313,7 +314,7 @@ func Index(p PulverizationProps, use UseProps) templ.Component {
 			var templ_7745c5c3_Var16 string
 			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(len(p.Products))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/pulverization/index.templ`, Line: 100, Col: 78}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/pulverization/index.templ`, Line: 101, Col: 78}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 			if templ_7745c5c3_Err != nil {
@@ -336,7 +337,7 @@ func Index(p PulverizationProps, use UseProps) templ.Component {
 			var templ_7745c5c3_Var17 string
 			templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(p.AppliedAt.Format("2006-01-02"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/pulverization/index.templ`, Line: 123, Col: 45}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/pulverization/index.templ`, Line: 124, Col: 45}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 			if templ_7745c5c3_Err != nil {
@@ -354,7 +355,7 @@ func Index(p PulverizationProps, use UseProps) templ.Component {
 				var templ_7745c5c3_Var18 string
 				templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(err)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/pulverization/index.templ`, Line: 128, Col: 42}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/pulverization/index.templ`, Line: 129, Col: 42}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 				if templ_7745c5c3_Err != nil {
@@ -372,7 +373,7 @@ func Index(p PulverizationProps, use UseProps) templ.Component {
 			var templ_7745c5c3_Var19 string
 			templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(p.Unit)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/pulverization/index.templ`, Line: 137, Col: 19}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/pulverization/index.templ`, Line: 138, Col: 19}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 			if templ_7745c5c3_Err != nil {
@@ -405,7 +406,7 @@ func Index(p PulverizationProps, use UseProps) templ.Component {
 				var templ_7745c5c3_Var20 string
 				templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(errMsg)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/pulverization/index.templ`, Line: 152, Col: 48}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/pulverization/index.templ`, Line: 153, Col: 48}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 				if templ_7745c5c3_Err != nil {

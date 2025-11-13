@@ -23,11 +23,12 @@ type ProductInput struct {
 }
 
 type PulverizationProps struct {
-	ID         uint           `form:"ID"`
-	PlantingID uint           `form:"PlantingID"`
-	AppliedAt  Date           `form:"AppliedAt"`
-	Unit       string         `form:"Unit"`
-	Products   []ProductInput `form:"Products"` // múltiplos produtos com quantidades
+	ID         uint                `form:"ID"`
+	PlantingID uint                `form:"PlantingID"`
+	AppliedAt  Date                `form:"AppliedAt"`
+	Unit       string              `form:"Unit"`
+	Products   []ProductInput      `form:"Products"` // múltiplos produtos com quantidades
+	Plantings  []TypePlantingProps `form:"Products"` // múltiplos produtos com quantidades
 	Error      map[string]string
 }
 

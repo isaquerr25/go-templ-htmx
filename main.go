@@ -174,6 +174,29 @@ func main() {
 		)
 	})
 
+	e.GET("/plan/showNewInstacePlants", func(c echo.Context) error {
+		jj, _ := strconv.Atoi(c.QueryParam("index"))
+
+		a, _ := GetAllPlantings()
+		return Render(
+			c,
+			200,
+			pulverization.ItemsPlants(jj, pulverization.TypePlantingProps{}, pulverization.UseProps{
+				Plan: a,
+			}),
+		)
+	})
+
+	e.DELETE("/plan/remove/:id", func(c echo.Context) error {
+		id := c.Param("id")
+
+		// Aqui você pode, se quiser, validar ou logar
+		fmt.Println("Plan removido visualmente:", id)
+
+		// Não precisa deletar no banco — é apenas visual
+		return c.NoContent(200) // HTMX entende que deu certo e aplica o swap
+	})
+
 	e.DELETE("/product/remove/:id", func(c echo.Context) error {
 		id := c.Param("id")
 
@@ -359,11 +382,36 @@ func main() {
 	e.GET("/dashboard/plantings/:planId/pulverization/create", ShowPulverizationForm(db))
 	e.POST("/dashboard/plantings/:planId/pulverization/create", CreatePulverization(db))
 
+	// Pulverization
 	e.GET("/pulverization", ShowPulverizationForm(db))
 	e.GET("/pulverization/:id", ShowPulverizationForm(db))
 	e.POST("/pulverization", CreatePulverization(db))
 	e.POST("/pulverization/:id", UpdatePulverization(db))
 	e.DELETE("/pulverization/:id", DeletePulverization(db))
+
+	// Criação múltipla de pulverizações
+	e.GET("/pulverization/multiple", func(c echo.Context) error {
+		var as []pulverization.TypePlantingProps
+
+		return pulverization.IndexMult(
+			pulverization.PulverizationProps{
+				ID:         0,
+				PlantingID: 0,
+				Unit:       "",
+				Products:   []pulverization.ProductInput{},
+				Plantings:  []pulverization.TypePlantingProps{},
+				Error:      map[string]string{},
+				AppliedAt: pulverization.Date{
+					Time: time.Now(),
+				},
+			},
+			pulverization.UseProps{
+				Prod: []produto.ProductProps{},
+			}, as).
+			Render(c.Request().Context(), c.Response().Writer)
+	})
+
+	e.POST("/pulverization/multiple", CreatePulverizationWithSplit(db))
 
 	// Irrigations
 	e.GET("/irrigation/list", IrrigationList)
