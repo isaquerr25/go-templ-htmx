@@ -1,0 +1,54 @@
+package categoria
+
+import (
+	"fmt"
+	"github.com/isaquerr25/go-templ-htmx/views/templates"
+)
+
+type CategoriaProps struct {
+	ID    uint
+	Name  string
+	Error map[string]string
+}
+
+templ Form(p CategoriaProps) {
+	@templates.Base() {
+		<div class="max-w-[30rem] mx-auto mt-[5rem]">
+			<h1 class="text-2xl font-bold mb-6">
+				if p.ID == 0 {
+					Nova Categoria
+				} else {
+					Editar Categoria
+				}
+			</h1>
+
+			<form
+				if p.ID == 0 {
+					hx-post="/categorias/create"
+					hx-target="body"
+				} else {
+					hx-post={ fmt.Sprintf("/categorias/%d", p.ID) }
+					hx-target="body"
+				}
+				class="space-y-4"
+			>
+				<div>
+					<label class="block text-sm font-medium">Nome</label>
+					<input
+						name="name"
+						value={ p.Name }
+						class="w-full p-2 border rounded"
+						required
+					/>
+					if e, ok := p.Error["Name"]; ok {
+						<p class="text-red-500 text-sm">{ e }</p>
+					}
+				</div>
+
+				<button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+					Salvar
+				</button>
+			</form>
+		</div>
+	}
+}

@@ -6,12 +6,17 @@ import (
 )
 
 type TypeProductProps struct {
-ID uint `form:"id"`
-Name string `form:"name"`
-Describe string `form:"describe"`
-Quantity float64 `form:"quantity"`
+	ID uint `form:"id"`
+	Name string `form:"name"`
+	Describe string `form:"describe"`
+	Quantity float64 `form:"quantity"`
+	Quantidade float64
+	GerminacaoInicio int `form:"germinacaoInicio"`
+	FloracaoInicio int `form:"floracaoInicio"`
+	ColheitaInicio int `form:"colheitaInicio"`
+	MorteInicio int `form:"morteInicio"`
 
-Error map[string]string
+	Error map[string]string
 }
 
 type TypeProductListProps struct {
@@ -37,6 +42,38 @@ templ Index(p TypeProductProps) {
 		<p class="text-red-500">
 			Quantidade:{ p.Quantity }
 		</p>
+		<!-- Estágios da Cultura -->
+		<div class="grid grid-cols-2 gap-4 p-4 border rounded bg-gray-50">
+			<h3 class="col-span-2 font-bold text-sm text-gray-600">Estágios da Cultura (dias após plantio)</h3>
+			<div>
+				<label class="block text-sm">Início Germinação</label>
+				<input type="number" min="1" name="germinacaoInicio" value={ fmt.Sprintf("%d", p.GerminacaoInicio) } required class="w-full p-2 border rounded" />
+				if e, ok := p.Error["GerminacaoInicio"]; ok {
+				<p class="text-red-500 text-sm">{ e }</p>
+				}
+			</div>
+			<div>
+				<label class="block text-sm">Início Floração</label>
+				<input type="number" min="1" name="floracaoInicio" value={ fmt.Sprintf("%d", p.FloracaoInicio) } required class="w-full p-2 border rounded" />
+				if e, ok := p.Error["FloracaoInicio"]; ok {
+				<p class="text-red-500 text-sm">{ e }</p>
+				}
+			</div>
+			<div>
+				<label class="block text-sm">Início Colheita</label>
+				<input type="number" min="1" name="colheitaInicio" value={ fmt.Sprintf("%d", p.ColheitaInicio) } required class="w-full p-2 border rounded" />
+				if e, ok := p.Error["ColheitaInicio"]; ok {
+				<p class="text-red-500 text-sm">{ e }</p>
+				}
+			</div>
+			<div>
+				<label class="block text-sm">Início Morte</label>
+				<input type="number" min="1" name="morteInicio" value={ fmt.Sprintf("%d", p.MorteInicio) } required class="w-full p-2 border rounded" />
+				if e, ok := p.Error["MorteInicio"]; ok {
+				<p class="text-red-500 text-sm">{ e }</p>
+				}
+			</div>
+		</div>
 		<button type="submit" class="w-full bg-blue-500 text-white p-2 rounded">
 			if p.ID == 0 {
 			Cadastrar
@@ -65,7 +102,13 @@ templ List(p TypeProductListProps) {
 			<div>
 				<h2 class="font-semibold">{ item.Name }</h2>
 				<p class="text-sm text-gray-500">{ item.Describe }</p>
-				<p class="text-sm text-gray-500">Quantidade:{ item.Quantity }</p>
+				<p class="text-sm text-gray-500">Quantidade: { item.Quantity }</p>
+				<p class="text-xs text-gray-400">
+					Germinação: { fmt.Sprintf("%d dias", item.GerminacaoInicio) } |
+					Floração: { fmt.Sprintf("%d dias", item.FloracaoInicio) } |
+					Colheita: { fmt.Sprintf("%d dias", item.ColheitaInicio) } |
+					Morte: { fmt.Sprintf("%d dias", item.MorteInicio) }
+				</p>
 			</div>
 			<button hx-get={ fmt.Sprintf("/typeProduct/%d", item.ID) } hx-target="body" hx-swap="outerHTML"
 				class="text-blue-500">Editar</button>

@@ -42,12 +42,16 @@ type Date struct {
 }
 
 templ ItemsProdut(i int, pr ProductInput, prod UseProps) {
-	<div class="flex items-center gap-4 mb-2" id={ fmt.Sprintf("itemProduct-%d", i) }>
-		<select name={ fmt.Sprintf("products[%d].productId", i) } required class="w-full p-2 border rounded">
+	<div class="flex items-center gap-2 mb-2" id={ fmt.Sprintf("itemProduct-%d", i) }>
+		<select name={ fmt.Sprintf("products[%d].productId", i) } required class="flex-1 p-2 border rounded item-product-select">
 			<option value="">Selecione um produto</option>
 			for _, f := range prod.Prod {
-				<option data-qtd={ f.PrePulverizationBase } value={ fmt.Sprintf("%d", f.ID) } selected={ f.ID == pr.ProductID }>
-					{ f.Name } - Restante: { f.Remaining } Kg/L
+				<option data-qtd={ f.PrePulverizationBase } data-unit={ f.Unit } data-categorias={ f.CategoriasLabel } value={ fmt.Sprintf("%d", f.ID) } selected={ f.ID == pr.ProductID }>
+					if f.CategoriasLabel != "" {
+						{ f.Name } ({ f.CategoriasLabel }) - { f.Remaining } { f.Unit }
+					} else {
+						{ f.Name } - { f.Remaining } { f.Unit }
+					}
 				</option>
 			}
 		</select>
@@ -60,13 +64,12 @@ templ ItemsProdut(i int, pr ProductInput, prod UseProps) {
 			value={ pr.QuantityUsed }
 			placeholder="Quantidade"
 			required
-			class="w-28 p-2 border rounded"
+			class="w-24 p-2 border rounded text-center"
 		/>
-		<div class="whitespace-nowrap text-sm text-gray-600">gg ou ml</div>
-		<!-- Botão de remover -->
+		<div class="product-unit whitespace-nowrap text-sm text-gray-600 w-10 text-center">gg</div>
 		<button
 			type="button"
-			class="text-red-600 hover:text-red-800 font-medium"
+			class="text-red-600 hover:text-red-800 font-medium text-lg px-1"
 			hx-delete={ fmt.Sprintf("/product/remove/%d", pr.ProductID) }
 			hx-target={ fmt.Sprintf("#itemProduct-%d", i) }
 			hx-swap="outerHTML"
@@ -158,14 +161,16 @@ templ Index(p PulverizationProps, use UseProps) {
 	document.addEventListener("change", function (e) {
 		if (e.target.matches('select[name^="products"][name$=".productId"]')) {
 			const select = e.target
-			const selectedOption = select.options[select.selectedIndex]
-			const qtd = selectedOption.getAttribute("data-qtd") || ""
+			const opt = select.options[select.selectedIndex]
 			const parent = select.closest("div.flex")
 			if (parent) {
 				const input = parent.querySelector('input[name^="products"][name$=".quantityUsed"]')
 				if (input) {
-					input.value = qtd
-					console.log("✅ Script rodou: quantidade atualizada para", qtd)
+					input.value = opt.getAttribute("data-qtd") || ""
+				}
+				const unit = parent.querySelector('.product-unit')
+				if (unit) {
+					unit.textContent = opt.getAttribute("data-unit") || "gg"
 				}
 			}
 		}

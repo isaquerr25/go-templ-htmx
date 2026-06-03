@@ -32,15 +32,16 @@ Profit float64
 Label string
 }
 
-type TypeProductProps struct {
-ID uint
-Name string
+type CulturaProps struct {
+	ID   uint
+	Name string
 }
 
 type PlantingDetailProps struct {
-ID uint
-TypeProductProps TypeProductProps
+	ID uint
+	CulturaProps CulturaProps
 CropName string
+CurrentStage string
 AreaUsed float64
 TotalCost float64
 TotalHarvest float64
@@ -52,6 +53,22 @@ Costs []Cost
 Revenues []Revenue
 Fertilizers []Fertilizer
 Harvest []harvest.HarvestProps
+}
+
+func stageColor(stage string) string {
+	switch stage {
+	case "🌱 Plantio":
+		return "text-green-700"
+	case "🌿 Germinação":
+		return "text-blue-700"
+	case "🌸 Floração":
+		return "text-pink-700"
+	case "🌾 Colheita":
+		return "text-yellow-700"
+	case "🍂 Morte":
+		return "text-gray-500"
+	}
+	return "text-gray-700"
 }
 
 type Cost struct {
@@ -91,6 +108,10 @@ templ Show(props PlantingDetailProps) {
 	<a href="./service" class="text-sm text-blue-600 hover:underline">
 		<i class="fas fa-concierge-bell"></i> Custo Diversos
 	</a>
+	-
+	<a href="./vaccination/create" class="text-sm text-orange-600 hover:underline font-semibold">
+		<i class="fas fa-syringe"></i> Vacinação (Emergencial)
+	</a>
 	<header class="mb-10 border-b border-green-300 pb-4 flex justify-between items-center">
 		<h1 class="text-4xl font-extrabold text-green-700 tracking-tight">Detalhes do Plantio</h1>
 		<div class="space-x-3">
@@ -113,6 +134,14 @@ templ Show(props PlantingDetailProps) {
 			<div>
 				<h3 class="text-lg font-semibold text-gray-700">Cultura</h3>
 				<p class="text-xl font-medium text-green-800">{ props.CropName }</p>
+			</div>
+			<div>
+				<h3 class="text-lg font-semibold text-gray-700">Cultura</h3>
+				<p class="text-xl font-medium">{ props.CulturaProps.Name }</p>
+			</div>
+			<div>
+				<h3 class="text-lg font-semibold text-gray-700">Estágio Atual</h3>
+				<p class="text-xl font-semibold { stageColor(props.CurrentStage) }">{ props.CurrentStage }</p>
 			</div>
 			<div>
 				<h3 class="text-lg font-semibold text-gray-700">Área utilizada</h3>

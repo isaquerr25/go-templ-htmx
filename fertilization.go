@@ -166,7 +166,7 @@ func CreateFertilization(c echo.Context) error {
 		return err
 	}
 
-	// Transação segura com verificação de estoque
+	// Transação segura com verificação de estoque via FIFO
 	fmt.Println("🚀 Iniciando transação no banco")
 	err = db.Transaction(func(tx *gorm.DB) error {
 		f := Fertilization{
@@ -183,32 +183,11 @@ func CreateFertilization(c echo.Context) error {
 		fmt.Println("✅ Fertilização criada com ID:", f.ID)
 
 		for _, p := range input.Products {
-			fmt.Println("🔍 Buscando produto ID:", p.ProductID)
+			fmt.Println("🔍 Consumindo estoque do produto ID:", p.ProductID)
 
-			var product Product
-			if err := tx.First(&product, p.ProductID).Error; err != nil {
-				fmt.Printf("❌ Produto ID %d não encontrado\n", p.ProductID)
-				input.Error["Products"] = fmt.Sprintf("Produto ID %d não encontrado", p.ProductID)
-				return fmt.Errorf("produto %d não encontrado", p.ProductID)
-			}
-
-			fmt.Printf("📦 Estoque atual do produto '%s': %.2f\n", product.Name, product.Remaining)
-			if product.Remaining < p.QuantityUsed {
-				fmt.Printf("❌ Estoque insuficiente para '%s'\n", product.Name)
-				input.Error["Products"] = fmt.Sprintf(
-					"Estoque insuficiente para '%s': necessário %.2f, disponível %.2f",
-					product.Name,
-					p.QuantityUsed,
-					product.Remaining,
-				)
-				return fmt.Errorf("estoque insuficiente")
-			}
-
-			product.Remaining -= p.QuantityUsed
-			if err := tx.Save(&product).Error; err != nil {
-				fmt.Println("❌ Erro ao atualizar estoque:", err)
-				input.Error["global"] = "Erro ao atualizar estoque"
-				return err
+			if err := consumeStock(tx, p.ProductID, p.QuantityUsed); err != nil {
+				input.Error["Products"] = fmt.Sprintf("Estoque insuficiente para produto %d", p.ProductID)
+				return fmt.Errorf("estoque insuficiente para produto %d", p.ProductID)
 			}
 
 			af := ApplyFertilization{
@@ -291,17 +270,18 @@ func DeleteFertilization(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "ID inválido")
 	}
 
-	var f ApplyFertilization
-	if err := db.First(&f, id).Error; err != nil {
+	var f Fertilization
+	if err := db.Preload("Products").First(&f, id).Error; err != nil {
 		return c.String(http.StatusNotFound, "Fertilização não encontrada")
 	}
 
-	if err := db.Delete(&f).Error; err != nil {
-		return c.String(http.StatusInternalServerError, "Erro ao deletar fertilização")
-	}
-
-	// Opcional: deletar também produtos aplicados
-	db.Where("fertilization_id = ?", f.ID).Delete(&ApplyFertilization{})
+	db.Transaction(func(tx *gorm.DB) error {
+		for _, p := range f.Products {
+			restoreStock(tx, p.ProductID, p.QuantityUsed)
+		}
+		tx.Delete(&f)
+		return nil
+	})
 
 	c.Response().Header().Set("HX-Redirect", "")
 	return c.String(http.StatusOK, "")

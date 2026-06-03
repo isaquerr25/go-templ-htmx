@@ -1,0 +1,98 @@
+package cultura
+
+import (
+	"fmt"
+	"github.com/isaquerr25/go-templ-htmx/views/templates"
+)
+
+type CulturaProps struct {
+	ID                uint
+	Name              string
+	GerminacaoInicio  int
+	FloracaoInicio    int
+	ColheitaInicio    int
+	MorteInicio       int
+	Error             map[string]string
+}
+
+templ Form(p CulturaProps) {
+	@templates.Base() {
+		<div class="max-w-[30rem] mx-auto mt-[5rem]">
+			<h1 class="text-2xl font-bold mb-6">
+				if p.ID == 0 {
+					Nova Cultura
+				} else {
+					Editar Cultura
+				}
+			</h1>
+
+			<form
+				if p.ID == 0 {
+					hx-post="/culturas/create"
+					hx-target="body"
+				} else {
+					hx-post={ fmt.Sprintf("/culturas/%d", p.ID) }
+					hx-target="body"
+				}
+				class="space-y-4"
+			>
+				<div>
+					<label class="block text-sm font-medium">Nome</label>
+					<input
+						name="name"
+						value={ p.Name }
+						class="w-full p-2 border rounded"
+						required
+					/>
+					if e, ok := p.Error["Name"]; ok {
+						<p class="text-red-500 text-sm">{ e }</p>
+					}
+				</div>
+
+				<div>
+					<label class="block text-sm font-medium">Início da Germinação (dias)</label>
+					<input
+						type="number" min="0"
+						name="germinacaoInicio"
+						value={ fmt.Sprintf("%d", p.GerminacaoInicio) }
+						class="w-full p-2 border rounded"
+					/>
+				</div>
+
+				<div>
+					<label class="block text-sm font-medium">Início da Floração (dias)</label>
+					<input
+						type="number" min="0"
+						name="floracaoInicio"
+						value={ fmt.Sprintf("%d", p.FloracaoInicio) }
+						class="w-full p-2 border rounded"
+					/>
+				</div>
+
+				<div>
+					<label class="block text-sm font-medium">Início da Colheita (dias)</label>
+					<input
+						type="number" min="0"
+						name="colheitaInicio"
+						value={ fmt.Sprintf("%d", p.ColheitaInicio) }
+						class="w-full p-2 border rounded"
+					/>
+				</div>
+
+				<div>
+					<label class="block text-sm font-medium">Início da Morte (dias)</label>
+					<input
+						type="number" min="0"
+						name="morteInicio"
+						value={ fmt.Sprintf("%d", p.MorteInicio) }
+						class="w-full p-2 border rounded"
+					/>
+				</div>
+
+				<button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+					Salvar
+				</button>
+			</form>
+		</div>
+	}
+}

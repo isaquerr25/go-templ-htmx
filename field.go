@@ -9,16 +9,15 @@ import (
 	"gorm.io/gorm"
 )
 
-func GetAllFields() ([]planting.TypeProductProps, error) {
+func GetAllFields() ([]planting.CulturaProps, error) {
 	var dbTypeProduct []TypeProduct
 	if err := db.Find(&dbTypeProduct).Error; err != nil {
 		return nil, err
 	}
 
-	// Conversão manual para []planting.Field
-	var fields []planting.TypeProductProps
+	var fields []planting.CulturaProps
 	for _, f := range dbTypeProduct {
-		fields = append(fields, planting.TypeProductProps{
+		fields = append(fields, planting.CulturaProps{
 			ID:   f.ID,
 			Name: f.Name,
 		})

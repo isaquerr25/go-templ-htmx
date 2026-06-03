@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/isaquerr25/go-templ-htmx/views/pages/cashflow"
@@ -13,8 +14,19 @@ import (
 
 // 📋 LISTAGEM
 func ListCashFlows(c echo.Context) error {
+	q := strings.TrimSpace(c.QueryParam("q"))
+	cat := strings.TrimSpace(c.QueryParam("category"))
+
 	var flows []CashFlow
-	if err := db.Find(&flows).Error; err != nil {
+	query := db.Model(&CashFlow{})
+	if q != "" {
+		query = query.Where("description LIKE ? OR notes LIKE ? OR CAST(amount AS TEXT) LIKE ?",
+			"%"+q+"%", "%"+q+"%", "%"+q+"%")
+	}
+	if cat != "" {
+		query = query.Where("category = ?", cat)
+	}
+	if err := query.Find(&flows).Error; err != nil {
 		return c.String(http.StatusInternalServerError, "Erro ao buscar fluxos de caixa")
 	}
 
@@ -46,6 +58,8 @@ func ListCashFlows(c echo.Context) error {
 		TotalIn:  totalIn,
 		TotalOut: totalOut,
 		Balance:  balance,
+		Q:        q,
+		Category: cat,
 	}
 
 	return cashflow.List(props).Render(c.Request().Context(), c.Response())

@@ -1,0 +1,118 @@
+package vaccination
+
+import (
+	"fmt"
+	"github.com/isaquerr25/go-templ-htmx/views/templates"
+	"time"
+)
+
+type VaccinationProps struct {
+	ID           uint
+	PlantingID   uint
+	PlantingName string
+	VaccinatedAt Date
+	ProductID    uint
+	Quantity     float64
+	Unit         string
+	Notes        string
+	Error        map[string]string
+}
+
+type Date struct {
+	time.Time
+}
+
+type VaccinationItem struct {
+	ID           uint
+	PlantingID   uint
+	PlantingName string
+	VaccinatedAt time.Time
+	ProductName  string
+	Quantity     float64
+	Unit         string
+	Notes        string
+}
+
+templ Create(props VaccinationProps) {
+	@templates.Base() {
+		<div class="max-w-[50rem] mx-auto mt-[5rem]">
+			<h1 class="text-xl font-bold mb-4 text-orange-700">Vacinação - Medida Emergencial</h1>
+			<p class="text-sm text-gray-500 mb-4 italic">Aplicar logo após a germinação para proteção contra pragas.</p>
+			<form
+				hx-post={ fmt.Sprintf("/dashboard/plantings/%d/vaccination/create", props.PlantingID) }
+				hx-target="main"
+				hx-select="main"
+				hx-swap="outerHTML"
+				class="space-y-4"
+			>
+				<div>
+					<label class="block font-medium">Data da Vacinação</label>
+					<input type="date" name="vaccinatedAt" value={ props.VaccinatedAt.Format("2006-01-02") } required class="w-full p-2 border rounded" />
+				</div>
+				<div>
+					<label class="block font-medium">Produto (ID)</label>
+					<input type="number" name="productId" value={ fmt.Sprintf("%d", props.ProductID) } class="w-full p-2 border rounded" placeholder="ID do produto" />
+				</div>
+				<div class="grid grid-cols-2 gap-4">
+					<div>
+						<label class="block font-medium">Quantidade</label>
+						<input type="number" step="0.01" name="quantity" value={ fmt.Sprintf("%.2f", props.Quantity) } class="w-full p-2 border rounded" />
+					</div>
+					<div>
+						<label class="block font-medium">Unidade</label>
+						<input type="text" name="unit" value={ props.Unit } class="w-full p-2 border rounded" placeholder="ex: L, kg" />
+					</div>
+				</div>
+				<div>
+					<label class="block font-medium">Observações</label>
+					<textarea name="notes" class="w-full p-2 border rounded" rows="3">{ props.Notes }</textarea>
+				</div>
+				<button type="submit" class="w-full bg-orange-500 text-white p-2 rounded hover:bg-orange-600">
+					Aplicar Vacinação
+				</button>
+			</form>
+		</div>
+	}
+}
+
+templ List(items []VaccinationItem) {
+	@templates.Base() {
+		<div class="max-w-[60rem] mx-auto mt-[5rem]">
+			<h1 class="text-2xl font-bold mb-6 text-orange-700">Vacinações</h1>
+			if len(items) == 0 {
+				<p class="text-gray-500 italic">Nenhuma vacinação registrada.</p>
+			} else {
+				<table class="w-full border border-gray-300 rounded">
+					<thead class="bg-gray-100">
+						<tr>
+							<th class="p-2 text-left">Data</th>
+							<th class="p-2 text-left">Plantio</th>
+							<th class="p-2 text-left">Produto</th>
+							<th class="p-2 text-left">Quantidade</th>
+							<th class="p-2 text-left">Observações</th>
+							<th class="p-2 text-left">Ações</th>
+						</tr>
+					</thead>
+					<tbody>
+						for _, v := range items {
+							<tr class="border-t border-gray-200">
+								<td class="p-2">{ v.VaccinatedAt.Format("02/01/2006") }</td>
+								<td class="p-2">{ v.PlantingName }</td>
+								<td class="p-2">{ v.ProductName }</td>
+								<td class="p-2">{ fmt.Sprintf("%.2f %s", v.Quantity, v.Unit) }</td>
+								<td class="p-2 text-sm text-gray-500">{ v.Notes }</td>
+								<td class="p-2">
+									<button hx-delete={ fmt.Sprintf("/vaccination/%d", v.ID) }
+										hx-confirm="Deseja excluir esta vacinação?" hx-target="main" hx-swap="outerHTML"
+										class="bg-red-600 text-white px-2 py-1 rounded text-sm">
+										Remover
+									</button>
+								</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			}
+		</div>
+	}
+}

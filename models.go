@@ -9,14 +9,56 @@ import (
 // Produto representa um item no banco de dados
 type Product struct {
 	gorm.Model
-	Name                 string    `form:"name"`
-	Quantity             float64   `form:"quantity"`
-	Remaining            float64   `form:"remaining"`
-	Unit                 string    `form:"unit"`
-	Date                 time.Time `form:"date"`
-	TotalCost            float64   `form:"totalCost"`
-	Description          string    `form:"description"`
-	PrePulverizationBase float64   `form:"prePulverizationBase"` // base de pré-pulverização
+	Name                 string              `form:"name"`
+	Unit                 string              `form:"unit"`
+	Description          string              `form:"description"`
+	BaseValue            float64             `form:"baseValue"`            // dica de dosagem padrão
+	PrePulverizationBase float64             `form:"prePulverizationBase"` // compat
+	Lots                 []ProductLot        `gorm:"foreignKey:ProductID;constraint:OnDelete:CASCADE;"`
+	Cultures             []ProductCultura    `gorm:"foreignKey:ProductID;constraint:OnDelete:CASCADE;"`
+	Categorias           []ProductCategoria  `gorm:"foreignKey:ProductID;constraint:OnDelete:CASCADE;"`
+}
+
+type ProductLot struct {
+	gorm.Model
+	ProductID uint      `form:"productId"`
+	Quantity  float64   `form:"quantity"`
+	Remaining float64   `form:"remaining"`
+	Unit      string    `form:"unit"`
+	Date      time.Time `form:"date"`
+	UnitCost  float64   `form:"unitCost"`
+	TotalCost float64   `form:"totalCost"`
+}
+
+type Cultura struct {
+	gorm.Model
+	Name             string `gorm:"uniqueIndex"`
+	GerminacaoInicio int    `form:"germinacaoInicio"`
+	FloracaoInicio   int    `form:"floracaoInicio"`
+	ColheitaInicio   int    `form:"colheitaInicio"`
+	MorteInicio      int    `form:"morteInicio"`
+}
+
+type ProductCultura struct {
+	gorm.Model
+	ProductID  uint    `gorm:"uniqueIndex:idx_product_cultura"`
+	Product    Product `gorm:"foreignKey:ProductID;constraint:OnDelete:CASCADE;"`
+	CulturaID  uint    `gorm:"uniqueIndex:idx_product_cultura"`
+	Cultura    Cultura `gorm:"foreignKey:CulturaID;constraint:OnDelete:CASCADE;"`
+	Proportion float64 // proporção de aplicação por hectare (ex: 2.5 L/ha)
+}
+
+type Categoria struct {
+	gorm.Model
+	Name string `gorm:"uniqueIndex"`
+}
+
+type ProductCategoria struct {
+	gorm.Model
+	ProductID    uint      `gorm:"uniqueIndex:idx_product_categoria"`
+	Product      Product   `gorm:"foreignKey:ProductID;constraint:OnDelete:CASCADE;"`
+	CategoriaID  uint      `gorm:"uniqueIndex:idx_product_categoria"`
+	Categoria    Categoria `gorm:"foreignKey:CategoriaID;constraint:OnDelete:CASCADE;"`
 }
 
 type Field struct {
@@ -29,6 +71,8 @@ type Field struct {
 type Planting struct {
 	gorm.Model
 	TypeProductID *uint      `form:"typeProductId" gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL"`
+	CulturaID     *uint      `form:"culturaId"      gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL"`
+	Cultura       Cultura    `gorm:"foreignKey:CulturaID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 	CropName      string     `form:"cropName"`
 	StartedAt     time.Time  `form:"startedAt"`
 	EndedAt       *time.Time `form:"endedAt"`
@@ -141,9 +185,23 @@ type Service struct {
 
 type TypeProduct struct {
 	gorm.Model
-	Name     string  `form:"name"`
-	Describe string  `form:"describe"`
-	Quantity float64 `form:"quantity"`
+	Name             string  `form:"name"`
+	Describe         string  `form:"describe"`
+	Quantity         float64 `form:"quantity"`
+	GerminacaoInicio int     `form:"germinacaoInicio"` // dias após plantio
+	FloracaoInicio   int     `form:"floracaoInicio"`
+	ColheitaInicio   int     `form:"colheitaInicio"`
+	MorteInicio      int     `form:"morteInicio"`
+}
+
+type Vaccination struct {
+	gorm.Model
+	PlantingID   uint      `form:"plantingId"   gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	VaccinatedAt time.Time `form:"vaccinatedAt"`
+	ProductID    uint      `form:"productId"`
+	Quantity     float64   `form:"quantity"`
+	Unit         string    `form:"unit"`
+	Notes        string    `form:"notes"`
 }
 
 // CashFlow representa uma movimentação financeira (entrada ou saída de dinheiro)

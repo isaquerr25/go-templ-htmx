@@ -1,0 +1,115 @@
+package cultura
+
+import (
+	"fmt"
+	"github.com/isaquerr25/go-templ-htmx/views/templates"
+)
+
+type CulturaItem struct {
+	ID                uint
+	Name              string
+	GerminacaoInicio  int
+	FloracaoInicio    int
+	ColheitaInicio    int
+	MorteInicio       int
+}
+
+templ List(items []CulturaItem, nameFilter string) {
+	@templates.Base() {
+		@ListContent(items, nameFilter)
+	}
+}
+
+templ ListContent(items []CulturaItem, nameFilter string) {
+	<div id="cultura-list">
+		<div class="container mx-auto">
+			<h1 class="text-3xl font-semibold text-center mb-6">Culturas</h1>
+
+			<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+				<form hx-get="/culturas" hx-target="#cultura-list" hx-swap="outerHTML" class="w-full sm:w-auto">
+					<div class="flex flex-col sm:flex-row gap-2 w-full">
+						<input
+							type="text"
+							name="name"
+							value={ nameFilter }
+							placeholder="Filtrar por nome..."
+							class="border rounded px-3 py-2 text-sm w-full sm:w-64"
+						/>
+						<div class="flex gap-2">
+							<button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded text-sm hover:bg-blue-600 flex-1 sm:flex-none">
+								Filtrar
+							</button>
+							<a href="/culturas" class="bg-gray-200 text-gray-700 px-4 py-2 rounded text-sm hover:bg-gray-300 no-underline text-center flex-1 sm:flex-none">
+								Limpar
+							</a>
+						</div>
+					</div>
+				</form>
+				<div class="flex gap-2">
+					<a
+						href={ templ.URL("/culturas/new") }
+						class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition text-sm whitespace-nowrap"
+					>
+						Nova Cultura
+					</a>
+				</div>
+			</div>
+
+			<table class="min-w-full table-auto bg-white shadow-md rounded-lg">
+				<thead>
+					<tr class="bg-gray-800 text-white">
+						<th class="px-4 py-2 text-left">Nome</th>
+						<th class="px-4 py-2 text-left">Germinação</th>
+						<th class="px-4 py-2 text-left">Floração</th>
+						<th class="px-4 py-2 text-left">Colheita</th>
+						<th class="px-4 py-2 text-left">Morte</th>
+						<th class="px-4 py-2 text-left">Ações</th>
+					</tr>
+				</thead>
+				<tbody>
+					for _, item := range items {
+						<tr class="border-b hover:bg-gray-100" id={ fmt.Sprintf("cultura-%d", item.ID) }>
+							<td class="px-4 py-2 font-medium">{ item.Name }</td>
+							<td class="px-4 py-2 text-sm">
+								if item.GerminacaoInicio > 0 {
+									<span>{ fmt.Sprintf("%d dias", item.GerminacaoInicio) }</span>
+								}
+							</td>
+							<td class="px-4 py-2 text-sm">
+								if item.FloracaoInicio > 0 {
+									<span>{ fmt.Sprintf("%d dias", item.FloracaoInicio) }</span>
+								}
+							</td>
+							<td class="px-4 py-2 text-sm">
+								if item.ColheitaInicio > 0 {
+									<span>{ fmt.Sprintf("%d dias", item.ColheitaInicio) }</span>
+								}
+							</td>
+							<td class="px-4 py-2 text-sm">
+								if item.MorteInicio > 0 {
+									<span>{ fmt.Sprintf("%d dias", item.MorteInicio) }</span>
+								}
+							</td>
+							<td class="px-4 py-2 space-x-2">
+								<a
+									href={ templ.URL(fmt.Sprintf("/culturas/edit/%d", item.ID)) }
+									class="text-blue-600 hover:underline"
+								>Editar</a>
+								<button
+									hx-delete={ templ.URL(fmt.Sprintf("/culturas/%d", item.ID)) }
+									hx-target={ fmt.Sprintf("#cultura-%d", item.ID) }
+									hx-swap="outerHTML swap:1s"
+									hx-confirm="Tem certeza que deseja excluir esta cultura?"
+									class="text-red-600 hover:underline"
+									hx-on:htmx:afterRequest="location.reload()"
+								>
+									Excluir
+								</button>
+							</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	</div>
+}

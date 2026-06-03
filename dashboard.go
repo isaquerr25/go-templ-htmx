@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/isaquerr25/go-templ-htmx/views/pages/dashboard"
@@ -14,27 +15,51 @@ import (
 
 func ListDasboard() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		var plantings []Planting
+		q := strings.TrimSpace(c.QueryParam("q"))
+		completed := c.QueryParam("completed")
 
-		if err := db.Find(&plantings).Error; err != nil {
+		var plantings []Planting
+		query := db.Model(&Planting{})
+
+		if q != "" {
+			query = query.Where("crop_name LIKE ?", "%"+q+"%")
+		}
+		if completed == "true" {
+			query = query.Where("is_completed = ?", true)
+		} else if completed == "false" {
+			query = query.Where("is_completed = ?", false)
+		}
+
+		if err := query.Find(&plantings).Error; err != nil {
 			return c.String(http.StatusInternalServerError, "Erro ao buscar plantios")
 		}
 
 		var items []planting.PlantingItem
 		for _, p := range plantings {
+			stage := ""
+			culturaName := ""
+			if p.CulturaID != nil {
+				var ct Cultura
+				if err := db.First(&ct, *p.CulturaID).Error; err == nil {
+					stage = stageLabel(computeCurrentStageFromCultura(p.StartedAt, ct))
+					culturaName = ct.Name
+				}
+			}
+
 			items = append(items, planting.PlantingItem{
-				ID:          p.ID,
-				CropName:    p.CropName,
-				StartedAt:   p.StartedAt,
-				EndedAt:     p.EndedAt,
-				IsCompleted: p.IsCompleted,
-				AreaUsed:    p.AreaUsed,
+				ID:           p.ID,
+				CulturaID:    p.CulturaID,
+				CulturaName:  culturaName,
+				CurrentStage: stage,
+				CropName:     p.CropName,
+				StartedAt:    p.StartedAt,
+				EndedAt:      p.EndedAt,
+				IsCompleted:  p.IsCompleted,
+				AreaUsed:     p.AreaUsed,
 			})
 		}
 
-		// Gerar HTML via templ do go-templ-htmx
-		return dashboard.List(items).Render(c.Request().Context(), c.Response().Writer)
-		// Responder com HTML
+		return dashboard.List(items, q, completed).Render(c.Request().Context(), c.Response().Writer)
 	}
 }
 
@@ -101,10 +126,20 @@ func DashboardShowPlanting() echo.HandlerFunc {
 		for _, irr := range appliedProducts {
 
 			var pd Product
-
 			db.First(&pd, irr.ProductID)
 
-			r := regraDeTres(pd.Quantity, pd.TotalCost, irr.QuantityUsed)
+			var totalQty, totalCostProd float64
+			var lots []ProductLot
+			db.Where("product_id = ?", pd.ID).Find(&lots)
+			for _, l := range lots {
+				totalQty += l.Quantity
+				totalCostProd += l.TotalCost
+			}
+
+			r := 0.0
+			if totalQty > 0 {
+				r = regraDeTres(totalQty, totalCostProd, irr.QuantityUsed)
+			}
 			totalCost = totalCost + r
 			costs = append(costs, dashboard.Cost{
 				ID:          irr.ID,
@@ -146,9 +181,20 @@ func DashboardShowPlanting() echo.HandlerFunc {
 		var fertilizers []dashboard.Fertilizer
 		for _, fert := range adu {
 			var pd Product
-
 			db.First(&pd, fert.ProductID)
-			r := regraDeTres(pd.Quantity, pd.TotalCost, fert.QuantityUsed)
+
+			var totalQty, totalCostProd float64
+			var lots []ProductLot
+			db.Where("product_id = ?", pd.ID).Find(&lots)
+			for _, l := range lots {
+				totalQty += l.Quantity
+				totalCostProd += l.TotalCost
+			}
+
+			r := 0.0
+			if totalQty > 0 {
+				r = regraDeTres(totalQty, totalCostProd, fert.QuantityUsed)
+			}
 			totalCost = totalCost + r
 			fertilizers = append(fertilizers, dashboard.Fertilizer{
 				Amount: fmt.Sprintln(fert.QuantityUsed),
@@ -186,14 +232,25 @@ func DashboardShowPlanting() echo.HandlerFunc {
 			})
 		}
 
-		var typeProduc TypeProduct
-		db.First(&typeProduc, planting.TypeProductID)
+		culturaName := ""
+		currentStage := ""
+		if planting.CulturaID != nil {
+			var ct Cultura
+			if err := db.First(&ct, *planting.CulturaID).Error; err == nil {
+				currentStage = stageLabel(computeCurrentStageFromCultura(planting.StartedAt, ct))
+				culturaName = ct.Name
+			}
+		}
 
 		// Monta o objeto completo
 
 		a := dashboard.PlantingDetailProps{
-			ID:          planting.ID,
-			CropName:    planting.CropName,
+			ID:           planting.ID,
+			CropName:     planting.CropName,
+			CurrentStage: currentStage,
+			CulturaProps: dashboard.CulturaProps{
+				Name: culturaName,
+			},
 			AreaUsed:    planting.AreaUsed,
 			StartedAt:   planting.StartedAt,
 			EndedAt:     planting.EndedAt,
@@ -201,10 +258,6 @@ func DashboardShowPlanting() echo.HandlerFunc {
 			Costs:       costs,
 			Revenues:    revenues,
 			Fertilizers: fertilizers,
-			TypeProductProps: dashboard.TypeProductProps{
-				ID:   typeProduc.ID,
-				Name: typeProduc.Name,
-			},
 			Service:      costsServices,
 			Harvest:      harvestProps,
 			TotalCost:    float64(totalCost),

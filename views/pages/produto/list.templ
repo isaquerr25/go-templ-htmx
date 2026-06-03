@@ -6,64 +6,184 @@ import (
 	"strconv"
 )
 
-templ List(pp []ProductProps) {
+type ProductListProps struct {
+	ID            uint
+	ProductID     uint
+	Name          string
+	Description   string
+	Quantity      float64
+	Remaining     float64
+	TotalCost     float64
+	Categorias    []string
+	Error         map[string]string
+}
+
+templ List(pp []ProductListProps, nameFilter string, allCategorias []CategoriaCheckItem, categoriaFilter string) {
 	@templates.Base() {
+		@ListContent(pp, nameFilter, allCategorias, categoriaFilter)
+	}
+}
+
+templ ListContent(pp []ProductListProps, nameFilter string, allCategorias []CategoriaCheckItem, categoriaFilter string) {
+	<div id="product-list">
 		<div class="container mx-auto">
 			<h1 class="text-3xl font-semibold text-center mb-6">Produtos</h1>
-			<!-- Botão para criar novo produto -->
-			<div class="flex justify-end mb-4">
-				<a
-					href={ templ.URL("/newProduct") }
-					class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+
+			<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+				<form
+					hx-get="/listProduct"
+					hx-target="#product-list"
+					hx-swap="outerHTML"
+					class="w-full sm:w-auto"
 				>
-					Novo Produto
-				</a>
+					<div class="flex flex-col sm:flex-row gap-2 w-full">
+						<input
+							type="text"
+							name="name"
+							value={ nameFilter }
+							placeholder="Filtrar por nome..."
+							class="border rounded px-3 py-2 text-sm w-full sm:w-64"
+						/>
+						if len(allCategorias) > 0 {
+							<select name="categoria" class="border rounded px-3 py-2 text-sm w-full sm:w-48">
+								<option value="">Todas categorias</option>
+								for _, cat := range allCategorias {
+									<option value={ fmt.Sprintf("%d", cat.ID) } selected?={ fmt.Sprintf("%d", cat.ID) == categoriaFilter }>
+										{ cat.Name }
+									</option>
+								}
+							</select>
+						}
+						<div class="flex gap-2">
+							<button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded text-sm hover:bg-blue-600 flex-1 sm:flex-none">
+								Filtrar
+							</button>
+							<a
+								href="/listProduct"
+								class="bg-gray-200 text-gray-700 px-4 py-2 rounded text-sm hover:bg-gray-300 no-underline text-center flex-1 sm:flex-none"
+							>
+								Limpar
+							</a>
+						</div>
+					</div>
+				</form>
+				<div class="flex gap-2">
+					<a
+						href={ templ.URL("/newProduct") }
+						class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition text-sm whitespace-nowrap"
+					>
+						Novo Produto
+					</a>
+					<a
+						href={ templ.URL("/culturas") }
+						class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition text-sm whitespace-nowrap"
+					>
+						Culturas
+					</a>
+					<a
+						href={ templ.URL("/categorias") }
+						class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition text-sm whitespace-nowrap"
+					>
+						Categorias
+					</a>
+				</div>
 			</div>
-			<table class="min-w-full table-auto bg-white shadow-md rounded-lg">
-				<thead>
-					<tr class="bg-gray-800 text-white">
-						<th class="px-4 py-2 text-left">Nome</th>
-						<th class="px-4 py-2 text-left">Quantidade</th>
-						<th class="px-4 py-2 text-left">Unidade</th>
-						<th class="px-4 py-2 text-left">Data</th>
-						<th class="px-4 py-2 text-left">Valor</th>
-						<th class="px-4 py-2 text-left">Usando</th>
-						<th class="px-4 py-2 text-left">Ações</th>
-					</tr>
-				</thead>
-				<tbody>
-					for _, p := range pp {
-						<tr class="border-b hover:bg-gray-100">
-							<td class="px-4 py-2">
-								<a href={ templ.URL(fmt.Sprintf("/listProduct/%d", p.ID)) }>
-									{ p.Name }
-								</a>
-							</td>
-							<td class="px-4 py-2">{ strconv.FormatFloat(p.Quantity, 'f', -1, 64) }</td>
-							<td class="px-4 py-2">{ p.Unit }</td>
-							<td class="px-4 py-2">{ p.Date.Format("02/01/2006") }</td>
-							<td class="px-4 py-2">{ fmt.Sprintf("%.2f", p.TotalCost) }</td>
-							<td class="px-4 py-2">{ strconv.FormatFloat(p.Remaining, 'f', -1, 64) }</td>
-							<td class="px-4 py-2 space-x-2">
-								<a
-									href={ templ.URL(fmt.Sprintf("/editProduct/%d", p.ID)) }
-									class="text-blue-600 hover:underline"
-								>Editar</a>
-								<button
-									hx-delete={ templ.URL(fmt.Sprintf("/deleteProduct/%d", p.ID)) }
-									hx-target="closest tr"
-									hx-swap="outerHTML swap:1s"
-									hx-confirm="Tem certeza que deseja excluir este produto?"
-									class="text-red-600 hover:underline"
-									hx-on:htmx:afterRequest="location.reload()"
-								>
-									Excluir
-								</button>
-							</td>
+
+			<div class="hidden md:block">
+				<table class="min-w-full table-auto bg-white shadow-md rounded-lg">
+					<thead>
+						<tr class="bg-gray-800 text-white">
+							<th class="px-4 py-2 text-left">Nome</th>
+							<th class="px-4 py-2 text-left">Quantidade</th>
+							<th class="px-4 py-2 text-left">Valor</th>
+							<th class="px-4 py-2 text-left">Restante</th>
+							<th class="px-4 py-2 text-left">Categorias</th>
+							<th class="px-4 py-2 text-left">Ações</th>
 						</tr>
-					}
-				</tbody>
-			</table>
+					</thead>
+					<tbody>
+						for _, p := range pp {
+							<tr class="border-b hover:bg-gray-100">
+								<td class="px-4 py-2">
+									<a href={ templ.URL(fmt.Sprintf("/editProduct/%d", p.ProductID)) }>
+										{ p.Name }
+									</a>
+								</td>
+								<td class="px-4 py-2">{ strconv.FormatFloat(p.Quantity, 'f', -1, 64) }</td>
+								<td class="px-4 py-2">{ fmt.Sprintf("%.2f", p.TotalCost) }</td>
+								<td class="px-4 py-2">{ fmt.Sprintf("%.2f", p.Remaining) }</td>
+								<td class="px-4 py-2">
+									for _, cat := range p.Categorias {
+										<span class="inline-block bg-purple-100 text-purple-800 text-xs px-2 py-0.5 rounded mr-1 mb-1">{ cat }</span>
+									}
+								</td>
+								<td class="px-4 py-2 space-x-2">
+									<a
+										href={ templ.URL(fmt.Sprintf("/editProduct/%d", p.ProductID)) }
+										class="text-blue-600 hover:underline"
+									>Visualizar</a>
+									<button
+										hx-delete={ templ.URL(fmt.Sprintf("/deleteProduct/%d", p.ProductID)) }
+										hx-target="closest tr"
+										hx-swap="outerHTML swap:1s"
+										hx-confirm="Tem certeza que deseja excluir este produto?"
+										class="text-red-600 hover:underline"
+										hx-on:htmx:afterRequest="location.reload()"
+									>
+										Excluir
+									</button>
+								</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+
+			<div class="flex flex-col gap-3 md:hidden">
+				for _, p := range pp {
+					<div class="bg-white rounded shadow p-4">
+						<div class="flex justify-between items-start mb-2">
+							<a href={ templ.URL(fmt.Sprintf("/editProduct/%d", p.ProductID)) } class="font-semibold text-base text-blue-600 hover:underline">
+								{ p.Name }
+							</a>
+						</div>
+						<div class="text-xs text-gray-600 mb-1">
+							Quantidade: { strconv.FormatFloat(p.Quantity, 'f', -1, 64) }
+						</div>
+						<div class="text-xs text-gray-600 mb-1">
+							Valor: R$ { fmt.Sprintf("%.2f", p.TotalCost) }
+						</div>
+						<div class="text-xs text-gray-600 mb-3">
+							Restante: { fmt.Sprintf("%.2f", p.Remaining) }
+						</div>
+						if len(p.Categorias) > 0 {
+							<div class="mb-3">
+								for _, cat := range p.Categorias {
+									<span class="inline-block bg-purple-100 text-purple-800 text-xs px-2 py-0.5 rounded mr-1">{ cat }</span>
+								}
+							</div>
+						}
+						<div class="flex gap-2">
+							<a
+								href={ templ.URL(fmt.Sprintf("/editProduct/%d", p.ProductID)) }
+								class="flex-1 bg-blue-500 text-white text-center py-3 rounded hover:bg-blue-600 text-sm font-medium no-underline"
+							>
+								Visualizar
+							</a>
+							<button
+								hx-delete={ templ.URL(fmt.Sprintf("/deleteProduct/%d", p.ProductID)) }
+								hx-target="closest .bg-white"
+								hx-swap="outerHTML swap:1s"
+								hx-confirm="Tem certeza que deseja excluir este produto?"
+								class="flex-1 bg-red-500 text-white text-center py-3 rounded hover:bg-red-600 text-sm font-medium"
+								hx-on:htmx:afterRequest="location.reload()"
+							>
+								Excluir
+							</button>
+						</div>
+					</div>
+				}
+			</div>
 		</div>
-	}
+	</div>
 }

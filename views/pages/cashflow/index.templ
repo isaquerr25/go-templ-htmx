@@ -26,6 +26,8 @@ type CashFlowListProps struct {
 	TotalIn  float64
 	TotalOut float64
 	Balance  float64
+	Q        string
+	Category string
 }
 
 // 📄 Formulário de Criação / Atualização
@@ -167,6 +169,39 @@ templ List(p CashFlowListProps) {
 					</p>
 				</div>
 			</div>
+			<!-- Filters -->
+			<form
+				hx-get="/cashflow"
+				hx-target="body"
+				hx-swap="outerHTML"
+				class="flex flex-wrap gap-3 items-end"
+			>
+				<div>
+					<label for="q" class="block text-sm font-medium mb-1">Buscar</label>
+					<input
+						id="q"
+						name="q"
+						type="text"
+						value={ p.Q }
+						placeholder="Descrição, nota ou valor..."
+						class="p-2 border rounded w-60"
+					/>
+				</div>
+				<div>
+					<label for="category" class="block text-sm font-medium mb-1">Categoria</label>
+					<select id="category" name="category" class="p-2 border rounded" onchange="this.form.requestSubmit()">
+						<option value="">Todas</option>
+						<option selected?={ p.Category=="sale" } value="sale">Venda</option>
+						<option selected?={ p.Category=="service" } value="service">Serviço</option>
+						<option selected?={ p.Category=="purchase" } value="purchase">Compra</option>
+						<option selected?={ p.Category=="expense" } value="expense">Despesa</option>
+						<option selected?={ p.Category=="investment" } value="investment">Investimento</option>
+						<option selected?={ p.Category=="other" } value="other">Outro</option>
+					</select>
+				</div>
+				<button type="submit" class="bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Filtrar</button>
+				<a href="/cashflow" class="text-gray-500 hover:underline text-sm self-center">Limpar</a>
+			</form>
 			<a href="/cashflow/create" class="block bg-green-500 text-white text-center p-2 rounded hover:bg-green-600">
 				Nova Movimentação
 			</a>

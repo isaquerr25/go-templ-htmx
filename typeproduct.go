@@ -16,11 +16,15 @@ func GetAllTypeProductProps() ([]typeproduct.TypeProductProps, error) {
 	var props []typeproduct.TypeProductProps
 	for _, m := range models {
 		props = append(props, typeproduct.TypeProductProps{
-			ID:       m.ID,
-			Name:     m.Name,
-			Describe: m.Describe,
-			Quantity: m.Quantity,
-			Error:    map[string]string{},
+			ID:               m.ID,
+			Name:             m.Name,
+			Describe:         m.Describe,
+			Quantity:         m.Quantity,
+			GerminacaoInicio: m.GerminacaoInicio,
+			FloracaoInicio:   m.FloracaoInicio,
+			ColheitaInicio:   m.ColheitaInicio,
+			MorteInicio:      m.MorteInicio,
+			Error:            map[string]string{},
 		})
 	}
 	return props, nil
@@ -34,10 +38,15 @@ func (s Server) EditTypeProduct(c echo.Context) error {
 	}
 
 	props := typeproduct.TypeProductProps{
-		ID:       m.ID,
-		Name:     m.Name,
-		Describe: m.Describe,
-		Error:    map[string]string{},
+		ID:               m.ID,
+		Name:             m.Name,
+		Describe:         m.Describe,
+		Quantidade:       m.Quantity,
+		GerminacaoInicio: m.GerminacaoInicio,
+		FloracaoInicio:   m.FloracaoInicio,
+		ColheitaInicio:   m.ColheitaInicio,
+		MorteInicio:      m.MorteInicio,
+		Error:            map[string]string{},
 	}
 
 	return Render(c, 200, typeproduct.Index(props))
@@ -123,16 +132,33 @@ func validateTypeProduct(
 
 	// Prepara os props com os dados recebidos
 	props = typeproduct.TypeProductProps{
-		ID:       m.ID,
-		Name:     m.Name,
-		Describe: m.Describe,
-		Error:    errors,
+		ID:               m.ID,
+		Name:             m.Name,
+		Describe:         m.Describe,
+		Quantidade:       m.Quantity,
+		GerminacaoInicio: m.GerminacaoInicio,
+		FloracaoInicio:   m.FloracaoInicio,
+		ColheitaInicio:   m.ColheitaInicio,
+		MorteInicio:      m.MorteInicio,
+		Error:            errors,
 	}
 
 	// Validação dos campos
 	if m.Name == "" {
 		errors["Name"] = "Nome é obrigatório"
 		fmt.Println("Erro: Nome vazio")
+	}
+	if m.GerminacaoInicio <= 0 {
+		errors["GerminacaoInicio"] = "Dias para germinação é obrigatório"
+	}
+	if m.FloracaoInicio <= m.GerminacaoInicio {
+		errors["FloracaoInicio"] = "Deve ser maior que germinação"
+	}
+	if m.ColheitaInicio <= m.FloracaoInicio {
+		errors["ColheitaInicio"] = "Deve ser maior que floração"
+	}
+	if m.MorteInicio <= m.ColheitaInicio {
+		errors["MorteInicio"] = "Deve ser maior que colheita"
 	}
 
 	hasError := len(errors) > 0

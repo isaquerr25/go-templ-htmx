@@ -23,7 +23,7 @@ live/server:
 live/tailwind:
 	air \
 	--build.cmd "./tailwindcss  -o ./static/vendor/tailwind.css --minify && templ generate --notify-proxy" \
-	--build.bin "true" \
+	--build.entrypoint "true" \
 	--build.delay "100" \
 	--build.exclude_dir "" \
 	--build.include_dir "views" \
@@ -34,7 +34,7 @@ live/tailwind:
 live/sync_assets:
 	sleep 1 && air \
 	--build.cmd "templ generate --notify-proxy" \
-	--build.bin "true" \
+	--build.entrypoint "true" \
 	--build.delay "500" \
 	--build.exclude_dir "" \
 	--build.include_dir "public" \

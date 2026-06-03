@@ -7,26 +7,70 @@ import (
 )
 
 type PlantingItem struct {
-ID uint
-TypeProductID uint
-CropName string
-StartedAt time.Time
-EndedAt *time.Time
-IsCompleted bool
-AreaUsed float64
+	ID              uint
+	CulturaID       *uint
+	CulturaName     string
+	CurrentStage    string
+	CropName        string
+	StartedAt       time.Time
+	EndedAt         *time.Time
+	IsCompleted     bool
+	AreaUsed        float64
 }
 
-templ List(plantings []PlantingItem) {
+type FilterCultura struct {
+	ID   uint
+	Name string
+}
+
+templ List(plantings []PlantingItem, culturas []FilterCultura, q, completed, culturaId string) {
 @templates.Base() {
-<div class="max-w-[60rem] mx-auto mt-[5rem]">
+<div class="max-w-[70rem] mx-auto mt-[5rem]">
 	<h1 class="text-2xl font-bold mb-6">Lista de Plantios</h1>
 	<a href="/plantings/new" hx-target="main" hx-swap="outerHTML"
 		class="mb-4 inline-block bg-blue-500 text-white px-4 py-2 rounded">+ Novo Plantio</a>
+
+	<!-- Filtros -->
+	<form hx-get="/plantings/list" hx-target="main" hx-select="main" hx-swap="outerHTML"
+		class="flex flex-wrap gap-3 mb-6 p-4 bg-gray-50 border rounded items-end">
+		<div>
+			<label class="block text-xs text-gray-500 mb-1">Nome</label>
+			<input type="text" name="q" value={ q } placeholder="Nome da cultura..."
+				class="p-2 border rounded w-48" />
+		</div>
+		<div>
+			<label class="block text-xs text-gray-500 mb-1">Status</label>
+			<select name="completed" class="p-2 border rounded w-40">
+				<option value="">Todos</option>
+				<option value="true" selected={ completed=="true" }>Finalizados</option>
+				<option value="false" selected={ completed=="false" }>Em andamento</option>
+			</select>
+		</div>
+		<div>
+			<label class="block text-xs text-gray-500 mb-1">Cultura</label>
+			<select name="culturaId" class="p-2 border rounded w-48">
+				<option value="">Todas</option>
+				for _, tp := range culturas {
+				<option value={ fmt.Sprintf("%d", tp.ID) } selected={ fmt.Sprintf("%d", tp.ID)==culturaId }>
+					{ tp.Name }
+				</option>
+				}
+			</select>
+		</div>
+		<button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Filtrar</button>
+		if q != "" || completed != "" || culturaId != "" {
+		<a href="/plantings/list" hx-target="main" hx-select="main" hx-swap="outerHTML"
+			class="bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400">Limpar</a>
+		}
+	</form>
+
 	<table class="w-full border border-gray-300 rounded">
 		<thead class="bg-gray-100">
 			<tr>
 				<th class="p-2 text-left">Cultura</th>
-				<th class="p-2 text-left">Área Usada (ha)</th>
+				<th class="p-2 text-left">Cultura</th>
+				<th class="p-2 text-left">Estágio</th>
+				<th class="p-2 text-left">Área (ha)</th>
 				<th class="p-2 text-left">Início</th>
 				<th class="p-2 text-left">Fim</th>
 				<th class="p-2 text-left">Finalizado?</th>
@@ -36,7 +80,13 @@ templ List(plantings []PlantingItem) {
 		<tbody>
 			for _, p := range plantings {
 			<tr class="border-t border-gray-200">
-				<td class="p-2">{ p.CropName }</td>
+				<td class="p-2 font-medium">{ p.CropName }</td>
+				<td class="p-2 text-sm text-gray-600">{ p.CulturaName }</td>
+				<td class="p-2 text-sm">
+					if p.CurrentStage != "" {
+					{ p.CurrentStage }
+					}
+				</td>
 				<td class="p-2">{ fmt.Sprintf("%.2f", p.AreaUsed) }</td>
 				<td class="p-2 text-sm">{ p.StartedAt.Format("02/01/2006") }</td>
 				<td class="p-2 text-sm">
@@ -55,12 +105,12 @@ templ List(plantings []PlantingItem) {
 				</td>
 				<td class="p-2 space-x-2">
 					<a href={ templ.SafeURL(fmt.Sprintf("/plantings/edit/%d", p.ID)) } hx-target="main"
-						hx-swap="outerHTML" class="bg-yellow-500 text-white px-2 py-1 rounded">
+						hx-swap="outerHTML" class="bg-yellow-500 text-white px-2 py-1 rounded text-sm">
 						Editar
 					</a>
 					<button hx-delete={ fmt.Sprintf("/plantings/delete/%d", p.ID) }
 						hx-confirm="Deseja excluir este plantio?" hx-target="main" hx-swap="outerHTML"
-						class="bg-red-600 text-white px-2 py-1 rounded">
+						class="bg-red-600 text-white px-2 py-1 rounded text-sm">
 						Remover
 					</button>
 				</td>

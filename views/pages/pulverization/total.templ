@@ -1,0 +1,129 @@
+package pulverization
+
+import (
+	"github.com/isaquerr25/go-templ-htmx/views/templates"
+)
+
+templ Total(p PulverizationProps, use UseProps) {
+	@templates.Base() {
+		<form
+			hx-post="/pulverization/total-area"
+			hx-target="body"
+			hx-swap="outerHTML"
+			class="space-y-6 bg-white p-6 rounded-lg shadow-md max-w-3xl mx-auto"
+		>
+			<h2 class="text-xl font-bold text-gray-800 mb-4">
+				Nova Pulverização por Área Total
+			</h2>
+			<p class="text-sm text-gray-500 mb-4">
+				Os produtos serão distribuídos proporcionalmente à área de cada plantio ativo.
+			</p>
+			<div>
+				<h3 class="text-lg font-semibold text-gray-800 mb-1">Produtos</h3>
+				<p class="text-sm text-gray-500 mb-2">Total de produtos: { len(p.Products) }</p>
+				<div id="patomanco" class="space-y-4">
+					for i, pr := range p.Products {
+						@ItemsProdut(i, pr, use)
+					}
+				</div>
+				<button
+					hx-vals="js:{index: document.getElementById('patomanco').children.length}"
+					hx-swap="beforeend"
+					hx-target="#patomanco"
+					hx-get="/product/showNewInstace"
+					type="button"
+					class="text-blue-600 text-sm font-medium hover:underline mt-2"
+				>
+					+ Adicionar Produto
+				</button>
+			</div>
+			<div class="space-y-1">
+				<label for="appliedAt" class="block text-sm font-medium text-gray-700">Data de Aplicação</label>
+				<input
+					type="date"
+					name="appliedAt"
+					value={ p.AppliedAt.Format("2006-01-02") }
+					required
+					class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+				/>
+				if err := p.Error["AppliedAt"]; err != "" {
+					<p class="text-red-500 text-sm">{ err }</p>
+				}
+			</div>
+			<div class="space-y-1">
+				<label for="unit" class="block text-sm font-medium text-gray-700">Calda</label>
+				<input
+					type="text"
+					name="unit"
+					value={ p.Unit }
+					required
+					class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+				/>
+			</div>
+			<!-- Categorias dos produtos selecionados -->
+			<div>
+				<h3 class="text-lg font-semibold text-gray-800 mb-2">Categorias Aplicadas</h3>
+				<div id="categorias-summary" class="flex flex-wrap gap-2 min-h-[2rem] p-3 bg-gray-50 rounded-lg border">
+					<span class="text-sm text-gray-400 italic">Nenhum produto selecionado</span>
+				</div>
+			</div>
+			<div class="pt-4">
+				<button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md font-medium">
+					Criar
+				</button>
+				if errMsg := p.Error["Form"]; errMsg != "" {
+					<span class="text-red-500 text-sm">{ errMsg }</span>
+				}
+			</div>
+		</form>
+		<script>
+	function updateCategoriasSummary() {
+		const selects = document.querySelectorAll('select.item-product-select')
+		const categoriasSet = new Set()
+		selects.forEach(sel => {
+			const opt = sel.options[sel.selectedIndex]
+			if (opt && opt.value) {
+				const cats = opt.getAttribute('data-categorias')
+				if (cats) {
+					cats.split(', ').forEach(c => { if (c) categoriasSet.add(c) })
+				}
+			}
+		})
+		const container = document.getElementById('categorias-summary')
+		if (categoriasSet.size === 0) {
+			container.innerHTML = '<span class="text-sm text-gray-400 italic">Nenhum produto selecionado</span>'
+		} else {
+			let html = ''
+			categoriasSet.forEach(c => {
+				html += '<span class="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">' + c + '</span>'
+			})
+			container.innerHTML = html
+		}
+	}
+	document.addEventListener("change", function (e) {
+		if (e.target.matches('select[name^="products"][name$=".productId"]')) {
+			const select = e.target
+			const opt = select.options[select.selectedIndex]
+			const parent = select.closest("div.flex")
+			if (parent) {
+				const input = parent.querySelector('input[name^="products"][name$=".quantityUsed"]')
+				if (input) {
+					input.value = opt.getAttribute("data-qtd") || ""
+				}
+				const unit = parent.querySelector('.product-unit')
+				if (unit) {
+					unit.textContent = opt.getAttribute("data-unit") || "gg"
+				}
+			}
+			updateCategoriasSummary()
+		}
+	})
+	document.addEventListener("htmx:afterSwap", function (e) {
+		if (e.target.id === "patomanco") {
+			updateCategoriasSummary()
+		}
+	})
+	updateCategoriasSummary()
+</script>
+	}
+}

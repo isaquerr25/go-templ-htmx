@@ -15,32 +15,17 @@ import (
 func ListPulverizations() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var pulverizations []Pulverization
-
-		// Busca só as pulverizações
 		if err := db.Find(&pulverizations).Error; err != nil {
-			fmt.Printf("Erro ao buscar pulverizações: %v\n", err)
-			return echo.NewHTTPError(
-				http.StatusInternalServerError,
-				"Erro interno ao buscar pulverizações",
-			)
+			return echo.NewHTTPError(http.StatusInternalServerError, "Erro ao buscar pulverizações")
 		}
 
 		var items []pulverization.PulverizationProps
 		for _, p := range pulverizations {
 			var products []pulverization.ProductInput
-
-			// Busca os produtos aplicados manualmente para cada pulverização
-			if err := db.Debug().Find(&pulverizations).Error; err != nil {
-				fmt.Printf("Erro ao buscar pulverizações: %v\n", err)
-				return echo.NewHTTPError(
-					http.StatusInternalServerError,
-					"Erro interno ao buscar pulverizações",
-				)
-			}
-
-			var prods []pulverization.ProductInput
-			for _, ap := range products {
-				prods = append(prods, pulverization.ProductInput{
+			var prods []AppliedProduct
+			db.Where("pulverization_id = ?", p.ID).Find(&prods)
+			for _, ap := range prods {
+				products = append(products, pulverization.ProductInput{
 					ProductID:    ap.ProductID,
 					QuantityUsed: ap.QuantityUsed,
 				})
@@ -49,30 +34,22 @@ func ListPulverizations() echo.HandlerFunc {
 			items = append(items, pulverization.PulverizationProps{
 				ID:         p.ID,
 				PlantingID: p.PlantingID,
-				AppliedAt: pulverization.Date{
-					Time: p.AppliedAt,
-				},
-				Unit:     p.Unit,
-				Products: prods,
+				AppliedAt:  pulverization.Date{Time: p.AppliedAt},
+				Unit:       p.Unit,
+				Products:   products,
 			})
 		}
 
-		if err := pulverization.List(items).Render(c.Request().Context(), c.Response().Writer); err != nil {
-			fmt.Printf("Erro ao renderizar a lista de pulverizações: %v\n", err)
-			return echo.NewHTTPError(http.StatusInternalServerError, "Erro ao renderizar resposta")
-		}
-
-		return nil
+		return pulverization.List(items).Render(c.Request().Context(), c.Response().Writer)
 	}
 }
 
 func UpdatePulverization(db *gorm.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		id, _ := strconv.Atoi(c.Param("id"))
-
 		var p pulverization.PulverizationProps
 		if err := c.Bind(&p); err != nil {
-			return c.String(http.StatusBadRequest, "Erro ao ler dados do formulário")
+			return c.String(http.StatusBadRequest, "Erro ao ler dados")
 		}
 
 		var pul Pulverization
@@ -80,32 +57,33 @@ func UpdatePulverization(db *gorm.DB) echo.HandlerFunc {
 			return c.String(http.StatusNotFound, "Pulverização não encontrada")
 		}
 
-		// Atualiza os campos principais
-		pul.PlantingID = p.PlantingID
-		pul.AppliedAt = p.AppliedAt.Time
-		pul.Unit = p.Unit
-
-		// Atualiza no banco
-		if err := db.Save(&pul).Error; err != nil {
-			return c.String(http.StatusInternalServerError, "Erro ao atualizar pulverização")
-		}
-
-		// Remove produtos antigos
-		if err := db.Where("pulverization_id = ?", pul.ID).Delete(&AppliedProduct{}).Error; err != nil {
-			return c.String(http.StatusInternalServerError, "Erro ao limpar produtos antigos")
-		}
-
-		// Adiciona novos produtos
-		for _, prod := range p.Products {
-			applied := AppliedProduct{
-				PulverizationID: pul.ID,
-				ProductID:       prod.ProductID,
-				QuantityUsed:    prod.QuantityUsed,
+		_ = db.Transaction(func(tx *gorm.DB) error {
+			// Restore old stock
+			var oldProds []AppliedProduct
+			tx.Where("pulverization_id = ?", pul.ID).Find(&oldProds)
+			for _, ap := range oldProds {
+				restoreStock(tx, ap.ProductID, ap.QuantityUsed)
 			}
-			if err := db.Create(&applied).Error; err != nil {
-				return c.String(http.StatusInternalServerError, "Erro ao salvar produtos")
+			tx.Where("pulverization_id = ?", pul.ID).Delete(&AppliedProduct{})
+
+			pul.PlantingID = p.PlantingID
+			pul.AppliedAt = p.AppliedAt.Time
+			pul.Unit = p.Unit
+			tx.Save(&pul)
+
+			for _, prod := range p.Products {
+				if err := consumeStock(tx, prod.ProductID, prod.QuantityUsed); err != nil {
+					return err
+				}
+				applied := AppliedProduct{
+					PulverizationID: pul.ID,
+					ProductID:       prod.ProductID,
+					QuantityUsed:    prod.QuantityUsed,
+				}
+				tx.Create(&applied)
 			}
-		}
+			return nil
+		})
 
 		return ListPulverizations()(c)
 	}
@@ -114,46 +92,51 @@ func UpdatePulverization(db *gorm.DB) echo.HandlerFunc {
 func DeletePulverization(db *gorm.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		id, _ := strconv.Atoi(c.Param("id"))
-
-		if err := db.Delete(&Pulverization{}, id).Error; err != nil {
-			return c.String(http.StatusInternalServerError, "Erro ao deletar pulverização")
-		}
-
-		return ListPulverizations()(c)
+		db.Transaction(func(tx *gorm.DB) error {
+			var prods []AppliedProduct
+			tx.Where("pulverization_id = ?", id).Find(&prods)
+			for _, ap := range prods {
+				restoreStock(tx, ap.ProductID, ap.QuantityUsed)
+			}
+			tx.Delete(&Pulverization{}, id)
+			return nil
+		})
+		c.Response().Header().Set("HX-Refresh", "true")
+		return c.NoContent(http.StatusOK)
 	}
 }
 
 func ShowPulverizationForm(db *gorm.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		id := c.Param("id")
+		planIDStr := c.Param("planId")
 
 		a, _ := GetAllProductsProps()
 		b, _ := GetAllPlantings()
+
 		if id == "" {
-			// Se for criação, renderiza formulário vazio
-			return pulverization.Index(pulverization.PulverizationProps{
+			props := pulverization.PulverizationProps{
 				ID:         0,
 				PlantingID: 0,
 				Unit:       "",
 				Products:   []pulverization.ProductInput{},
 				Error:      map[string]string{},
-				AppliedAt: pulverization.Date{
-					Time: time.Now(),
-				},
-			}, pulverization.UseProps{
-				Prod: a,
-				Plan: b,
-			}).
+				AppliedAt:  pulverization.Date{Time: time.Now()},
+			}
+			if planIDStr != "" {
+				if pid, err := strconv.Atoi(planIDStr); err == nil {
+					props.PlantingID = uint(pid)
+				}
+			}
+			return pulverization.Index(props, pulverization.UseProps{Prod: a, Plan: b}).
 				Render(c.Request().Context(), c.Response().Writer)
 		}
 
-		// Busca a pulverização pelo ID
 		var pul Pulverization
 		if err := db.Preload("Products").First(&pul, id).Error; err != nil {
 			return c.String(http.StatusNotFound, "Pulverização não encontrada")
 		}
 
-		// Mapeia os produtos para o formato do front
 		var products []pulverization.ProductInput
 		for _, prod := range pul.Products {
 			products = append(products, pulverization.ProductInput{
@@ -165,72 +148,46 @@ func ShowPulverizationForm(db *gorm.DB) echo.HandlerFunc {
 		p := pulverization.PulverizationProps{
 			ID:         pul.ID,
 			PlantingID: pul.PlantingID,
-			AppliedAt: pulverization.Date{
-				Time: pul.AppliedAt,
-			},
-			Unit:     pul.Unit,
-			Products: products,
+			AppliedAt:  pulverization.Date{Time: pul.AppliedAt},
+			Unit:       pul.Unit,
+			Products:   products,
 		}
 
-		return pulverization.Index(p, pulverization.UseProps{
-			Prod: a,
-			Plan: b,
-		}).
+		return pulverization.Index(p, pulverization.UseProps{Prod: a, Plan: b}).
 			Render(c.Request().Context(), c.Response().Writer)
 	}
 }
 
 func CreatePulverization(db *gorm.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		fmt.Println("Início da função CreatePulverization") // ✅ 1
-
-		planId := c.Param("planId")
-		fmt.Println("planId recebido:", planId) // ✅ 2
-
-		planIdInt, err := strconv.Atoi(planId)
+		planIdStr := c.Param("planId")
+		planIdInt, err := strconv.Atoi(planIdStr)
 		if err != nil {
-			fmt.Println("Erro ao converter planId:", err) // ✅ 3
 			return c.String(http.StatusBadRequest, "planId inválido")
 		}
-		fmt.Println("planId convertido para inteiro:", planIdInt) // ✅ 4
 
-		// Supondo que você tenha parsing de data
 		appliedAtStr := c.FormValue("appliedAt")
-		fmt.Println("appliedAtStr recebido:", appliedAtStr) // ✅ 5
-
 		appliedAt, err := time.Parse("2006-01-02", appliedAtStr)
 		if err != nil {
-			fmt.Println("Erro ao fazer parse da data:", err) // ✅ 6
 			return c.String(http.StatusBadRequest, "Data inválida")
 		}
-		fmt.Println("Data aplicada convertida:", appliedAt) // ✅ 7
 
-		// Aqui entra alguma transação
 		err = db.Transaction(func(tx *gorm.DB) error {
-			fmt.Println("✅ Dentro da transação") // ✅ 1
-
 			pulv := Pulverization{
 				PlantingID: uint(planIdInt),
 				AppliedAt:  appliedAt,
 				Products:   []AppliedProduct{},
 			}
-
-			fmt.Println("➡️ Criando Pulverization...")
 			if err := tx.Create(&pulv).Error; err != nil {
-				fmt.Println("❌ Erro ao criar Pulverization:", err) // ✅ 2
 				return err
 			}
-			fmt.Println("✅ Pulverization criada com ID:", pulv.ID) // ✅ 3
 
 			form := c.Request().PostForm
-			fmt.Printf("🔍 Form recebido: %+v\n", form)
-
-			validProducts := 0 // 👈 contador de produtos válidos
+			validProducts := 0
 			i := 0
 			for {
 				keyID := fmt.Sprintf("products[%d].productId", i)
 				keyQty := fmt.Sprintf("products[%d].quantityUsed", i)
-
 				idStr := form.Get(keyID)
 				qtyStr := form.Get(keyQty)
 
@@ -238,99 +195,48 @@ func CreatePulverization(db *gorm.DB) echo.HandlerFunc {
 					break
 				}
 
-				fmt.Printf("🔁 Produto %d: id=%s, qtd=%s\n", i, idStr, qtyStr)
-
 				productID, err := strconv.Atoi(idStr)
 				if err != nil {
-					fmt.Println("⚠️ ProdutoID inválido:", idStr, err)
 					i++
 					continue
 				}
-
 				rawQuantity, err := strconv.ParseFloat(qtyStr, 64)
 				if err != nil {
-					fmt.Println("⚠️ Quantidade inválida:", qtyStr, err)
 					i++
 					continue
 				}
+				quantity := rawQuantity / 1000
 
-				// 🔄 Converter de ml/g para kg/L com base na densidade do produto
-				quantity := rawQuantity / 1000 // pois ml ou g → dividir por 1000 para obter kg/L
-
-				// 🔎 Buscar o produto no banco
-				var product Product
-				if err := tx.First(&product, productID).Error; err != nil {
-					fmt.Printf("❌ Produto com ID %d não encontrado\n", productID)
-					return fmt.Errorf("produto %d não encontrado", productID)
+				if err := consumeStock(tx, uint(productID), quantity); err != nil {
+					var prod Product
+					tx.First(&prod, productID)
+					return fmt.Errorf("estoque insuficiente para %s", prod.Name)
 				}
 
-				fmt.Printf("📦 Produto encontrado: %+v\n", product)
-
-				// ⚖️ Verificar se há quantidade suficiente
-				if product.Remaining < quantity {
-					fmt.Printf(
-						"❌ Estoque insuficiente para produto ID %d. Em estoque: %.2f, solicitado: %.2f\n",
-						productID,
-						product.Remaining,
-						quantity,
-					)
-					return fmt.Errorf("estoque insuficiente para produto %s", product.Name)
-				}
-
-				// ➖ Descontar do estoque
-				product.Remaining -= quantity
-				if err := tx.Save(&product).Error; err != nil {
-					fmt.Println("❌ Erro ao atualizar estoque do produto:", err)
-					return err
-				}
-
-				// ✅ Criar registro de aplicação
 				applied := AppliedProduct{
 					PulverizationID: pulv.ID,
 					ProductID:       uint(productID),
 					QuantityUsed:    quantity,
 				}
-				fmt.Printf("➡️ Salvando produto aplicado: %+v\n", applied)
-
-				if err := tx.Create(&applied).Error; err != nil {
-					fmt.Println("❌ Erro ao criar produto aplicado:", err)
-					return err
-				}
-
-				fmt.Println("✅ Produto aplicado salvo")
-				validProducts++ // 👈 incrementa se tudo deu certo
+				tx.Create(&applied)
+				validProducts++
 				i++
 			}
-			// ✅ Verifica se nenhum produto foi aplicado
 			if validProducts == 0 {
 				return fmt.Errorf("deve conter no mínimo 1 produto válido")
 			}
-
-			fmt.Println("✅ Transação concluída com sucesso")
 			return nil
 		})
 		if err != nil {
-			fmt.Println("Erro na transação:", err)
-
-			// Preenche o campo Error no props para mostrar no template
 			p := pulverization.PulverizationProps{
-				// ... preencha outros campos necessários para manter os dados do formulário
-				Error: map[string]string{
-					"Form": err.Error(),
-				},
+				Error: map[string]string{"Form": err.Error()},
 			}
-
 			a, _ := GetAllProductsProps()
 			b, _ := GetAllPlantings()
-
-			// Renderiza o template passando p, para mostrar o erro na página
-			return pulverization.Index(p, pulverization.UseProps{
-				Prod: a,
-				Plan: b,
-			}).Render(c.Request().Context(), c.Response().Writer)
+			return pulverization.Index(p, pulverization.UseProps{Prod: a, Plan: b}).
+				Render(c.Request().Context(), c.Response().Writer)
 		}
 
-		fmt.Println("Fim da função CreatePulverization") // ✅ 12
 		c.Response().Header().Set("HX-Redirect", "../")
 		return c.String(http.StatusOK, "")
 	}
@@ -338,31 +244,16 @@ func CreatePulverization(db *gorm.DB) echo.HandlerFunc {
 
 func CreatePulverizationWithSplit(db *gorm.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		fmt.Println("🟢 [1] Iniciando CreatePulverizationWithSplit =======================")
-
-		// 1️⃣ Garantir que o form foi parseado
 		form := c.Request().PostForm
 		if form == nil {
-			fmt.Println("🔵 [2] Form ainda não parseado, chamando ParseForm()")
-			if err := c.Request().ParseForm(); err != nil {
-				fmt.Println("❌ [2.1] Erro ParseForm:", err)
-				return c.String(http.StatusBadRequest, "Erro ao ler form: "+err.Error())
-			}
+			c.Request().ParseForm()
 			form = c.Request().PostForm
-			fmt.Println("✅ [2.2] ParseForm OK, form len:", len(form))
-		} else {
-			fmt.Println("✅ [3] Form já disponível, len:", len(form))
 		}
 
-		// 2️⃣ Campos gerais
 		appliedAtStr := form.Get("appliedAt")
 		unit := form.Get("unit")
-		fmt.Println("📅 [4] appliedAt:", appliedAtStr)
-		fmt.Println("⚙️ [5] unit:", unit)
-
 		appliedAt, err := time.Parse("2006-01-02", appliedAtStr)
 		if err != nil {
-			fmt.Println("❌ [6] Data inválida:", err)
 			p := pulverization.PulverizationProps{
 				Error: map[string]string{"AppliedAt": "Data inválida"},
 			}
@@ -371,77 +262,35 @@ func CreatePulverizationWithSplit(db *gorm.DB) echo.HandlerFunc {
 			return pulverization.Index(p, pulverization.UseProps{Prod: a, Plan: b}).
 				Render(c.Request().Context(), c.Response().Writer)
 		}
-		fmt.Println("✅ [7] Data convertida:", appliedAt)
 
-		// 3️⃣ Leitura dos produtos
 		type prodTotal struct {
 			ProductID uint
 			Quantity  float64
-			RawInput  float64
 		}
 		var totals []prodTotal
 		pIdx := 0
-
-		fmt.Println("🔶 [8] Iniciando leitura de produtos...")
-
 		for {
 			keyID := fmt.Sprintf("products[%d].productId", pIdx)
 			keyQty := fmt.Sprintf("products[%d].quantityUsed", pIdx)
 			idStr := form.Get(keyID)
 			qtyStr := form.Get(keyQty)
-			fmt.Printf(
-				"   🔹 [8.%d] Verificando keys: %s=%s | %s=%s\n",
-				pIdx,
-				keyID,
-				idStr,
-				keyQty,
-				qtyStr,
-			)
-
 			if idStr == "" && qtyStr == "" {
-				fmt.Printf("   🔸 [8.%d] Parando leitura de produtos, chegou fim.\n", pIdx)
 				break
 			}
-
 			pIdx++
 			idInt, err := strconv.Atoi(idStr)
 			if err != nil {
-				fmt.Printf("   ❌ [8.%d] ProdutoID inválido (%s): %v\n", pIdx, idStr, err)
 				continue
 			}
 			rawQty, err := strconv.ParseFloat(qtyStr, 64)
 			if err != nil {
-				fmt.Printf("   ❌ [8.%d] Quantidade inválida (%s): %v\n", pIdx, qtyStr, err)
 				continue
 			}
 			quantity := rawQty / 1000.0
-			fmt.Printf(
-				"   ✅ [8.%d] Produto OK -> ID=%d, Raw=%.3f, Conv=%.3f\n",
-				pIdx,
-				idInt,
-				rawQty,
-				quantity,
-			)
-
-			totals = append(
-				totals,
-				prodTotal{ProductID: uint(idInt), Quantity: quantity, RawInput: rawQty},
-			)
-		}
-
-		fmt.Printf("✅ [9] Produtos lidos total: %d\n", len(totals))
-		for i, t := range totals {
-			fmt.Printf(
-				"   🧾 Produto[%d]: ID=%d, QTD=%.3f, RAW=%.3f\n",
-				i,
-				t.ProductID,
-				t.Quantity,
-				t.RawInput,
-			)
+			totals = append(totals, prodTotal{ProductID: uint(idInt), Quantity: quantity})
 		}
 
 		if len(totals) == 0 {
-			fmt.Println("❌ [10] Nenhum produto informado")
 			p := pulverization.PulverizationProps{
 				Error: map[string]string{"Form": "Informe ao menos 1 produto"},
 			}
@@ -451,66 +300,27 @@ func CreatePulverizationWithSplit(db *gorm.DB) echo.HandlerFunc {
 				Render(c.Request().Context(), c.Response().Writer)
 		}
 
-		// 4️⃣ Leitura das subdivisões
-		fmt.Println("🔷 [11] Iniciando leitura de subdivisões...")
-
 		type subdiv struct {
 			PlantingID uint
 			Percent    float64
 		}
-
 		var subs []subdiv
 		sumPercent := 0.0
-
 		for sIdx := 0; ; sIdx++ {
 			keyPlant := fmt.Sprintf("plans[%d].planId", sIdx)
 			keyPerc := fmt.Sprintf("plans[%d].quantityUsed", sIdx)
 			plantStr := form.Get(keyPlant)
 			percStr := form.Get(keyPerc)
-
-			// se ambos vazios, tenta ver se tem mais índices seguintes
 			if plantStr == "" && percStr == "" {
-				// tenta detectar se existe mais algum índice depois
-				nextKey := fmt.Sprintf("plans[%d].planId", sIdx+1)
-				if form.Get(nextKey) == "" {
-					fmt.Printf("   🔸 [11.%d] Parando leitura subdivs.\n", sIdx)
-					break
-				}
-				continue
+				break
 			}
-
-			plantInt, err := strconv.Atoi(plantStr)
-			if err != nil {
-				fmt.Printf("   ❌ [11.%d] plantingId inválido: %s\n", sIdx, plantStr)
-				continue
-			}
-			perc, err := strconv.ParseFloat(percStr, 64)
-			if err != nil {
-				fmt.Printf("   ❌ [11.%d] percent inválido: %s\n", sIdx, percStr)
-				continue
-			}
-
-			if perc < 0 {
-				fmt.Printf("   ⚠️ [11.%d] percent negativo ajustado para 0\n", sIdx)
-				perc = 0
-			}
+			plantInt, _ := strconv.Atoi(plantStr)
+			perc, _ := strconv.ParseFloat(percStr, 64)
 			sumPercent += perc
 			subs = append(subs, subdiv{PlantingID: uint(plantInt), Percent: perc})
-			fmt.Printf(
-				"   ✅ [11.%d] Subdiv OK: PlantingID=%d, Percent=%.2f\n",
-				sIdx,
-				plantInt,
-				perc,
-			)
-		}
-
-		fmt.Printf("✅ [12] Total subdivisões: %d | SomaPercent=%.2f\n", len(subs), sumPercent)
-		for i, s := range subs {
-			fmt.Printf("   🌱 Subdiv[%d]: PlantingID=%d, Percent=%.2f\n", i, s.PlantingID, s.Percent)
 		}
 
 		if len(subs) == 0 {
-			fmt.Println("❌ [13] Nenhuma subdivisão informada")
 			p := pulverization.PulverizationProps{
 				Error: map[string]string{"Form": "Informe ao menos 1 plantio"},
 			}
@@ -521,13 +331,9 @@ func CreatePulverizationWithSplit(db *gorm.DB) echo.HandlerFunc {
 		}
 
 		if math.Abs(sumPercent-100.0) > 0.0001 {
-			fmt.Printf("❌ [14] Soma das porcentagens %.2f != 100\n", sumPercent)
 			p := pulverization.PulverizationProps{
 				Error: map[string]string{
-					"Form": fmt.Sprintf(
-						"Soma das porcentagens deve ser 100 (atual %.2f)",
-						sumPercent,
-					),
+					"Form": fmt.Sprintf("Soma das porcentagens deve ser 100 (atual %.2f)", sumPercent),
 				},
 			}
 			a, _ := GetAllProductsProps()
@@ -536,50 +342,13 @@ func CreatePulverizationWithSplit(db *gorm.DB) echo.HandlerFunc {
 				Render(c.Request().Context(), c.Response().Writer)
 		}
 
-		// 5️⃣ Verificar estoque
-		fmt.Println("🧮 [15] Verificando estoque de produtos...")
-		for _, t := range totals {
-			var product Product
-			fmt.Printf("   🔸 Buscando produto ID=%d\n", t.ProductID)
-			if err := db.First(&product, t.ProductID).Error; err != nil {
-				fmt.Printf("   ❌ Erro ao buscar produto %d: %v\n", t.ProductID, err)
-				return c.String(
-					http.StatusBadRequest,
-					fmt.Sprintf("Produto %d não encontrado", t.ProductID),
-				)
-			}
-			fmt.Printf(
-				"   ✅ Produto %s encontrado. Remaining=%.3f | Necessário=%.3f\n",
-				product.Name,
-				product.Remaining,
-				t.Quantity,
-			)
-			if product.Remaining < t.Quantity {
-				fmt.Printf("   ❌ Estoque insuficiente para %s\n", product.Name)
-				return c.String(
-					http.StatusBadRequest,
-					fmt.Sprintf(
-						"Estoque insuficiente para %s (restante %.3f, necessário %.3f)",
-						product.Name,
-						product.Remaining,
-						t.Quantity,
-					),
-				)
-			}
-		}
-
-		// 6️⃣ Iniciar transação
-
-		fmt.Println("⚙️ [16] Iniciando transação GORM...")
-
 		err = db.Transaction(func(tx *gorm.DB) error {
-			for i, s := range subs {
-				fmt.Printf(
-					"➡️ [16.%d] Criando pulverização para PlantingID=%d (%.2f%%)\n",
-					i,
-					s.PlantingID,
-					s.Percent,
-				)
+			for _, t := range totals {
+				if err := consumeStock(tx, t.ProductID, t.Quantity); err != nil {
+					return fmt.Errorf("estoque insuficiente para produto %d", t.ProductID)
+				}
+			}
+			for _, s := range subs {
 				pulv := Pulverization{
 					PlantingID: s.PlantingID,
 					AppliedAt:  appliedAt,
@@ -587,65 +356,128 @@ func CreatePulverizationWithSplit(db *gorm.DB) echo.HandlerFunc {
 					Products:   []AppliedProduct{},
 				}
 				if err := tx.Create(&pulv).Error; err != nil {
-					fmt.Printf("❌ [16.%d] Erro ao criar pulverização: %v\n", i, err)
 					return err
 				}
-				fmt.Printf("✅ [16.%d] Pulverização criada ID=%d\n", i, pulv.ID)
-
-				for j, t := range totals {
+				for _, t := range totals {
 					share := t.Quantity * (s.Percent / 100.0)
-					fmt.Printf("   💧 [16.%d.%d] Produto %d, share=%.4f\n", i, j, t.ProductID, share)
-
-					var product Product
-					if err := tx.First(&product, t.ProductID).Error; err != nil {
-						fmt.Printf("   ❌ [16.%d.%d] Erro ao buscar produto: %v\n", i, j, err)
-						return err
-					}
-
-					if product.Remaining < share {
-						fmt.Printf(
-							"   ❌ [16.%d.%d] Estoque insuficiente: %s restante=%.4f, necessário=%.4f\n",
-							i,
-							j,
-							product.Name,
-							product.Remaining,
-							share,
-						)
-						return fmt.Errorf("estoque insuficiente para produto %s", product.Name)
-					}
-
-					product.Remaining -= share
-					if err := tx.Save(&product).Error; err != nil {
-						fmt.Printf("   ❌ [16.%d.%d] Erro ao atualizar estoque: %v\n", i, j, err)
-						return err
-					}
-
 					applied := AppliedProduct{
 						PulverizationID: pulv.ID,
 						ProductID:       t.ProductID,
 						QuantityUsed:    share,
 					}
-					if err := tx.Create(&applied).Error; err != nil {
-						fmt.Printf("   ❌ [16.%d.%d] Erro ao criar AppliedProduct: %v\n", i, j, err)
-						return err
-					}
-					fmt.Printf("   ✅ [16.%d.%d] AppliedProduct criado OK\n", i, j)
+					tx.Create(&applied)
 				}
 			}
-			fmt.Println("✅ [17] Transação completada com sucesso")
 			return nil
 		})
 		if err != nil {
-			fmt.Println("❌ [18] Erro na transação final:", err)
-			p := pulverization.PulverizationProps{Error: map[string]string{"Form": err.Error()}}
+			p := pulverization.PulverizationProps{
+				Error: map[string]string{"Form": err.Error()},
+			}
 			a, _ := GetAllProductsProps()
 			b, _ := GetAllPlantings()
 			return pulverization.Index(p, pulverization.UseProps{Prod: a, Plan: b}).
 				Render(c.Request().Context(), c.Response().Writer)
 		}
 
-		fmt.Println("🏁 [19] Pulverização criada com sucesso. Redirecionando...")
 		c.Response().Header().Set("HX-Redirect", "../")
+		return c.String(http.StatusOK, "")
+	}
+}
+
+// CreatePulverizationTotalArea distribui produtos por todos os plantios ativos proporcional à área
+func CreatePulverizationTotalArea(db *gorm.DB) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		c.Request().ParseForm()
+		form := c.Request().PostForm
+
+		appliedAtStr := form.Get("appliedAt")
+		appliedAt, err := time.Parse("2006-01-02", appliedAtStr)
+		if err != nil {
+			return c.String(http.StatusBadRequest, "Data inválida")
+		}
+
+		type prodTotal struct {
+			ProductID uint
+			Quantity  float64
+		}
+		var totals []prodTotal
+		pIdx := 0
+		for {
+			keyID := fmt.Sprintf("products[%d].productId", pIdx)
+			keyQty := fmt.Sprintf("products[%d].quantityUsed", pIdx)
+			idStr := form.Get(keyID)
+			qtyStr := form.Get(keyQty)
+			if idStr == "" && qtyStr == "" {
+				break
+			}
+			pIdx++
+			idInt, _ := strconv.Atoi(idStr)
+			rawQty, _ := strconv.ParseFloat(qtyStr, 64)
+			quantity := rawQty / 1000.0
+			totals = append(totals, prodTotal{ProductID: uint(idInt), Quantity: quantity})
+		}
+		if len(totals) == 0 {
+			return c.String(http.StatusBadRequest, "Informe ao menos 1 produto")
+		}
+
+		// Buscar plantios ativos (não completos, não em morte)
+		var plantings []Planting
+		db.Where("is_completed = ?", false).Find(&plantings)
+
+		// Filtrar plantios em estágio ativo (excluir morte)
+		var active []Planting
+		var totalArea float64
+		for _, pl := range plantings {
+			if pl.TypeProductID != nil {
+				var tp TypeProduct
+				if err := db.First(&tp, *pl.TypeProductID).Error; err == nil {
+					stage := computeCurrentStage(pl.StartedAt, tp)
+					if stage == "morte" {
+						continue
+					}
+				}
+			}
+			active = append(active, pl)
+			totalArea += pl.AreaUsed
+		}
+
+		if len(active) == 0 || totalArea <= 0 {
+			return c.String(http.StatusBadRequest, "Nenhum plantio ativo disponível")
+		}
+
+		err = db.Transaction(func(tx *gorm.DB) error {
+			for _, t := range totals {
+				if err := consumeStock(tx, t.ProductID, t.Quantity); err != nil {
+					return fmt.Errorf("estoque insuficiente para produto %d", t.ProductID)
+				}
+			}
+
+			for _, pl := range active {
+				share := pl.AreaUsed / totalArea
+				pulv := Pulverization{
+					PlantingID: pl.ID,
+					AppliedAt:  appliedAt,
+					Products:   []AppliedProduct{},
+				}
+				tx.Create(&pulv)
+				for _, t := range totals {
+					qty := t.Quantity * share
+					applied := AppliedProduct{
+						PulverizationID: pulv.ID,
+						ProductID:       t.ProductID,
+						QuantityUsed:    qty,
+					}
+					tx.Create(&applied)
+				}
+			}
+			return nil
+		})
+		if err != nil {
+			return c.String(http.StatusBadRequest, err.Error())
+		}
+
+		c.Response().Header().Set("HX-Redirect", "/")
 		return c.String(http.StatusOK, "")
 	}
 }

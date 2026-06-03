@@ -5,24 +5,25 @@ import (
 "github.com/isaquerr25/go-templ-htmx/views/templates"
 )
 
-type TypeProductProps struct {
-ID uint
-Name string
+type CulturaProps struct {
+	ID   uint
+	Name string
 }
 
 type PlantingProps struct {
-ID uint
-TypePoductID uint `form:"typeProdutcId"`
+	ID         uint
+	CulturaID  uint `form:"culturaId"`
 
-CropName string `form:"cropName"`
+	CropName string `form:"cropName"`
 StartedAt string `form:"startedAt"` // no formato yyyy-mm-dd
 EndedAt string `form:"endedAt"` // no formato yyyy-mm-dd ou vazio
 IsCompleted bool `form:"isCompleted"`
 AreaUsed float64 `form:"areaUsed"`
+CurrentStage string
 Error map[string]string
 }
 
-templ Index(p PlantingProps, typeProducts []TypeProductProps) {
+templ Index(p PlantingProps, culturas []CulturaProps) {
 @templates.Base() {
 <div class="max-w-[50rem] mx-auto mt-[5rem]">
 	<h1 class="text-xl font-bold mb-4">
@@ -74,13 +75,13 @@ templ Index(p PlantingProps, typeProducts []TypeProductProps) {
 			<p class="text-red-500">{ e }</p>
 			}
 		</div>
-		<!-- Tipo de Produto -->
+		<!-- Cultura -->
 		<div>
-			<label for="typeProdutcId" class="block font-medium">Tipo de Produto</label>
-			<select id="typeProdutcId" name="typeProdutcId" required class="w-full p-2 border rounded">
-				<option value="">Selecione um tipo</option>
-				for _, f := range typeProducts {
-				<option value={ fmt.Sprintf("%d", f.ID) } selected={ f.ID==p.TypePoductID }>
+			<label for="culturaId" class="block font-medium">Cultura</label>
+			<select id="culturaId" name="culturaId" required class="w-full p-2 border rounded">
+				<option value="">Selecione uma cultura</option>
+				for _, f := range culturas {
+				<option value={ fmt.Sprintf("%d", f.ID) } selected={ f.ID==p.CulturaID }>
 					{ f.Name }
 				</option>
 				}

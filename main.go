@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/a-h/templ"
@@ -38,95 +37,6 @@ func Render(ctx echo.Context, statusCode int, t templ.Component) error {
 	return ctx.HTML(statusCode, buf.String())
 }
 
-func validateProduct(c echo.Context, p *Product) (
-	k produto.ProductProps,
-	hasError bool,
-	err error,
-) {
-	var values map[string]string
-
-	// Bind request parameters to values map
-	err = c.Bind(&values)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	// Trim spaces and assign to the product fields
-	p.Name = strings.TrimSpace(values["name"])
-	p.Description = strings.TrimSpace(values["description"])
-	p.Unit = strings.TrimSpace(values["unit"])
-
-	// Validate Quantity
-	quantity, err := strconv.ParseFloat(values["quantity"], 64)
-	if err != nil {
-		k.Error["Quantity"] = "Only numbers are allowed"
-		hasError = true
-	} else if quantity <= 0 {
-		k.Error["Quantity"] = "Cannot be less than or equal to zero"
-		hasError = true
-	}
-	p.Quantity = quantity
-
-	// Validate Quantity
-	remaining, err := strconv.ParseFloat(values["remaining"], 64)
-	if err != nil {
-		k.Error["remaining"] = "Only numbers are allowed"
-		hasError = true
-	} else if quantity <= 0 {
-		k.Error["remaining"] = "Cannot be less than or equal to zero"
-		hasError = true
-	}
-	p.Remaining = remaining
-
-	// Validate TotalCost
-	totalCost, err := strconv.ParseFloat(values["totalCost"], 64)
-	if err != nil {
-		k.Error["TotalCost"] = "Only numbers are allowed"
-		hasError = true
-	} else if totalCost < 1 {
-		k.Error["TotalCost"] = "Cannot be less than 1"
-		hasError = true
-	}
-	p.TotalCost = totalCost
-
-	// Validate Date
-	date, err := time.Parse("2006-01-02", values["date"])
-	if err != nil {
-		k.Error["Date"] = "Invalid date format"
-		hasError = true
-	}
-	p.Date = date
-
-	// Validate Name
-	if strings.TrimSpace(values["name"]) == "" {
-		k.Error["Name"] = "Name is required"
-		hasError = true
-	}
-
-	prePulverizationBase, err := strconv.ParseFloat(values["prePulverizationBase"], 64)
-	if err != nil {
-		k.Error["PrePulverizationBase"] = "Only numbers are allowed"
-		hasError = true
-	} else if prePulverizationBase < 0 {
-		k.Error["PrePulverizationBase"] = "Cannot be less than 1"
-		hasError = true
-	}
-	p.PrePulverizationBase = prePulverizationBase
-
-	// Populate ProductProps with validated data
-	k.Name = p.Name
-	k.Quantity = p.Quantity
-	k.Unit = p.Unit
-	k.Date = p.Date
-	k.TotalCost = p.TotalCost
-	k.Description = p.Description
-	k.Remaining = p.Remaining
-	k.PrePulverizationBase = p.PrePulverizationBase
-
-	return
-}
-
 func main() {
 	e := echo.New()
 
@@ -155,12 +65,42 @@ func main() {
 	db.AutoMigrate(&Sale{})
 	db.AutoMigrate(&Harvest{})
 	db.AutoMigrate(&TypeProduct{})
+	db.AutoMigrate(&Vaccination{})
+	db.AutoMigrate(&ProductLot{})
+	db.AutoMigrate(&Cultura{})
+	db.AutoMigrate(&ProductCultura{})
+	db.AutoMigrate(&Categoria{})
+	db.AutoMigrate(&ProductCategoria{})
+	seedCategorias()
 
 	e.Static("/static", "static")
 
-	e.POST("/updateProduct/:ID", s.UpdateProduct)
+	// ========================
+	// PRODUCT ROUTES
+	// ========================
+	e.GET("/listProduct", HandleListProduct)
+	e.GET("/listProduct/:ID", HandleShowProduct)
+	e.GET("/newProduct", HandleNewProduct)
+	e.POST("/createProduct", HandleCreateProduct)
+	e.POST("/updateProduct/:ID", HandleUpdateProduct)
+	e.GET("/editProduct/:ID", HandleEditProduct)
+	e.DELETE("/deleteProduct/:ID", HandleDeleteProduct)
+	e.DELETE("/product/remove/:id", HandleRemoveProductVisual)
 
-	e.GET("/editProduct/:ID", s.EditProduct)
+	// LOT ROUTES
+	e.GET("/product/:id/add-lot", HandleAddLot)
+	e.POST("/product/:id/create-lot", HandleCreateLot)
+	e.GET("/editLot/:id", HandleEditLot)
+	e.PUT("/updateLot/:id", HandleUpdateLot)
+	e.DELETE("/deleteLot/:id", HandleDeleteLot)
+
+	// PRODUCT-CULTURA ROUTES
+	e.GET("/product/:id/culturas/edit", HandleEditCulturesModal)
+	e.POST("/product/:id/culturas/save", HandleSaveCultures)
+
+	// ========================
+	// PULVERIZATION SHARED
+	// ========================
 	e.GET("/product/showNewInstace", func(c echo.Context) error {
 		jj, _ := strconv.Atoi(c.QueryParam("index"))
 
@@ -189,120 +129,9 @@ func main() {
 
 	e.DELETE("/plan/remove/:id", func(c echo.Context) error {
 		id := c.Param("id")
-
-		// Aqui você pode, se quiser, validar ou logar
 		fmt.Println("Plan removido visualmente:", id)
-
-		// Não precisa deletar no banco — é apenas visual
-		return c.NoContent(200) // HTMX entende que deu certo e aplica o swap
+		return c.NoContent(200)
 	})
-
-	e.DELETE("/product/remove/:id", func(c echo.Context) error {
-		id := c.Param("id")
-
-		// Aqui você pode, se quiser, validar ou logar
-		fmt.Println("Produto removido visualmente:", id)
-
-		// Não precisa deletar no banco — é apenas visual
-		return c.NoContent(200) // HTMX entende que deu certo e aplica o swap
-	})
-
-	e.DELETE("/deleteProduct/:ID", s.DeleteProduct)
-
-	e.POST("/createProduct", func(c echo.Context) error {
-		p := &Product{}
-		k, hasError, err := validateProduct(c, p)
-		if err != nil {
-			return err
-		}
-
-		if !hasError {
-			r := db.Create(&p)
-			if r.Error != nil {
-				fmt.Println(r.Error)
-
-				return err
-			}
-			c.Response().Header().Set("HX-Redirect", "/listProduct")
-			c.Response().WriteHeader(200)
-			return c.String(200, "")
-		}
-
-		return Render(c, 200, produto.Index(k))
-	})
-
-	e.GET("/newProduct",
-		func(c echo.Context) error {
-			return Render(c, 200, produto.Index(produto.ProductProps{
-				Quantity:             1,
-				Date:                 time.Now(),
-				Error:                map[string]string{},
-				Name:                 "",
-				Remaining:            1,
-				Unit:                 "",
-				TotalCost:            150,
-				Description:          "",
-				PrePulverizationBase: 0.01,
-			}))
-		},
-	)
-
-	e.GET("/listProduct",
-
-		func(c echo.Context) error {
-			var pp []Product
-
-			r := db.Find(&pp)
-			if r.Error != nil {
-				fmt.Println(r.Error)
-				return err
-			}
-
-			props := make([]produto.ProductProps, len(pp))
-
-			for i, p := range pp {
-				props[i] = produto.ProductProps{
-					ID:       p.ID,
-					Name:     p.Name,
-					Quantity: p.Quantity,
-
-					Remaining:   p.Remaining,
-					Unit:        p.Unit,
-					Date:        p.Date,
-					TotalCost:   p.TotalCost,
-					Description: p.Description,
-					Error:       map[string]string{},
-				}
-			}
-			return Render(c, 200, produto.List(props))
-		},
-	)
-
-	e.GET("/listProduct/:ID",
-		func(c echo.Context) error {
-			var p Product
-
-			r := db.First(&p, c.Param("ID"))
-			if r.Error != nil {
-				fmt.Println(r.Error)
-				return err
-			}
-
-			props := produto.ProductProps{
-				ID:          p.ID,
-				Name:        p.Name,
-				Quantity:    p.Quantity,
-				Remaining:   p.Remaining,
-				Unit:        p.Unit,
-				Date:        p.Date,
-				TotalCost:   p.TotalCost,
-				Description: p.Description,
-				Error:       map[string]string{},
-			}
-
-			return Render(c, 200, produto.Index(props))
-		},
-	)
 
 	e.DELETE("/fertilization/:id", DeleteFertilization)
 
@@ -509,12 +338,55 @@ func main() {
 	e.GET("/productsell/:id", EditViewProductSell)
 	e.POST("/productsell/update/:id", UpdateProductSell)
 	e.GET("/", ListDasboard())
+	e.GET("/dashboard/plantings/:id", DashboardShowPlanting())
 	e.GET("/dashboard/plantings/:id/", DashboardShowPlanting())
 
 	e.POST("/dashboard/plantings/:planId/service/create", CreateService(db))
 	e.POST("/service/update/:id", UpdateService(db))
 	e.DELETE("/service/delete/:id", DeleteService(db))
 	e.GET("/dashboard/plantings/:planId/service", NewService(db))
+
+	// Vacinação (emergencial pós-germinação)
+	e.GET("/dashboard/plantings/:planId/vaccination/create", ShowVaccinationForm(db))
+	e.POST("/dashboard/plantings/:planId/vaccination/create", CreateVaccination(db))
+	e.DELETE("/vaccination/:id", DeleteVaccination(db))
+	e.GET("/vaccination/list", ListVaccinations(db))
+
+	// CULTURA ROUTES
+	e.GET("/culturas", HandleListCulturas)
+	e.GET("/culturas/new", HandleShowCulturaForm)
+	e.POST("/culturas/create", HandleCreateCultura)
+	e.GET("/culturas/edit/:id", HandleShowCulturaForm)
+	e.POST("/culturas/:id", HandleUpdateCultura)
+	e.DELETE("/culturas/:id", HandleDeleteCultura)
+
+	// CATEGORIA ROUTES
+	e.GET("/categorias", HandleListCategorias)
+	e.GET("/categorias/new", HandleShowCategoriaForm)
+	e.POST("/categorias/create", HandleCreateCategoria)
+	e.GET("/categorias/edit/:id", HandleShowCategoriaForm)
+	e.POST("/categorias/:id", HandleUpdateCategoria)
+	e.DELETE("/categorias/:id", HandleDeleteCategoria)
+
+	// Pulverização total por área
+	e.GET("/pulverization/total-area", func(c echo.Context) error {
+		return pulverization.Total(
+			pulverization.PulverizationProps{
+				ID:         0,
+				PlantingID: 0,
+				Unit:       "",
+				Products:   []pulverization.ProductInput{},
+				Error:      map[string]string{},
+				AppliedAt: pulverization.Date{
+					Time: time.Now(),
+				},
+			},
+			pulverization.UseProps{
+				Prod: []produto.ProductProps{},
+			},
+		).Render(c.Request().Context(), c.Response().Writer)
+	})
+	e.POST("/pulverization/total-area", CreatePulverizationTotalArea(db))
 
 	// Rotas
 	e.GET("/typeProduct", s.ListTypeProduct)
@@ -541,6 +413,32 @@ func main() {
 	e.DELETE("/cashflow/:id", DeleteCashFlow)
 
 	e.Logger.Fatal(e.Start(":1323"))
+}
+
+func seedCategorias() {
+	categorias := []string{
+		"Acaricida",
+		"Adjuvante",
+		"Bactericida",
+		"Espalhante Adesivo",
+		"Estimulante",
+		"Fertilizante",
+		"Fungicida",
+		"Herbicida",
+		"Inoculante",
+		"Inseticida",
+		"Nematicida",
+		"Óleo Mineral",
+		"Óleo Vegetal",
+		"Regulador de Crescimento",
+		"Surfactante",
+	}
+	for _, name := range categorias {
+		var existing Categoria
+		if err := db.Where("LOWER(name) = LOWER(?)", name).First(&existing).Error; err != nil {
+			db.Create(&Categoria{Name: name})
+		}
+	}
 }
 
 func nullableDate(t *time.Time) string {

@@ -12,6 +12,62 @@ import (
 	"gorm.io/gorm"
 )
 
+func computeCurrentStageFromCultura(startedAt time.Time, c Cultura) string {
+	days := int(time.Since(startedAt).Hours() / 24)
+	if days < 0 {
+		days = 0
+	}
+	if c.MorteInicio > 0 && days >= c.MorteInicio {
+		return "morte"
+	}
+	if c.ColheitaInicio > 0 && days >= c.ColheitaInicio {
+		return "colheita"
+	}
+	if c.FloracaoInicio > 0 && days >= c.FloracaoInicio {
+		return "floracao"
+	}
+	if c.GerminacaoInicio > 0 && days >= c.GerminacaoInicio {
+		return "germinacao"
+	}
+	return "plantio"
+}
+
+func computeCurrentStage(startedAt time.Time, tp TypeProduct) string {
+	days := int(time.Since(startedAt).Hours() / 24)
+	if days < 0 {
+		days = 0
+	}
+	if tp.MorteInicio > 0 && days >= tp.MorteInicio {
+		return "morte"
+	}
+	if tp.ColheitaInicio > 0 && days >= tp.ColheitaInicio {
+		return "colheita"
+	}
+	if tp.FloracaoInicio > 0 && days >= tp.FloracaoInicio {
+		return "floracao"
+	}
+	if tp.GerminacaoInicio > 0 && days >= tp.GerminacaoInicio {
+		return "germinacao"
+	}
+	return "plantio"
+}
+
+func stageLabel(stage string) string {
+	switch stage {
+	case "plantio":
+		return "🌱 Plantio"
+	case "germinacao":
+		return "🌿 Germinação"
+	case "floracao":
+		return "🌸 Floração"
+	case "colheita":
+		return "🌾 Colheita"
+	case "morte":
+		return "🍂 Morte"
+	}
+	return stage
+}
+
 func GetAllPlantings() ([]planting.PlantingProps, error) {
 	var dbPlantings []Planting
 	if err := db.Find(&dbPlantings).Error; err != nil {
@@ -25,14 +81,29 @@ func GetAllPlantings() ([]planting.PlantingProps, error) {
 			endedAtStr = p.EndedAt.Format("2006-01-02")
 		}
 
+		stage := ""
+		if p.CulturaID != nil {
+			var ct Cultura
+			if err := db.First(&ct, *p.CulturaID).Error; err == nil {
+				stage = stageLabel(computeCurrentStageFromCultura(p.StartedAt, ct))
+			}
+		}
+
+		culturaID := uint(0)
+		if p.CulturaID != nil {
+			culturaID = *p.CulturaID
+		}
+
 		plantings = append(plantings, planting.PlantingProps{
 			ID:          p.ID,
+			CulturaID:   culturaID,
 			CropName:    p.CropName,
 			StartedAt:   p.StartedAt.Format("2006-01-02"),
 			EndedAt:     endedAtStr,
 			IsCompleted: p.IsCompleted,
 			AreaUsed:    p.AreaUsed,
-			Error:       nil, // pode ser preenchido posteriormente em outra lógica
+			CurrentStage: stage,
+			Error:       nil,
 		})
 	}
 
@@ -104,14 +175,14 @@ func validatePlanting(c echo.Context) (props planting.PlantingProps, hasError bo
 	// Interpretação do checkbox
 	isCompleted := isCompletedStr == "on" || isCompletedStr == "true" || isCompletedStr == "1"
 
-	typeProdutcId, _ := strconv.ParseFloat(c.FormValue("typeProdutcId"), 64)
+	culturaId, _ := strconv.ParseFloat(c.FormValue("culturaId"), 64)
 	// Preenche props
 	props.CropName = cropName
 	props.StartedAt = startedAtStr
 	props.EndedAt = endedAtStr
 	props.IsCompleted = isCompleted
 	props.AreaUsed = areaUsed
-	props.TypePoductID = uint(typeProdutcId)
+	props.CulturaID = uint(culturaId)
 
 	fmt.Printf("Props validados: %+v\n", props)
 
@@ -120,27 +191,67 @@ func validatePlanting(c echo.Context) (props planting.PlantingProps, hasError bo
 
 func ListPlantings(db *gorm.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		var plantings []Planting
+		q := strings.TrimSpace(c.QueryParam("q"))
+		completed := c.QueryParam("completed")
+		culturaIDStr := c.QueryParam("culturaId")
 
-		if err := db.Find(&plantings).Error; err != nil {
+		var plantings []Planting
+		query := db.Model(&Planting{})
+
+		if q != "" {
+			query = query.Where("crop_name LIKE ?", "%"+q+"%")
+		}
+		if completed == "true" {
+			query = query.Where("is_completed = ?", true)
+		} else if completed == "false" {
+			query = query.Where("is_completed = ?", false)
+		}
+		if culturaIDStr != "" {
+			if id, err := strconv.Atoi(culturaIDStr); err == nil {
+				query = query.Where("cultura_id = ?", id)
+			}
+		}
+
+		if err := query.Find(&plantings).Error; err != nil {
 			return c.String(http.StatusInternalServerError, "Erro ao buscar plantios")
+		}
+
+		var allCulturas []planting.FilterCultura
+		var ctList []Cultura
+		db.Find(&ctList)
+		for _, ct := range ctList {
+			allCulturas = append(allCulturas, planting.FilterCultura{
+				ID:   ct.ID,
+				Name: ct.Name,
+			})
 		}
 
 		var items []planting.PlantingItem
 		for _, p := range plantings {
+			stage := ""
+			culturaName := ""
+			if p.CulturaID != nil {
+				var ct Cultura
+				if err := db.First(&ct, *p.CulturaID).Error; err == nil {
+					stage = stageLabel(computeCurrentStageFromCultura(p.StartedAt, ct))
+					culturaName = ct.Name
+				}
+			}
+
 			items = append(items, planting.PlantingItem{
-				ID:          p.ID,
-				CropName:    p.CropName,
-				StartedAt:   p.StartedAt,
-				EndedAt:     p.EndedAt,
-				IsCompleted: p.IsCompleted,
-				AreaUsed:    p.AreaUsed,
+				ID:           p.ID,
+				CulturaID:    p.CulturaID,
+				CropName:     p.CropName,
+				StartedAt:    p.StartedAt,
+				EndedAt:      p.EndedAt,
+				IsCompleted:  p.IsCompleted,
+				AreaUsed:     p.AreaUsed,
+				CurrentStage: stage,
+				CulturaName:  culturaName,
 			})
 		}
 
-		// Gerar HTML via templ do go-templ-htmx
-		return planting.List(items).Render(c.Request().Context(), c.Response().Writer)
-		// Responder com HTML
+		return planting.List(items, allCulturas, q, completed, culturaIDStr).Render(c.Request().Context(), c.Response().Writer)
 	}
 }
 
@@ -159,7 +270,7 @@ func CreatePlanting(db *gorm.DB) echo.HandlerFunc {
 			return c.Render(
 				http.StatusOK,
 				"main",
-				planting.Index(props, []planting.TypeProductProps{}),
+				planting.Index(props, []planting.CulturaProps{}),
 			)
 		}
 
@@ -180,13 +291,18 @@ func CreatePlanting(db *gorm.DB) echo.HandlerFunc {
 			endedAt = &t
 		}
 
+		culturaID := &props.CulturaID
+		if props.CulturaID == 0 {
+			culturaID = nil
+		}
+
 		newPlanting := Planting{
 			CropName:      props.CropName,
 			StartedAt:     startedAt,
 			EndedAt:       endedAt,
 			IsCompleted:   props.IsCompleted,
 			AreaUsed:      props.AreaUsed,
-			TypeProductID: &props.TypePoductID,
+			CulturaID:     culturaID,
 		}
 
 		if err := db.Create(&newPlanting).Error; err != nil {
@@ -224,7 +340,7 @@ func UpdatePlanting(db *gorm.DB) echo.HandlerFunc {
 			return c.Render(
 				http.StatusOK,
 				"main",
-				planting.Index(props, []planting.TypeProductProps{}),
+				planting.Index(props, []planting.CulturaProps{}),
 			)
 		}
 
@@ -234,7 +350,7 @@ func UpdatePlanting(db *gorm.DB) echo.HandlerFunc {
 			return c.Render(
 				http.StatusOK,
 				"main",
-				planting.Index(props, []planting.TypeProductProps{}),
+				planting.Index(props, []planting.CulturaProps{}),
 			)
 		}
 
@@ -246,7 +362,7 @@ func UpdatePlanting(db *gorm.DB) echo.HandlerFunc {
 				return c.Render(
 					http.StatusOK,
 					"main",
-					planting.Index(props, []planting.TypeProductProps{}),
+					planting.Index(props, []planting.CulturaProps{}),
 				)
 			}
 			endedAt = &t
@@ -257,12 +373,17 @@ func UpdatePlanting(db *gorm.DB) echo.HandlerFunc {
 			return c.String(http.StatusNotFound, "Plantio não encontrado")
 		}
 
+		culturaID := &props.CulturaID
+		if props.CulturaID == 0 {
+			culturaID = nil
+		}
+
 		plant.CropName = props.CropName
 		plant.StartedAt = startedAt
 		plant.EndedAt = endedAt
 		plant.IsCompleted = props.IsCompleted
 		plant.AreaUsed = props.AreaUsed
-		plant.TypeProductID = &props.TypePoductID // atenção ao typo aqui
+		plant.CulturaID = culturaID
 
 		if err := db.Save(&plant).Error; err != nil {
 			return c.String(http.StatusInternalServerError, "Erro ao atualizar plantio")
@@ -288,17 +409,17 @@ func DeletePlanting(db *gorm.DB) echo.HandlerFunc {
 
 func ShowPlantingForm(db *gorm.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		var pp []TypeProduct
+		var culturas []Cultura
 
-		if err := db.Find(&pp).Error; err != nil {
-			return c.String(http.StatusInternalServerError, "Erro ao buscar tipos de produtos")
+		if err := db.Find(&culturas).Error; err != nil {
+			return c.String(http.StatusInternalServerError, "Erro ao buscar culturas")
 		}
 
-		props := make([]planting.TypeProductProps, len(pp))
-		for i, p := range pp {
-			props[i] = planting.TypeProductProps{
-				ID:   p.ID,
-				Name: p.Name,
+		props := make([]planting.CulturaProps, len(culturas))
+		for i, ct := range culturas {
+			props[i] = planting.CulturaProps{
+				ID:   ct.ID,
+				Name: ct.Name,
 			}
 		}
 
@@ -334,20 +455,20 @@ func ShowPlantingForm(db *gorm.DB) echo.HandlerFunc {
 			endedAt = plant.EndedAt.Format("2006-01-02")
 		}
 
-		var typeProductID uint
-		if plant.TypeProductID != nil {
-			typeProductID = *plant.TypeProductID
+		var culturaID uint
+		if plant.CulturaID != nil {
+			culturaID = *plant.CulturaID
 		}
 
 		p := planting.PlantingProps{
-			ID:           plant.ID,
-			CropName:     plant.CropName,
-			StartedAt:    plant.StartedAt.Format("2006-01-02"),
-			EndedAt:      endedAt,
-			IsCompleted:  plant.IsCompleted,
-			AreaUsed:     plant.AreaUsed,
-			Error:        map[string]string{},
-			TypePoductID: typeProductID,
+			ID:         plant.ID,
+			CropName:   plant.CropName,
+			StartedAt:  plant.StartedAt.Format("2006-01-02"),
+			EndedAt:    endedAt,
+			IsCompleted: plant.IsCompleted,
+			AreaUsed:   plant.AreaUsed,
+			Error:      map[string]string{},
+			CulturaID:  culturaID,
 		}
 
 		return planting.Index(p, props).

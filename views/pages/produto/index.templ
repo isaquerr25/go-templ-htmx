@@ -1,175 +1,422 @@
 package produto
-
 import (
 	"fmt"
 	"github.com/isaquerr25/go-templ-htmx/views/templates"
 	"time"
 )
 
+type LotProps struct {
+	ID        uint
+	ProductID uint
+	Quantity  float64
+	Remaining float64
+	UnitCost  float64
+	TotalCost float64
+	Date      time.Time
+}
+
+type CultureRow struct {
+	PCID        uint
+	CulturaID   uint
+	CulturaName string
+	Proportion  float64
+}
+
+type CategoriaCheckItem struct {
+	ID       uint
+	Name     string
+	Selected bool
+}
+
 type ProductProps struct {
-	ID                   uint      `form:"id"`
-	Name                 string    `form:"name"`
-	Quantity             float64   `form:"quantity"`
-	Remaining            float64   `form:"remaining"`
-	Unit                 string    `form:"unit"`
-	Date                 time.Time `form:"date"`
-	TotalCost            float64   `form:"totalCost"`
-	PrePulverizationBase float64   `form:"prePulverizationBase"`
-	Description          string    `form:"description"`
+	ID                   uint
+	Name                 string
+	Description          string
+	Unit                 string
+	BaseValue            float64
+	PrePulverizationBase float64
+	Remaining            float64
+	Quantity             float64
+	TotalCost            float64
+	Date                 time.Time
+	Lots                 []LotProps
+	Cultures             []CultureRow
+	AllCategorias        []CategoriaCheckItem
+	CategoriasLabel      string
 	Error                map[string]string
+	IsNew                bool
 }
 
 templ Index(p ProductProps) {
 	@templates.Base() {
-		<div class="max-w-[50rem] mx-auto mt-[5rem]">
-			<h1 class="text-xl font-bold mb-4">Cadastro de Produto</h1>
-			<form
-				if p.ID !=0 {
-					hx-post={ fmt.Sprintf("/updateProduct/%d", p.ID) }
-				} else {
-					hx-post="/createProduct"
-				}
-				hx-target="body"
-				hx-swap="outerHTML"
-				class="space-y-4"
-			>
-				<!-- Nome -->
-				<div>
-					<label for="name" class="block font-medium">Nome</label>
-					<input
-						id="name"
-						value={ p.Name }
-						type="text"
-						name="name"
-						placeholder="Ex: Fertilizante A"
-						required
-						class="w-full p-2 border rounded"
-					/>
-					if e, ok := p.Error["Name"]; ok {
-						<p class="text-red-500">{ e }</p>
+		<div class="max-w-[60rem] mx-auto mt-[5rem] space-y-8">
+
+			<div id="modal-container"></div>
+
+			<div class="bg-white p-6 rounded-lg shadow-md border">
+				<h1 class="text-2xl font-bold mb-6 border-b pb-2">
+					Informações do Produto
+				</h1>
+
+				<form
+					hx-post={
+						func() string {
+							if p.IsNew {
+								return "/createProduct"
+							}
+							return fmt.Sprintf("/updateProduct/%d", p.ID)
+						}()
 					}
-				</div>
-				<!-- Quantidade total -->
-				<div>
-					<label for="quantity" class="block font-medium">Quantidade Total. L/Kg</label>
-					<input
-						id="quantity"
-						value={ fmt.Sprintf("%.3f", p.Quantity) }
-						type="number"
-						name="quantity"
-						placeholder="Ex: 100.000"
-						required
-						step="0.001"
-						class="w-full p-2 border rounded"
-					/>
-					if e, ok := p.Error["Quantity"]; ok {
-						<p class="text-red-500">{ e }</p>
+					hx-target="body"
+					class="grid grid-cols-2 gap-4"
+				>
+					<div class="col-span-2">
+						<label class="block text-sm font-medium">Nome do Produto</label>
+						<input value={ p.Name } name="name" class="w-full p-2 border rounded bg-gray-50" />
+						if e, ok := p.Error["Name"]; ok {
+							<p class="text-red-500 text-sm">{ e }</p>
+						}
+					</div>
+
+					<div>
+						<label class="block text-sm font-medium">Unidade</label>
+						<select name="unit" class="w-full p-2 border rounded">
+							<option value="Litros" selected?={ p.Unit == "Litros" }>Litros</option>
+							<option value="Quilos" selected?={ p.Unit == "Quilos" }>Quilos</option>
+						</select>
+					</div>
+
+					<div>
+						<label class="block text-sm font-medium">Dica de Dosagem</label>
+						<input
+							value={ fmt.Sprintf("%.2f", p.BaseValue) }
+							name="baseValue"
+							type="number"
+							step="0.01"
+							class="w-full p-2 border rounded"
+						/>
+					</div>
+
+					<div class="col-span-2">
+						<label class="block text-sm font-medium">Descrição</label>
+						<textarea name="description" class="w-full p-2 border rounded bg-gray-50">{ p.Description }</textarea>
+					</div>
+
+					if len(p.AllCategorias) > 0 {
+						<div class="col-span-2">
+							<label class="block text-sm font-medium mb-2">Categorias</label>
+							<div class="flex flex-wrap gap-3">
+								for _, cat := range p.AllCategorias {
+									<label class="flex items-center gap-1 text-sm cursor-pointer">
+										<input
+											type="checkbox"
+											name="categoria_ids"
+											value={ fmt.Sprintf("%d", cat.ID) }
+											if cat.Selected {
+												checked
+											}
+											class="rounded border-gray-300"
+										/>
+										{ cat.Name }
+									</label>
+								}
+							</div>
+						</div>
 					}
+
+					<div class="col-span-2">
+						<button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+							if p.IsNew {
+								Criar Produto
+							} else {
+								Salvar Produto
+							}
+						</button>
+					</div>
+				</form>
+			</div>
+
+			if !p.IsNew {
+
+				<div class="bg-white p-6 rounded-lg shadow-md border">
+					<div class="flex justify-between items-center mb-4">
+						<h2 class="text-xl font-semibold">Lotes em Estoque</h2>
+						<button
+							hx-get={ fmt.Sprintf("/product/%d/add-lot", p.ID) }
+							hx-target="#modal-container"
+							hx-swap="innerHTML"
+							class="bg-green-600 text-white px-3 py-1 rounded text-sm"
+						>
+							+ Novo Lote
+						</button>
+					</div>
+
+					<table class="w-full border-collapse text-left">
+						<thead>
+							<tr class="bg-gray-100">
+								<th class="p-3 border">Data</th>
+								<th class="p-3 border">Qtd</th>
+								<th class="p-3 border">Restante</th>
+								<th class="p-3 border">Custo(Unitário)</th>
+								<th class="p-3 border">Total</th>
+								<th class="p-3 border text-center">Ações</th>
+							</tr>
+						</thead>
+						<tbody>
+							for _, lot := range p.Lots {
+								@LotRow(lot)
+							}
+						</tbody>
+					</table>
 				</div>
-				<!-- Quantidade restante -->
-				<div>
-					<label for="remaining" class="block font-medium">Quantidade Restante L/Kg</label>
-					<input
-						id="remaining"
-						value={ fmt.Sprintf("%.3f", p.Remaining) }
-						type="number"
-						name="remaining"
-						placeholder="Ex: 25.500"
-						required
-						step="0.001"
-						class="w-full p-2 border rounded"
-					/>
-					if e, ok := p.Error["Remaining"]; ok {
-						<p class="text-red-500">{ e }</p>
-					}
-				</div>
-				<!-- Unidade -->
-				<div>
-					<label for="unit" class="block font-medium">Unidade</label>
-					<select id="unit" name="unit" class="w-full p-2 border rounded">
-						<option selected?={ p.Unit=="Litros" } value="Litros">Litros</option>
-						<option selected?={ p.Unit=="Quilos" } value="Quilos">Quilos</option>
-					</select>
-					if e, ok := p.Error["Unit"]; ok {
-						<p class="text-red-500">{ e }</p>
-					}
-				</div>
-				<!-- Data -->
-				<div>
-					<label for="date" class="block font-medium">Data</label>
-					<input
-						id="date"
-						value={ p.Date.Format("2006-01-02") }
-						type="date"
-						name="date"
-						required
-						class="w-full p-2 border rounded"
-					/>
-					if e, ok := p.Error["Date"]; ok {
-						<p class="text-red-500">{ e }</p>
-					}
-				</div>
-				<!-- Custo total -->
-				<div>
-					<label for="totalCost" class="block font-medium">Custo Total (R$)</label>
-					<input
-						id="totalCost"
-						value={ fmt.Sprintf("%.2f", p.TotalCost) }
-						type="number"
-						name="totalCost"
-						step="0.01"
-						placeholder="Ex: 500.00"
-						required
-						class="w-full p-2 border rounded"
-					/>
-					if e, ok := p.Error["TotalCost"]; ok {
-						<p class="text-red-500">{ e }</p>
-					}
-				</div>
-				<div>
-					<label for="prePulverizationBase" class="block font-medium">Base de Aplicação ML/Gramas</label>
-					<input
-						id="prePulverizationBase"
-						value={ fmt.Sprintf("%.2f", p.PrePulverizationBase) }
-						type="number"
-						name="prePulverizationBase"
-						step="0.01"
-						placeholder="Ex: 500.00"
-						required
-						class="w-full p-2 border rounded"
-					/>
-					if e, ok := p.Error["PrePulverizationBase"]; ok {
-						<p class="text-red-500">{ e }</p>
-					}
-				</div>
-				<!-- Descrição -->
-				<div>
-					<label for="description" class="block font-medium">Descrição</label>
-					<textarea
-						id="description"
-						name="description"
-						placeholder="Informações adicionais sobre o produto"
-						class="w-full p-2 border rounded"
-					>{ p.Description }</textarea>
-					if e, ok := p.Error["Description"]; ok {
-						<p class="text-red-500">{ e }</p>
-					}
-				</div>
-				<!-- Botão principal -->
-				<button type="submit" class="w-full bg-blue-500 text-white p-2 rounded">
-					if p.ID == 0 {
-						Cadastrar
+
+				<div class="bg-white p-6 rounded-lg shadow-md border">
+					<h2 class="text-xl font-semibold mb-4">Culturas & Receituário</h2>
+					<p class="text-sm text-gray-600 mb-4">
+						Defina quais culturas este produto atende e a proporção de aplicação por hectare.
+					</p>
+
+					if len(p.Cultures) == 0 {
+						<p class="text-gray-500 text-sm italic mb-4">Nenhuma cultura vinculada.</p>
 					} else {
-						Atualizar
+						<table class="w-full border-collapse text-left mb-4">
+							<thead>
+								<tr class="bg-gray-100">
+									<th class="p-2 border text-sm">Cultura</th>
+									<th class="p-2 border text-sm">Proporção (por ha)</th>
+								</tr>
+							</thead>
+							<tbody>
+								for _, c := range p.Cultures {
+									<tr class="border-b">
+										<td class="p-2 border text-sm">{ c.CulturaName }</td>
+										<td class="p-2 border text-sm font-mono">{ fmt.Sprintf("%.2f", c.Proportion) }</td>
+									</tr>
+								}
+							</tbody>
+						</table>
 					}
-				</button>
-				<!-- Botão de remover -->
-				if p.ID != 0 {
-					<button type="button" class="w-full bg-red-500 text-white p-2 rounded">
-						Remover
+
+					<button
+						hx-get={ fmt.Sprintf("/product/%d/culturas/edit", p.ID) }
+						hx-target="#modal-container"
+						hx-swap="innerHTML"
+						class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition text-sm"
+					>
+						Editar
 					</button>
-				}
-			</form>
+				</div>
+
+			}
+
 		</div>
 	}
+}
+
+templ LotRow(l LotProps) {
+	<tr id={ fmt.Sprintf("lot-%d", l.ID) } class="hover:bg-gray-50">
+		<td class="p-3 border">{ l.Date.Format("02/01/2006") }</td>
+		<td class="p-3 border font-mono">{ fmt.Sprintf("%.3f", l.Quantity) }</td>
+		<td class="p-3 border text-blue-600 font-bold">{ fmt.Sprintf("%.3f", l.Remaining) }</td>
+		<td class="p-3 border text-green-700">R$ { fmt.Sprintf("%.2f", l.UnitCost) }</td>
+		<td class="p-3 border">R$ { fmt.Sprintf("%.2f", l.TotalCost) }</td>
+		<td class="p-3 border text-center">
+			<button
+				hx-get={ fmt.Sprintf("/editLot/%d", l.ID) }
+				hx-target="#modal-container"
+				hx-swap="innerHTML"
+				class="text-blue-500 mr-2"
+			>
+				Editar
+			</button>
+			<button
+				hx-delete={ fmt.Sprintf("/deleteLot/%d", l.ID) }
+				hx-target={ fmt.Sprintf("#lot-%d", l.ID) }
+				hx-swap="outerHTML"
+				hx-confirm="Excluir este lote?"
+				class="text-red-500"
+			>
+				Excluir
+			</button>
+		</td>
+	</tr>
+}
+
+templ EditLotModal(l LotProps) {
+	<div
+		class="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+		onclick="if(event.target===this){document.getElementById('modal-container').innerHTML=''}"
+	>
+		<div class="bg-white w-[28rem] p-6 rounded-lg shadow-lg">
+			<h2 class="text-xl font-bold mb-4">Editar Lote</h2>
+			<div id="form-error" class="text-red-600 text-sm mb-3"></div>
+
+			<form
+				hx-put={ fmt.Sprintf("/updateLot/%d", l.ID) }
+				hx-target={ fmt.Sprintf("#lot-%d", l.ID) }
+				hx-swap="outerHTML"
+				hx-on::after-request="
+					if(event.detail.xhr.status === 200){
+						document.getElementById('modal-container').innerHTML=''
+					}else{
+						document.getElementById('form-error').innerText = event.detail.xhr.responseText
+					}
+				"
+				class="space-y-4"
+			>
+				<div>
+					<label class="block text-sm font-medium">Quantidade</label>
+					<input
+						name="quantity" value={ fmt.Sprintf("%.3f", l.Quantity) }
+						type="number" step="0.001" class="w-full p-2 border rounded" required
+					/>
+				</div>
+
+				<div>
+					<label class="block text-sm font-medium">Custo Total</label>
+					<input
+						name="totalCost" value={ fmt.Sprintf("%.2f", l.TotalCost) }
+						type="number" step="0.01" class="w-full p-2 border rounded"
+					/>
+				</div>
+
+				<div>
+					<label class="block text-sm font-medium">Restante</label>
+					<input
+						name="remaining" value={ fmt.Sprintf("%.3f", l.Remaining) }
+						type="number" step="0.001" class="w-full p-2 border rounded" required
+					/>
+				</div>
+
+				<div>
+					<label class="block text-sm font-medium">Data de Compra</label>
+					<input
+						name="purchaseDate" value={ l.Date.Format("2006-01-02") }
+						type="date" class="w-full p-2 border rounded"
+					/>
+				</div>
+
+				<div class="flex justify-end gap-2 pt-4">
+					<button type="button" onclick="document.getElementById('modal-container').innerHTML=''"
+						class="px-3 py-1 bg-gray-300 rounded">Cancelar</button>
+					<button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Salvar</button>
+				</div>
+			</form>
+		</div>
+	</div>
+}
+
+templ CreateLotModal(l LotProps) {
+	<div
+		class="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+		onclick="if(event.target===this){document.getElementById('modal-container').innerHTML=''}"
+	>
+		<div class="bg-white w-[28rem] p-6 rounded-lg shadow-lg">
+			<h2 class="text-xl font-bold mb-4">Novo Lote</h2>
+			<div id="form-error" class="text-red-600 text-sm mb-3"></div>
+
+			<form
+				hx-post={ fmt.Sprintf("/product/%d/create-lot", l.ProductID) }
+				hx-target="tbody"
+				hx-swap="beforeend"
+				hx-on::after-request="
+					if(event.detail.xhr.status === 200){
+						document.getElementById('modal-container').innerHTML=''
+					}else{
+						document.getElementById('form-error').innerText = event.detail.xhr.responseText
+					}
+				"
+				class="space-y-4"
+			>
+				<div>
+					<label class="block text-sm font-medium">Data da Compra</label>
+					<input name="purchaseDate" type="date" class="w-full p-2 border rounded" required />
+				</div>
+
+				<div>
+					<label class="block text-sm font-medium">Quantidade</label>
+					<input name="quantity" type="number" step="0.001" class="w-full p-2 border rounded" required />
+				</div>
+
+				<div>
+					<label class="block text-sm font-medium">Valor Total Pago</label>
+					<input name="totalCost" type="number" step="0.01" class="w-full p-2 border rounded" required />
+				</div>
+
+				<div>
+					<label class="block text-sm font-medium">Restante</label>
+					<input name="remaining" type="number" step="0.001" class="w-full p-2 border rounded" required />
+				</div>
+
+				<div class="flex justify-end gap-2 pt-4">
+					<button type="button" onclick="document.getElementById('modal-container').innerHTML=''"
+						class="px-3 py-1 bg-gray-300 rounded">Cancelar</button>
+					<button type="submit" class="px-4 py-2 bg-green-600 text-white rounded">Criar</button>
+				</div>
+			</form>
+		</div>
+	</div>
+}
+
+templ EditCulturesModal(rows []CultureRow, productID uint) {
+	<div
+		class="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+		onclick="if(event.target===this){document.getElementById('modal-container').innerHTML=''}"
+	>
+		<div class="bg-white w-[40rem] p-6 rounded-lg shadow-lg max-h-[90vh] overflow-y-auto">
+			<div class="flex justify-between items-center mb-4">
+				<h2 class="text-xl font-bold">Editar Culturas & Receituário</h2>
+				<button onclick="document.getElementById('modal-container').innerHTML=''"
+					class="text-gray-500 hover:text-gray-700 text-2xl leading-none">&times;</button>
+			</div>
+
+			<p class="text-sm text-gray-600 mb-4">
+				Defina a proporção por hectare para cada cultura. Deixe em branco ou "0" para remover o vínculo.
+			</p>
+
+			<form
+				hx-post={ fmt.Sprintf("/product/%d/culturas/save", productID) }
+				hx-target="this"
+				hx-swap="outerHTML"
+			>
+				<input type="hidden" name="product_id" value={ fmt.Sprintf("%d", productID) } />
+				<table class="w-full border-collapse text-left mb-4">
+					<thead>
+						<tr class="bg-gray-100">
+							<th class="p-2 border text-sm">Cultura</th>
+							<th class="p-2 border text-sm">Proporção (por ha)</th>
+						</tr>
+					</thead>
+					<tbody>
+						for i, c := range rows {
+							<tr class="border-b">
+								<td class="p-2 border text-sm">
+									{ c.CulturaName }
+									<input type="hidden" name={ fmt.Sprintf("cultures[%d].cultura_id", i) } value={ fmt.Sprintf("%d", c.CulturaID) } />
+								</td>
+								<td class="p-2 border text-sm">
+									<input
+										type="number"
+										name={ fmt.Sprintf("cultures[%d].proportion", i) }
+										if c.Proportion > 0 {
+											value={ fmt.Sprintf("%.2f", c.Proportion) }
+										}
+										step="0.0001" min="0"
+										class="w-full p-1 border rounded text-sm"
+										placeholder="0 = sem vínculo"
+									/>
+								</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+
+				<div class="flex justify-end gap-2 pt-4 border-t">
+					<button type="button" onclick="document.getElementById('modal-container').innerHTML=''"
+						class="px-3 py-1 bg-gray-300 rounded">Cancelar</button>
+					<button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Salvar</button>
+				</div>
+			</form>
+		</div>
+	</div>
 }
